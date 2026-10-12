@@ -322,6 +322,23 @@ footer a:hover{color:#fff}
 .admin-shell{min-height:100vh;background:var(--bg)}
 .admin-top{background:var(--brand-d);color:#fff;padding:14px 20px;display:flex;align-items:center;gap:14px}
 .admin-top .logo{font-size:17px}
+.a-ic{width:38px;height:38px;border-radius:9px;background:rgba(255,255,255,.1);color:#E2E8F0;display:flex;align-items:center;justify-content:center}
+.a-ic:hover{background:rgba(255,255,255,.2)}
+.a-av{width:36px;height:36px;border-radius:50%;background:#2563EB;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;border:2px solid #93C5FD}
+#admin-view.adm-dark{--bg:#0B1220;--card:#111A2E;--ink:#E2E8F0;--muted:#94A3B8;--line:#1E293B;background:#0B1220;color:#E2E8F0}
+#admin-view.adm-dark .a-main{background:#0B1220}
+#admin-view.adm-dark input,#admin-view.adm-dark select,#admin-view.adm-dark textarea{background:#0F172A;color:#E2E8F0}
+.a-layout{display:flex;min-height:calc(100vh - 66px)}
+.a-side{width:238px;flex:none;background:#0F172A;padding:12px 12px 30px;overflow-y:auto}
+.side-g{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#64748B;margin:18px 10px 6px}
+.side-i{display:flex;align-items:center;gap:10px;width:100%;text-align:left;padding:10px 12px;border-radius:9px;color:#CBD5E1;font-size:14px;font-weight:600}
+.side-i:hover{background:rgba(255,255,255,.07);color:#fff}
+.side-i.on{background:#2563EB;color:#fff}
+.a-main{flex:1;min-width:0;padding:22px 26px}
+.a-search{display:flex;align-items:center;gap:9px;background:rgba(255,255,255,.1);color:#CBD5E1;border-radius:9px;padding:9px 14px;font-size:13.5px;min-width:230px}
+.a-search kbd{margin-left:auto;font-size:11px;background:rgba(255,255,255,.14);border-radius:5px;padding:2px 6px}
+.a-burger{display:none;color:#fff;margin-right:10px}
+@media(max-width:860px){.a-burger{display:flex}.a-side{position:fixed;left:0;top:66px;bottom:0;z-index:120;transform:translateX(-100%);transition:.25s}.a-side.open{transform:none;box-shadow:0 0 40px rgba(0,0,0,.4)}.a-search{min-width:0;padding:9px}.a-search span,.a-search kbd{display:none}.a-main{padding:16px}}
 .admin-top .a-right{margin-left:auto;display:flex;gap:10px;align-items:center}
 .admin-top .who{font-size:13px;color:#9FC4CF}
 .logout{background:rgba(255,255,255,.12);color:#fff;padding:8px 14px;border-radius:8px;font-size:13.5px;font-weight:600}
@@ -732,17 +749,18 @@ function startUserWatch(){
   const {fdb,collection,onSnapshot}=window.FB;
   unsubUsersWatch=onSnapshot(collection(fdb,'users'), snap=>{
     allUsersCache=snap.docs.map(d=>({uid:d.id,...d.data()}));
-    if(userWatchInit){
+    if(userWatchInit && !snap.metadata.fromCache){
       snap.docChanges().forEach(ch=>{
-        if(ch.type==='added'){ const u={uid:ch.doc.id,...ch.doc.data()};
+        const u={uid:ch.doc.id,...ch.doc.data()};
+        if(ch.type==='added' && u.created && Date.now()-new Date(u.created).getTime()<300000){
           newSignups++; notify('New account created', (u.name||'Someone')+' · '+(u.email||'')); }
       });
     }
-    userWatchInit=true;
+    if(!snap.metadata.fromCache) userWatchInit=true;
     // online-transition notifications (skip myself)
     allUsersCache.forEach(u=>{
       const on=isUserOnline(u), was=prevOnline[u.uid];
-      if(on && !was && currentUser && u.uid!==currentUser.uid) notify('User online', (u.name||'Someone')+' is now active');
+      if(on && was===false && currentUser && u.uid!==currentUser.uid) notify('User online', (u.name||'Someone')+' is now active');
       prevOnline[u.uid]=on;
     });
     teamCache=allUsersCache;
@@ -760,7 +778,7 @@ function startLogsWatch(){
     if(adminOpen()&&adminTab==='logs') renderAdmin();
   }, err=>console.warn('logs watch:',err.code));
 }
-function stopAdminWatches(){
+function stopAdminWatches(){ stopHRWatch();
   if(unsubUsersWatch){unsubUsersWatch();unsubUsersWatch=null;}
   if(unsubLogsWatch){unsubLogsWatch();unsubLogsWatch=null;}
   if(teamFreshTimer){clearInterval(teamFreshTimer);teamFreshTimer=null;}
@@ -916,6 +934,10 @@ const ICONS={
   camera:'<path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/>',
   globe:'<circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>',
   database:'<ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14a9 3 0 0 0 18 0V5"/><path d="M3 12a9 3 0 0 0 18 0"/>',
+  search:'<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>',
+  sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
+  expand:'<path d="M8 3H5a2 2 0 0 0-2 2v3M21 8V5a2 2 0 0 0-2-2h-3M3 16v3a2 2 0 0 0 2 2h3M16 21h3a2 2 0 0 0 2-2v-3"/>',
+  help:'<circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3M12 17h.01"/>',
   clock:'<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>',
   bell:'<path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>',
   ai:'<path d="M12 2a3 3 0 0 0-3 3v.5A2.5 2.5 0 0 0 6.5 8 2.5 2.5 0 0 0 5 12.5 2.5 2.5 0 0 0 7 17a3 3 0 0 0 5 2 3 3 0 0 0 5-2 2.5 2.5 0 0 0 2-4.5A2.5 2.5 0 0 0 17.5 8 2.5 2.5 0 0 0 15 5.5V5a3 3 0 0 0-3-3z"/><path d="M12 5v14"/><path d="M9 9h.01M15 9h.01"/>',
@@ -1286,11 +1308,11 @@ function go(view){
 let adminTab='dashboard';
 let currentUser=null;         // {uid,name,email,role,perms} — set by onAuthStateChanged
 let teamCache=[];             // users list for the Team tab (admins only)
-const DEFAULT_PERMS={products:true,orders:true,bookings:true,content:false};
-const PERM_KEYS=['products','orders','bookings','content'];
-const PERM_LABELS={products:'Products',orders:'Orders',bookings:'Bookings',content:'Content'};
+const DEFAULT_PERMS={products:true,orders:true,bookings:true,reports:true,content:false};
+const PERM_KEYS=['products','orders','bookings','reports','content'];
+const PERM_LABELS={products:'Products',orders:'Orders',bookings:'Bookings',reports:'Reports',content:'Content'};
 /* Admin has every right. Staff have only what admin granted (delete is always admin-only). */
-function can(p){ const u=currentUser; if(!u) return false; if(u.role==='admin') return true; if(u.role!=='staff') return false; return !!((u.perms||DEFAULT_PERMS)[p]); }
+function can(p){ const u=currentUser; if(!u) return false; if(u.role==='admin') return true; if(u.role!=='staff'){ const rp=ROLE_PERMS[u.role]; return !!(rp&&rp[p]); } const pp=u.perms||{}; return p in pp ? !!pp[p] : !!DEFAULT_PERMS[p]; }
 function isAdminUser(){ return currentUser && currentUser.role==='admin'; }
 let pendingAdminNav=false;    // jump to admin right after a staff login
 
@@ -1341,7 +1363,7 @@ async function loginUser(){
 }
 async function logoutUser(){ try{ await window.FB.signOut(window.FB.auth); }catch(e){} closeModal(); go('home'); }
 function accountPanel(u){
-  const canAdmin=u.role==='admin'||u.role==='staff';
+  const canAdmin=isStaffRole(u.role);
   return `
     <div style="text-align:center;padding:6px 0 14px">
       <div style="width:62px;height:62px;border-radius:50%;background:var(--brand);color:#fff;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:800;margin:0 auto 12px;font-family:'Plus Jakarta Sans'">${u.name.charAt(0).toUpperCase()}</div>
@@ -1355,6 +1377,10 @@ function accountPanel(u){
 function roleBadge(role){
   if(role==='admin')return '<span class="badge b-approved">Admin</span>';
   if(role==='staff')return '<span class="badge b-pending">Staff</span>';
+  if(role==='manager')return '<span class="badge b-approved">Manager</span>';
+  if(role==='hr')return '<span class="badge b-completed">HR</span>';
+  if(role==='finance')return '<span class="badge b-completed">Finance</span>';
+  if(role==='stock')return '<span class="badge b-pending">Stock & Store</span>';
   return '<span class="badge" style="background:var(--line);color:var(--muted)">Customer</span>';
 }
 
@@ -1370,36 +1396,149 @@ function noAccessHtml(msg){
 function renderAdmin(){
   const u=currentUser,view=document.getElementById('admin-view');
   if(!u){view.innerHTML=noAccessHtml('Please log in to reach the staff area.');return;}
-  if(u.role!=='admin'&&u.role!=='staff'){view.innerHTML=noAccessHtml('This account has no admin access. Ask an administrator to make you staff or admin.');return;}
+  if(!isStaffRole(u.role)){view.innerHTML=noAccessHtml('This account has no admin access. Ask an administrator to make you staff or admin.');return;}
   const tabs=['dashboard'];
-  if(can('products')) tabs.push('products');
-  if(can('orders')) tabs.push('orders');
+  if(can('products')) tabs.push('products','inventory');
+  if(can('orders')) tabs.push('orders','customers');
   if(can('bookings')) tabs.push('bookings');
-  tabs.push('reports');
+  if(can('reports')) tabs.push('reports');
   if(can('content')) tabs.push('content');
-  if(u.role==='admin') tabs.push('logs','team');
-  if(!tabs.includes(adminTab))adminTab='dashboard';
-  const labels={dashboard:svg('dash',16)+' Dashboard',products:svg('package',16)+' Products',orders:svg('receipt',16)+' Orders',bookings:svg('calendar',16)+' Bookings',reports:svg('chart',16)+' Reports',content:svg('edit',16)+' Content',logs:svg('clock',16)+' Logs',team:svg('team',16)+' Team'};
+  if(u.role==='admin') tabs.push('employees','organisation','attendance','leave','approvals','logs','team');
+  if(u.role==='hr'){ tabs.length=0; tabs.push('employees','organisation','attendance','leave','approvals'); }
+  if(u.role==='stock') tabs.shift();
+  if(!tabs.includes(adminTab))adminTab=tabs[0];
+  const labels={dashboard:svg('dash',16)+' Dashboard',products:svg('package',16)+' Products',orders:svg('receipt',16)+' Orders',bookings:svg('calendar',16)+' Bookings',reports:svg('chart',16)+' Reports',content:svg('edit',16)+' Content',logs:svg('clock',16)+' Logs',team:svg('team',16)+' Team',customers:svg('user',16)+' Customers',employees:svg('team',16)+' Employees',organisation:svg('server',16)+' Organisation',attendance:svg('clock',16)+' Attendance',approvals:svg('receipt',16)+' Approvals',leave:svg('calendar',16)+' Leave & sick off',inventory:svg('database',16)+' Inventory'};
   view.innerHTML=`
     <div class="admin-shell">
       <div class="admin-top">
+        <button class="a-burger" onclick="document.getElementById('aSide').classList.toggle('open')" aria-label="Menu">${svg('menu',24)}</button>
         <div class="logo"><span class="mark"><svg viewBox="0 0 40 40" width="34" height="34" xmlns="http://www.w3.org/2000/svg"><rect x="1" y="1" width="38" height="38" rx="10" fill="#2563EB"/><path d="M14 10 v14 h11" fill="none" stroke="#ffffff" stroke-width="4.2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="27" cy="24" r="3.2" fill="#10B981"/><circle cx="14" cy="10" r="2.6" fill="#F59E0B"/></svg></span><span style="color:#fff">Loyalty<small>Admin Panel</small></span></div>
         <div class="a-right">
-          <span class="who">${u.name} ${roleBadge(u.role)}</span>
+          <button class="a-search" onclick="openSearch()">${svg('search',16)}<span>Search everywhere</span><kbd>Ctrl K</kbd></button>
+          <button class="a-ic" onclick="openHelp()" title="Help">${svg('help',18)}</button><button class="a-ic" onclick="toggleTheme()" title="Light / dark">${svg('sun',18)}</button><button class="a-ic" onclick="toggleFull()" title="Full screen">${svg('expand',18)}</button><span class="who">${u.name} ${roleBadge(u.role)}</span><span class="a-av">${(u.name||'?').charAt(0).toUpperCase()}</span>
           ${u.role==='admin'?`<button class="a-bell" onclick="newSignups=0;updateBell();setTab('logs')" title="New sign-ups"><span>${svg('bell',20)}</span><span class="dot" id="bellDot" style="display:${newSignups>0?'flex':'none'}">${newSignups}</span></button>`:''}
           <button class="logout" onclick="go('home')">View store</button>
           <button class="logout" onclick="logoutUser()">Log out</button>
         </div>
       </div>
-      <div class="admin-body">
-        <div class="tabs">
-          ${tabs.map(t=>`<button class="tab ${t===adminTab?'active':''}" onclick="setTab('${t}')">${labels[t]}</button>`).join('')}
-        </div>
-        <div id="tabContent"></div>
-      </div>
+      <div class="a-layout"><aside class="a-side" id="aSide">${sideHtml(tabs,labels)}</aside><main class="a-main"><div id="tabContent"></div></main></div>
     </div>`;
   renderTab();
 }
+const SIDE_GROUPS=[['Main',['dashboard']],['Sales',['orders','customers']],['Catalogue',['products','inventory']],['Services',['bookings']],['Insights',['reports']],['Website',['content']],['HR Admin',['employees','organisation','attendance','leave','approvals']],['Administration',['logs','team']]];
+function sideHtml(tabs,labels){ return SIDE_GROUPS.map(([g,items])=>{ const v=items.filter(t=>tabs.includes(t)); return v.length?`<div class="side-g">${g}</div>`+v.map(t=>`<button class="side-i ${t===adminTab?'on':''}" onclick="setTab('${t}');document.getElementById('aSide').classList.remove('open')">${labels[t]}</button>`).join(''):''; }).join(''); }
+function customerList(){
+  const m={}, get=(k,n,p)=>m[k]||(m[k]={name:n,phone:p||'',orders:0,spent:0,last:'',services:0});
+  DB.get('orders',[]).forEach(o=>{ const c=get((o.phone||o.name||'').replace(/\s/g,''),o.name,o.phone); c.orders++; if(o.status!=='rejected') c.spent+=o.total; if((o.date||'')>c.last) c.last=o.date; });
+  DB.get('bookings',[]).forEach(b=>{ get((b.phone||b.name||'').replace(/\s/g,''),b.name,b.phone).services++; });
+  return Object.values(m).sort((a,b)=>b.spent-a.spent);
+}
+function customersHtml(){
+  const L=customerList();
+  return `<div class="panel"><div class="panel-head"><h3>Customers (${L.length})</h3></div><div class="table-wrap"><table><thead><tr><th>Customer</th><th>Orders</th><th>Requests</th><th>Total spent</th><th>Last order</th><th>Contact</th></tr></thead><tbody>${L.map(c=>`<tr><td><b>${c.name}</b><br><span style="color:var(--muted);font-size:12px">${c.phone}</span></td><td>${c.orders}</td><td>${c.services}</td><td><b>${money(c.spent)}</b></td><td>${c.last?new Date(c.last).toLocaleDateString('en-KE'):'—'}</td><td><a class="mini mini-view" target="_blank" href="${waLink(c.phone,'Hello '+c.name+', this is Loyalty ICT Solutions.')}">WhatsApp</a></td></tr>`).join('')||'<tr><td colspan="6" style="color:var(--muted)">Customers appear here after their first order or request.</td></tr>'}</tbody></table></div></div>`;
+}
+function inventoryHtml(){
+  const P=DB.get('products',[]), val=P.reduce((a,p)=>a+p.price*p.stock,0);
+  const c=(l,v)=>`<div class="stat"><div class="s-lab">${l}</div><div class="s-val" style="font-size:24px">${v}</div></div>`;
+  return `<div class="stat-grid">${c('Stock value',money(val))}${c('Products',P.length)}${c('Low stock',P.filter(p=>p.stock<5&&p.stock>0).length)}${c('Out of stock',P.filter(p=>p.stock<=0).length)}</div><div class="panel" style="margin-top:16px"><div class="panel-head"><h3>Stock levels</h3><button class="mini mini-view" onclick="exportCSV('products')">Export CSV</button></div><div class="table-wrap"><table><thead><tr><th>Product</th><th>Category</th><th>Price</th><th>Stock</th><th>Update</th></tr></thead><tbody>${[...P].sort((a,b)=>a.stock-b.stock).map(p=>`<tr><td><b>${p.name}</b></td><td>${p.cat}</td><td>${money(p.price)}</td><td><span class="badge ${p.stock<=0?'b-rejected':p.stock<5?'b-pending':'b-approved'}">${p.stock}</span></td><td><input id="qs-${p.id}" type="number" min="0" placeholder="Qty" style="width:80px;padding:7px 8px;border:1px solid var(--line);border-radius:7px"> <button class="mini mini-ok" onclick="quickStock('${p.id}')">Save</button></td></tr>`).join('')}</tbody></table></div></div>`;
+}
+function openSearch(){ openModal('Search everywhere','<input id="gs" placeholder="Products, orders, customers, requests…" oninput="runSearch(this.value)" style="width:100%;padding:12px 14px;border:1px solid var(--line);border-radius:10px;font-size:15px;font-family:inherit"><div id="gsr" style="margin-top:12px"></div>'); setTimeout(()=>{const e=document.getElementById('gs'); if(e) e.focus();},60); }
+function runSearch(q){
+  q=(q||'').toLowerCase().trim(); const el=document.getElementById('gsr'); if(!el) return; if(!q){ el.innerHTML=''; return; }
+  const hit=(...a)=>a.join(' ').toLowerCase().includes(q), R=[];
+  DB.get('products',[]).filter(p=>hit(p.name,p.cat)).slice(0,5).forEach(p=>R.push(['Product',p.name,p.cat+' · '+p.stock+' in stock','products']));
+  DB.get('orders',[]).filter(o=>hit(o.ref,o.name,o.phone)).slice(0,5).forEach(o=>R.push(['Order',o.ref+' · '+o.name,money(o.total)+' · '+o.status,'orders']));
+  DB.get('bookings',[]).filter(b=>hit(b.ref,b.name,b.phone,b.service)).slice(0,5).forEach(b=>R.push(['Request',b.name,b.service+' · '+b.status,'bookings']));
+  customerList().filter(c=>hit(c.name,c.phone)).slice(0,5).forEach(c=>R.push(['Customer',c.name,c.phone+' · '+money(c.spent),'customers']));
+  el.innerHTML=R.map(r=>`<div onclick="closeModal();setTab('${r[3]}')" style="padding:10px 12px;border-radius:9px;cursor:pointer;display:flex;gap:10px;align-items:center" onmouseover="this.style.background='var(--bg)'" onmouseout="this.style.background=''"><span class="badge b-approved" style="flex:none">${r[0]}</span><span><b>${r[1]}</b><br><span style="color:var(--muted);font-size:12.5px">${r[2]}</span></span></div>`).join('')||'<div style="color:var(--muted);padding:10px">No results.</div>';
+}
+document.addEventListener('keydown',e=>{ if((e.ctrlKey||e.metaKey)&&e.key==='k'&&adminOpen()){ e.preventDefault(); openSearch(); } });
+function printInvoice(id){
+  const o=DB.get('orders',[]).find(x=>x.id===id); if(!o) return;
+  const rows=(o.items||[]).map(i=>`<tr><td>${i.name}</td><td style="text-align:center">${i.qty}</td><td style="text-align:right">${money(i.price)}</td><td style="text-align:right">${money(i.price*i.qty)}</td></tr>`).join('');
+  const w=window.open('','_blank'); if(!w){ toast('Allow pop-ups to print invoices','bad'); return; }
+  w.document.write(`<html><head><title>Invoice ${o.ref}</title><style>body{font-family:Arial,sans-serif;padding:40px;color:#1E293B}h1{color:#2563EB;margin:0}table{width:100%;border-collapse:collapse;margin-top:24px}td,th{padding:10px;border-bottom:1px solid #E2E8F0;text-align:left}.t{text-align:right;font-size:20px;font-weight:700;margin-top:18px}</style></head><body><h1>INVOICE</h1><p><b>Loyalty ICT Solutions</b><br>Nairobi, Kenya · ${contentCache.contact_phone||''} · ${contentCache.contact_email||''}</p><p>Invoice: <b>${o.ref}</b><br>Date: ${new Date(o.date).toLocaleDateString('en-KE')}<br>Billed to: <b>${o.name}</b> ${o.phone||''}</p><table><tr><th>Item</th><th style="text-align:center">Qty</th><th style="text-align:right">Price</th><th style="text-align:right">Amount</th></tr>${rows}</table><div class="t">Total: ${money(o.total)}</div><p style="margin-top:40px;color:#64748B">Thank you for choosing Loyalty ICT Solutions.</p><script>window.onload=function(){window.print()}<\/script></body></html>`);
+  w.document.close(); logAction('Printed invoice',o.ref);
+}
+/* ---- HR: employees, leave & sick off (admin only) ---- */
+let hrCache={employees:[],leaves:[],attendance:[]}, unsubHR=[];
+const LEAVE_TYPES=['Annual','Sick','Maternity','Paternity','Compassionate','Unpaid'];
+function startHRWatch(){ if(unsubHR.length) return; const {fdb,collection,onSnapshot}=window.FB;
+  ['employees','leaves','attendance'].forEach(k=>unsubHR.push(onSnapshot(collection(fdb,k),snap=>{ hrCache[k]=snap.docs.map(d=>({id:d.id,...d.data()})); if(adminOpen()&&['employees','leave','organisation','attendance','approvals'].includes(adminTab)) renderAdmin(); },err=>console.warn(k,err.code)))); }
+function stopHRWatch(){ unsubHR.forEach(u=>u()); unsubHR=[]; hrCache={employees:[],leaves:[],attendance:[]}; }
+function leaveDays(a,b){ let n=0; for(let d=new Date(a+'T00:00:00'),e=new Date(b+'T00:00:00');d<=e;d.setDate(d.getDate()+1)){ const w=d.getDay(); if(w!==0&&w!==6) n++; } return n; }
+function hrUsed(id,type){ const y=String(new Date().getFullYear()); return hrCache.leaves.filter(l=>l.employeeId===id&&l.type===type&&l.status==='approved'&&(l.from||'').startsWith(y)).reduce((a,l)=>a+(l.days||0),0); }
+function employeesHtml(){
+  const E=hrCache.employees, L=hrCache.leaves, today=new Date().toISOString().slice(0,10), mo=today.slice(0,7);
+  const onLeave=id=>L.some(l=>l.employeeId===id&&l.status==='approved'&&l.from<=today&&l.to>=today);
+  const st=(l,v,c)=>`<div class="stat"><div class="s-lab">${l}</div><div class="s-val" style="font-size:24px;color:${c||'var(--brand)'}">${v}</div></div>`;
+  return `<div class="stat-grid">${st('Employees',E.filter(e=>e.status!=='left').length)}${st('On leave today',E.filter(e=>onLeave(e.id)).length,'var(--gold-d)')}${st('Pending requests',L.filter(l=>l.status==='pending').length,'var(--bad)')}${st('Sick days this month',L.filter(l=>l.type==='Sick'&&l.status==='approved'&&(l.from||'').startsWith(mo)).reduce((a,l)=>a+(l.days||0),0),'var(--teal)')}</div>
+  <div class="panel" style="margin-top:16px"><div class="panel-head"><h3>Employees (${E.length})</h3><button class="btn btn-teal" style="color:#fff;padding:9px 16px;border-radius:9px" onclick="editEmployee('')">+ Add employee</button></div>
+  <div class="table-wrap"><table><thead><tr><th>Employee</th><th>Department</th><th>Status</th><th>Annual left</th><th>Sick left</th><th>Manage</th></tr></thead><tbody>
+  ${E.map(e=>`<tr><td><b>${e.name}</b><br><span style="color:var(--muted);font-size:12px">${e.title||''} ${e.phone?'· '+e.phone:''}</span></td><td>${e.dept||'—'}</td><td>${onLeave(e.id)?'<span class="badge b-pending">On leave</span>':`<span class="badge ${e.status==='left'?'b-rejected':'b-approved'}">${e.status||'active'}</span>`}</td><td>${(e.annual||21)-hrUsed(e.id,'Annual')} / ${e.annual||21}</td><td>${(e.sick||14)-hrUsed(e.id,'Sick')} / ${e.sick||14}</td><td style="white-space:nowrap"><button class="mini mini-view" onclick="editLeave('${e.id}')">Record leave</button> <button class="mini mini-ed" onclick="editEmployee('${e.id}')">Edit</button> <button class="mini mini-del" onclick="deleteHR('employees','${e.id}')">Delete</button></td></tr>`).join('')||'<tr><td colspan="6" style="color:var(--muted);padding:22px">No employees yet. Click “Add employee”.</td></tr>'}
+  </tbody></table></div></div>`;
+}
+function leaveHtml(){
+  const L=[...hrCache.leaves].sort((a,b)=>(b.created||'').localeCompare(a.created||''));
+  return `<div class="panel"><div class="panel-head"><h3>Leave & sick off (${L.length})</h3><button class="btn btn-teal" style="color:#fff;padding:9px 16px;border-radius:9px" onclick="editLeave('')">+ Record leave</button></div>
+  <div class="table-wrap"><table><thead><tr><th>Employee</th><th>Type</th><th>Dates</th><th>Days</th><th>Reason</th><th>Status</th><th></th></tr></thead><tbody>
+  ${L.map(l=>`<tr><td><b>${l.employeeName}</b></td><td>${l.type}</td><td style="white-space:nowrap">${l.from} → ${l.to}</td><td>${l.days}</td><td style="color:var(--muted)">${l.reason||'—'}</td><td><select class="status-sel" onchange="setLeaveStatus('${l.id}',this.value)">${['pending','approved','rejected'].map(x=>`<option ${l.status===x?'selected':''}>${x}</option>`).join('')}</select></td><td><button class="mini mini-del" onclick="deleteHR('leaves','${l.id}')">Delete</button></td></tr>`).join('')||'<tr><td colspan="7" style="color:var(--muted);padding:22px">No leave recorded yet.</td></tr>'}
+  </tbody></table></div></div>`;
+}
+function editEmployee(id){
+  const e=hrCache.employees.find(x=>x.id===id)||{annual:21,sick:14,status:'active'}, f=(i,l,v,t)=>`<div class="field"><label>${l}</label><input id="em-${i}" type="${t||'text'}" value="${(v==null?'':v)}"></div>`;
+  openModal(id?'Edit employee':'Add employee',`${f('name','Full name',e.name)}<div class="field-row">${f('title','Job title',e.title)}${f('dept','Department',e.dept)}</div><div class="field-row">${f('phone','Phone',e.phone)}${f('email','Email',e.email,'email')}</div>${f('start','Start date',e.start,'date')}<div class="field-row">${f('annual','Annual leave days / year',e.annual,'number')}${f('sick','Sick days / year',e.sick,'number')}</div><div class="field"><label>Status</label><select id="em-status">${['active','left'].map(x=>`<option ${e.status===x?'selected':''}>${x}</option>`).join('')}</select></div><button class="btn-full" onclick="saveEmployee('${id}')">Save employee</button>`);
+}
+async function saveEmployee(id){
+  const name=val('em-name'); if(!name){ toast('Enter a name','bad'); return; }
+  const d={name,title:val('em-title'),dept:val('em-dept'),phone:val('em-phone'),email:val('em-email'),start:val('em-start'),annual:Number(val('em-annual'))||21,sick:Number(val('em-sick'))||14,status:val('em-status')};
+  try{ if(id){ await fbUpdate('employees',id,d); logAction('Edited employee',name); } else { await fbAdd('employees',d); logAction('Added employee',name); } closeModal(); toast('Employee saved','ok'); }
+  catch(e){ toast('Failed: '+e.code,'bad'); }
+}
+function editLeave(empId){
+  if(!hrCache.employees.length){ toast('Add an employee first','bad'); return; }
+  const today=new Date().toISOString().slice(0,10);
+  openModal('Record leave / sick off',`<div class="field"><label>Employee</label><select id="lv-emp">${hrCache.employees.map(e=>`<option value="${e.id}" ${e.id===empId?'selected':''}>${e.name}</option>`).join('')}</select></div><div class="field-row"><div class="field"><label>Type</label><select id="lv-type">${LEAVE_TYPES.map(t=>`<option>${t}</option>`).join('')}</select></div><div class="field"><label>Status</label><select id="lv-status"><option>approved</option><option>pending</option></select></div></div><div class="field-row"><div class="field"><label>From</label><input id="lv-from" type="date" value="${today}"></div><div class="field"><label>To</label><input id="lv-to" type="date" value="${today}"></div></div><div class="field"><label>Reason / note</label><textarea id="lv-reason" placeholder="e.g. Doctor’s note received"></textarea></div><button class="btn-full" onclick="saveLeave()">Save</button>`);
+}
+async function saveLeave(){
+  const emp=hrCache.employees.find(e=>e.id===val('lv-emp')), from=val('lv-from'), to=val('lv-to');
+  if(!emp||!from||!to||to<from){ toast('Pick an employee and valid dates','bad'); return; }
+  const d={employeeId:emp.id,employeeName:emp.name,type:val('lv-type'),from,to,days:leaveDays(from,to),reason:val('lv-reason'),status:val('lv-status'),created:new Date().toISOString()};
+  try{ await fbAdd('leaves',d); logAction('Recorded '+d.type+' leave',emp.name+' · '+d.days+' day(s)'); closeModal(); toast('Leave recorded','ok'); }
+  catch(e){ toast('Failed: '+e.code,'bad'); }
+}
+async function setLeaveStatus(id,status){ const l=hrCache.leaves.find(x=>x.id===id); try{ await fbUpdate('leaves',id,{status}); logAction('Leave '+status,l?l.employeeName+' · '+l.type:id); toast('Leave '+status,'ok'); }catch(e){ toast('Failed: '+e.code,'bad'); } }
+async function deleteHR(col,id){
+  if(!confirm('Delete this record? This cannot be undone.')) return;
+  const r=hrCache[col].find(x=>x.id===id);
+  try{ await fbDelete(col,id); logAction('Deleted '+(col==='employees'?'employee':'leave record'),r?(r.name||r.employeeName):id); toast('Deleted','ok'); }catch(e){ toast('Failed: '+e.code,'bad'); }
+}
+let attDate=new Date().toISOString().slice(0,10);
+function toggleTheme(){ const v=document.getElementById('admin-view'), on=v.classList.toggle('adm-dark'); try{ localStorage.setItem('admDark',on?'1':''); }catch(e){} }
+function toggleFull(){ if(document.fullscreenElement) document.exitFullscreen(); else document.documentElement.requestFullscreen&&document.documentElement.requestFullscreen(); }
+function openHelp(){ openModal('Help & shortcuts','<p style="margin-bottom:10px"><b>Ctrl + K</b> — search products, orders, customers and requests.</p><p style="margin-bottom:10px"><b>Sidebar</b> — each section is a group; on a phone use the ☰ button.</p><p style="margin-bottom:10px"><b>Roles</b> — Admin: everything. Staff: areas you tick. HR: employees, attendance and leave only.</p><p style="color:var(--muted);font-size:13px">Need help? WhatsApp 0713 474115.</p>'); }
+try{ if(localStorage.getItem('admDark')){ const v=document.getElementById('admin-view'); if(v) v.classList.add('adm-dark'); } }catch(e){}
+function organisationHtml(){
+  const g={}; hrCache.employees.filter(e=>e.status!=='left').forEach(e=>{ const d=e.dept||'Unassigned'; (g[d]=g[d]||[]).push(e); });
+  return `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px">${Object.entries(g).map(([d,L])=>`<div class="panel"><div class="panel-head"><h3>${d}</h3><span class="badge b-approved">${L.length}</span></div><div style="padding:6px 18px 14px">${L.map(e=>`<div style="padding:8px 0;border-bottom:1px solid var(--line);font-size:14px"><b>${e.name}</b><br><span style="color:var(--muted);font-size:12px">${e.title||''}</span></div>`).join('')}</div></div>`).join('')||'<div class="panel" style="padding:22px;color:var(--muted)">Departments appear once you add employees with a department.</div>'}</div>`;
+}
+function attendanceHtml(){
+  const E=hrCache.employees.filter(e=>e.status!=='left'), A=hrCache.attendance||[];
+  const onLv=id=>hrCache.leaves.some(l=>l.employeeId===id&&l.status==='approved'&&l.from<=attDate&&l.to>=attDate);
+  return `<div class="panel"><div class="panel-head"><h3>Attendance</h3><input type="date" value="${attDate}" onchange="attDate=this.value;renderAdmin()" style="padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-family:inherit"></div><div class="table-wrap"><table><thead><tr><th>Employee</th><th>Department</th><th>Status on ${attDate}</th></tr></thead><tbody>${E.map(e=>{ const r=A.find(a=>a.id===attDate+'_'+e.id), cur=r?r.status:(onLv(e.id)?'On leave':''); return `<tr><td><b>${e.name}</b></td><td>${e.dept||'—'}</td><td><select class="status-sel" onchange="markAtt('${e.id}',this.value)">${['','Present','Late','Absent','On leave','Sick'].map(x=>`<option value="${x}" ${cur===x?'selected':''}>${x||'— not marked —'}</option>`).join('')}</select></td></tr>`; }).join('')||'<tr><td colspan="3" style="color:var(--muted);padding:22px">Add employees first.</td></tr>'}</tbody></table></div></div>`;
+}
+async function markAtt(empId,status){
+  const e=hrCache.employees.find(x=>x.id===empId); if(!e||!status) return;
+  try{ await window.FB.setDoc(window.FB.doc(window.FB.fdb,'attendance',attDate+'_'+empId),{employeeId:empId,employeeName:e.name,date:attDate,status}); toast('Marked '+status,'ok'); }catch(err){ toast('Failed: '+err.code,'bad'); }
+}
+function approvalsHtml(){
+  const P=hrCache.leaves.filter(l=>l.status==='pending');
+  return `<div class="panel"><div class="panel-head"><h3>Pending approvals (${P.length})</h3></div><div style="padding:6px 18px 14px">${P.map(l=>`<div style="display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid var(--line);flex-wrap:wrap"><span style="flex:1;min-width:200px"><b>${l.employeeName}</b> · ${l.type}<br><span style="color:var(--muted);font-size:12.5px">${l.from} → ${l.to} (${l.days} days)${l.reason?' · '+l.reason:''}</span></span><button class="mini mini-ok" onclick="setLeaveStatus('${l.id}','approved')">Approve</button><button class="mini mini-no" onclick="setLeaveStatus('${l.id}','rejected')">Reject</button></div>`).join('')||'<div style="color:var(--ok);padding:16px 0;font-weight:600">Nothing waiting for approval.</div>'}</div></div>`;
+}
+const ROLE_PERMS={manager:{products:true,orders:true,bookings:true,reports:true},finance:{orders:true,reports:true},stock:{products:true}};
+const ROLE_NAME={customer:'Customer',staff:'Staff',manager:'Manager',hr:'HR',finance:'Finance',stock:'Stock & Store',admin:'Admin'};
+const ROLE_DESC={manager:'Department: Manager — dashboard, orders, customers, products, inventory, requests, reports',hr:'Department: HR — employees, attendance, leave, approvals',finance:'Department: Finance — dashboard, orders, invoices, customers, reports',stock:'Department: Stock & Store — products and inventory'};
+function isStaffRole(r){ return ['admin','staff','manager','hr','finance','stock'].includes(r); }
 function setTab(t){ adminTab=t; if(t==='team'){ loadTeam(); } else if(t==='logs'){ loadLogs(); } else { renderAdmin(); } }
 
 /* ---- Team tab: admins assign roles (Firestore users collection) ---- */
@@ -1408,44 +1547,56 @@ async function loadTeam(){
   catch(e){ teamCache=[]; toast('Could not load users: '+e.code,'bad'); }
   renderAdmin();
 }
-function teamHtml(){
-  const meUid=currentUser?currentUser.uid:'';
-  return `<div class="panel"><div class="panel-head"><h3>Team, roles & permissions (${teamCache.length})</h3>
-    <span style="font-size:12.5px;color:var(--teal);font-weight:600;display:inline-flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;background:var(--teal);display:inline-block;animation:wapulse 1.6s infinite"></span>Live presence</span></div>
-  <div class="table-wrap"><table><thead><tr><th>Name</th><th>Status</th><th>Role</th><th>What they can do</th><th>Assign role</th><th>Access</th></tr></thead><tbody>
-  ${teamCache.map(u=>{
-    const perms=u.perms||DEFAULT_PERMS;
-    const online=isUserOnline(u);
-    const blocked=u.blocked===true;
-    let permCell;
-    if(u.role==='admin') permCell='<span style="color:var(--teal);font-size:13px;font-weight:600">Full access</span>';
-    else if(u.role==='staff') permCell=PERM_KEYS.map(k=>`<label style="display:inline-flex;align-items:center;gap:5px;margin:0 8px 5px 0;font-size:12px"><input type="checkbox" ${perms[k]?'checked':''} onchange="setPerm('${u.uid}','${k}',this.checked)">${PERM_LABELS[k]}</label>`).join('');
-    else permCell='<span style="color:var(--muted);font-size:12.5px">Customer</span>';
-    const statusDot = blocked
-      ? '<span style="display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:var(--bad)"><span style="width:9px;height:9px;border-radius:50%;background:var(--bad)"></span>Blocked</span>'
-      : online
-        ? '<span style="display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:var(--ok);font-weight:600"><span style="width:9px;height:9px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 3px rgba(34,197,94,.2)"></span>Online</span>'
-        : `<span style="display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:var(--muted)"><span style="width:9px;height:9px;border-radius:50%;background:#CBD5E1"></span>Offline</span>`;
-    const isSelf=u.uid===meUid;
+const TEAM_PRESETS={sales:{products:true,orders:true,bookings:false,reports:false,content:false},tech:{products:false,orders:false,bookings:true,reports:false,content:false},editor:{products:true,orders:false,bookings:false,reports:false,content:true},full:{products:true,orders:true,bookings:true,reports:true,content:true}};
+const PRESET_LABELS={sales:'Sales (products + orders)',tech:'Technician (bookings)',editor:'Content editor',full:'Full access (all areas)'};
+let teamQ='',teamRoleF='all';
+function presetOf(p){ const k=Object.keys(TEAM_PRESETS).find(n=>PERM_KEYS.every(x=>!!TEAM_PRESETS[n][x]===!!(p[x]!==undefined?p[x]:DEFAULT_PERMS[x]))); return k||'custom'; }
+function ago(iso){ if(!iso) return 'never'; const m=Math.round((Date.now()-new Date(iso))/60000); if(m<1) return 'just now'; if(m<60) return m+' min ago'; const h=Math.round(m/60); if(h<24) return h+' h ago'; return Math.round(h/24)+' d ago'; }
+function avatar(n){ const c=['#2563EB','#10B981','#F59E0B','#6366F1','#EF4444','#0EA5E9'][(String(n||'?').split('').reduce((a,ch)=>a+ch.charCodeAt(0),0))%6]; return `<div style="width:38px;height:38px;border-radius:50%;background:${c};color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;flex:none">${String(n||'?').trim().charAt(0).toUpperCase()}</div>`; }
+function teamRowsHtml(){
+  const me=currentUser?currentUser.uid:'', q=teamQ.toLowerCase();
+  const list=teamCache.filter(u=>(teamRoleF==='all'||u.role===teamRoleF)&&(!q||((u.name||'')+' '+(u.email||'')+' '+(u.phone||'')).toLowerCase().includes(q)));
+  return list.map(u=>{
+    const perms=u.perms||{}, on=isUserOnline(u), blocked=u.blocked===true, self=u.uid===me;
+    const status=blocked?'<span style="color:var(--bad);font-weight:600;font-size:12.5px">● Blocked</span>':on?'<span style="color:var(--ok);font-weight:700;font-size:12.5px">● Online</span>':`<span style="color:var(--muted);font-size:12.5px">○ ${ago(u.lastSeen)}</span>`;
+    let access;
+    if(u.role==='admin') access='<span style="color:var(--teal);font-weight:700;font-size:13px">Full access to everything</span>';
+    else if(u.role==='staff'){
+      const cur=presetOf(perms);
+      access=`<select onchange="setPreset('${u.uid}',this.value)" style="padding:6px 8px;border:1px solid var(--line);border-radius:7px;font-family:inherit;font-size:12.5px;margin-bottom:7px;background:var(--card)">${cur==='custom'?'<option value="custom" selected>Custom access</option>':''}${Object.keys(PRESET_LABELS).map(k=>`<option value="${k}" ${cur===k?'selected':''}>${PRESET_LABELS[k]}</option>`).join('')}</select><div>${PERM_KEYS.map(k=>`<label style="display:inline-flex;align-items:center;gap:4px;margin:0 9px 3px 0;font-size:12px"><input type="checkbox" ${(perms[k]!==undefined?perms[k]:DEFAULT_PERMS[k])?'checked':''} onchange="setPerm('${u.uid}','${k}',this.checked)">${PERM_LABELS[k]}</label>`).join('')}</div>`;
+    } else access=ROLE_DESC[u.role]?`<span style="color:var(--teal);font-weight:600;font-size:13px">${ROLE_DESC[u.role]}</span>`:'<span style="color:var(--muted);font-size:12.5px">Shop only — no admin access</span>';
     return `<tr${blocked?' style="opacity:.6"':''}>
-      <td><b>${u.name||'—'}</b>${isSelf?' <span style="color:var(--teal);font-size:12px">(you)</span>':''}<br><span style="color:var(--muted);font-size:12px">${u.email||''}</span></td>
-      <td>${statusDot}</td>
-      <td>${roleBadge(u.role)}</td>
-      <td style="min-width:230px">${permCell}</td>
-      <td><select onchange="setRole('${u.uid}',this.value)" ${isSelf?'disabled':''} style="padding:7px 9px;border:1px solid var(--line);border-radius:8px;font-family:inherit;font-size:13px;background:var(--card)">
-        <option value="customer" ${u.role==='customer'?'selected':''}>Customer</option>
-        <option value="staff" ${u.role==='staff'?'selected':''}>Staff</option>
-        <option value="admin" ${u.role==='admin'?'selected':''}>Admin</option>
-      </select></td>
-      <td style="white-space:nowrap">${isSelf?'<span style="color:var(--muted);font-size:12px">—</span>':`
-        <button class="mini ${blocked?'mini-ok':'mini-no'}" onclick="setBlocked('${u.uid}',${blocked?'false':'true'})">${blocked?'Unblock':'Block'}</button>
-        <button class="mini mini-del" onclick="deleteUser('${u.uid}')">Delete</button>`}</td>
+      <td><div style="display:flex;gap:11px;align-items:center">${avatar(u.name||u.email)}<div><b>${u.name||'—'}</b>${self?' <span style="color:var(--teal);font-size:12px">(you)</span>':''}<br><span style="color:var(--muted);font-size:12px">${u.email||''}</span>${u.created?`<br><span style="color:var(--muted);font-size:11.5px">Joined ${new Date(u.created).toLocaleDateString('en-KE')}</span>`:''}</div></div></td>
+      <td>${status}</td><td>${roleBadge(u.role)}</td><td style="min-width:250px">${access}</td>
+      <td style="white-space:nowrap"><select onchange="setRole('${u.uid}',this.value)" ${self?'disabled':''} style="padding:7px 9px;border:1px solid var(--line);border-radius:8px;font-family:inherit;font-size:13px;background:var(--card)"><option value="customer" ${u.role==='customer'?'selected':''}>Customer</option><option value="staff" ${u.role==='staff'?'selected':''}>Staff</option><option value="manager" ${u.role==='manager'?'selected':''}>Manager</option><option value="hr" ${u.role==='hr'?'selected':''}>HR</option><option value="finance" ${u.role==='finance'?'selected':''}>Finance</option><option value="stock" ${u.role==='stock'?'selected':''}>Stock & Store</option><option value="admin" ${u.role==='admin'?'selected':''}>Admin</option></select>
+        ${self?'':`<div style="margin-top:6px"><button class="mini ${blocked?'mini-ok':'mini-no'}" onclick="setBlocked('${u.uid}',${blocked?'false':'true'})">${blocked?'Unblock':'Block'}</button> <button class="mini mini-del" onclick="deleteUser('${u.uid}')">Delete</button></div>`}</td>
     </tr>`;
-  }).join('')||'<tr><td colspan="6" style="color:var(--muted)">No users yet.</td></tr>'}
-  </tbody></table></div>
-  <div style="padding:14px 18px;border-top:1px solid var(--line);font-size:13px;color:var(--muted)">
-    <b>Online</b> shows who is active now. <b>Block</b> instantly revokes a user's access; <b>Delete</b> removes their record. Only admins can do this.
-  </div></div>`;
+  }).join('')||'<tr><td colspan="5" style="color:var(--muted);padding:22px">No users match your search.</td></tr>';
+}
+function teamRender(){ const el=document.getElementById('teamRows'); if(el) el.innerHTML=teamRowsHtml(); }
+function exportTeam(){
+  const esc=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"';
+  const rows=[['Name','Email','Role','Status','Last seen','Joined'],...teamCache.map(u=>[u.name,u.email,u.role,u.blocked?'Blocked':isUserOnline(u)?'Online':'Offline',u.lastSeen||'',u.created||''])];
+  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob(['\ufeff'+rows.map(r=>r.map(esc).join(',')).join('\n')],{type:'text/csv'}));
+  a.download='loyalty-team-'+new Date().toISOString().slice(0,10)+'.csv'; a.click(); logAction('Exported team',teamCache.length+' users');
+}
+async function setPreset(uid,key){
+  const u=teamCache.find(x=>x.uid===uid), p=TEAM_PRESETS[key]; if(!p) return;
+  try{ await window.FB.updateDoc(window.FB.doc(window.FB.fdb,'users',uid),{perms:{...p}}); logAction('Applied access preset',(u?u.email:uid)+' → '+PRESET_LABELS[key]); toast('Access updated','ok'); }
+  catch(e){ toast('Failed: '+e.code,'bad'); }
+}
+function teamHtml(){
+  const n=r=>teamCache.filter(u=>u.role===r).length, online=teamCache.filter(isUserOnline).length, blocked=teamCache.filter(u=>u.blocked).length;
+  const chip=(l,v,c)=>`<div class="stat" style="padding:14px 18px"><div class="s-lab">${l}</div><div class="s-val" style="font-size:24px;color:${c||'var(--brand)'}">${v}</div></div>`;
+  return `<div class="stat-grid">${chip('Total users',teamCache.length)}${chip('Online now',online,'var(--ok)')}${chip('Staff & admins',teamCache.filter(u=>u.role!=='customer').length,'var(--teal)')}${chip('Blocked',blocked,'var(--bad)')}</div>
+  <div class="panel" style="margin-top:16px"><div class="panel-head" style="flex-wrap:wrap;gap:10px"><h3>Team, roles & access</h3>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+      <input placeholder="Search name or email…" value="${teamQ.replace(/"/g,'&quot;')}" oninput="teamQ=this.value;teamRender()" style="padding:9px 12px;border:1px solid var(--line);border-radius:8px;font-family:inherit;font-size:13.5px;min-width:200px">
+      <select onchange="teamRoleF=this.value;teamRender()" style="padding:9px 10px;border:1px solid var(--line);border-radius:8px;font-family:inherit;font-size:13.5px;background:var(--card)">${['all','customer','staff','manager','hr','finance','stock','admin'].map(r=>`<option value="${r}" ${teamRoleF===r?'selected':''}>${r==='all'?'All roles':(ROLE_NAME[r]||r)}</option>`).join('')}</select>
+      <button class="mini mini-view" onclick="exportTeam()">Export CSV</button>
+      <span style="font-size:12.5px;color:var(--teal);font-weight:600">● Live</span></div></div>
+  <div class="table-wrap"><table><thead><tr><th>User</th><th>Status</th><th>Role</th><th>Access</th><th>Manage</th></tr></thead><tbody id="teamRows">${teamRowsHtml()}</tbody></table></div>
+  <div style="padding:14px 18px;border-top:1px solid var(--line);font-size:13px;color:var(--muted)">Pick an <b>access preset</b> for staff, or tick areas individually. <b>Block</b> cuts access immediately; <b>Delete</b> removes the record. Deleting items stays admin-only.</div></div>`;
 }
 async function setPerm(uid,key,val){
   const u=teamCache.find(x=>x.uid===uid); const perms=Object.assign({},u&&u.perms?u.perms:DEFAULT_PERMS); perms[key]=val;
@@ -1490,6 +1641,13 @@ function renderTab(){
   if(adminTab==='team')c.innerHTML=teamHtml();
   if(adminTab==='content')c.innerHTML=contentAdminHtml();
   if(adminTab==='logs')c.innerHTML=logsHtml();
+  if(adminTab==='customers')c.innerHTML=customersHtml();
+  if(adminTab==='inventory')c.innerHTML=inventoryHtml();
+  if(adminTab==='employees')c.innerHTML=employeesHtml();
+  if(adminTab==='leave')c.innerHTML=leaveHtml();
+  if(adminTab==='organisation')c.innerHTML=organisationHtml();
+  if(adminTab==='attendance')c.innerHTML=attendanceHtml();
+  if(adminTab==='approvals')c.innerHTML=approvalsHtml();
 }
 
 /* ----- dashboard ----- */
@@ -1642,7 +1800,7 @@ function ordersHtml(){
     <td><b>${money(o.total)}</b></td>
     <td><span class="badge b-${o.status}">${o.status}</span></td>
     <td style="white-space:nowrap">
-      <button class="mini mini-view" onclick="viewOrder('${o.id}')">View</button>
+      <button class="mini mini-view" onclick="viewOrder('${o.id}')">View</button><button class="mini mini-view" onclick="printInvoice('${o.id}')">Invoice</button>
       <select class="status-sel" onchange="setOrderStatus('${o.id}',this.value)">
         ${['pending','approved','completed','rejected'].map(s=>`<option value="${s}" ${o.status===s?'selected':''}>${s}</option>`).join('')}
       </select>
@@ -1753,10 +1911,10 @@ window.addEventListener('firebase-ready', ()=>{
         try{ await window.FB.signOut(window.FB.auth); }catch(e){}
         currentUser=null; updateAccountUI(); go('home'); return;
       }
-      if(currentUser.role==='admin'||currentUser.role==='staff') startStaffStreams(); else stopStaffStreams();
-      if(currentUser.role==='admin'){ startUserWatch(); startLogsWatch(); } else { stopAdminWatches(); }
+      if(['admin','staff','manager','finance'].includes(currentUser.role)) startStaffStreams(); else stopStaffStreams();
+      if(currentUser.role==='admin'){ startUserWatch(); startLogsWatch(); startHRWatch(); } else { stopAdminWatches(); if(currentUser.role==='hr') startHRWatch(); }
       startHeartbeat();
-      if(pendingAdminNav && (currentUser.role==='admin'||currentUser.role==='staff')){ pendingAdminNav=false; go('admin'); }
+      if(pendingAdminNav && isStaffRole(currentUser.role)){ pendingAdminNav=false; go('admin'); }
     }else{ if(currentUser) beat(false); currentUser=null; stopHeartbeat(); stopStaffStreams(); stopAdminWatches(); }
     updateAccountUI();
     if(adminOpen()) renderAdmin();
