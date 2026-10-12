@@ -407,7 +407,68 @@ tr:last-child td{border-bottom:none}
   .print-area{position:absolute;left:0;top:0;width:100%}
   .no-print{display:none!important}
 }
+/* ===== Design v2: Apple clarity + Microsoft cards + IBM Carbon data ===== */
+body{background:#F5F5F7}
+.nav{background:rgba(11,18,32,.88)!important;-webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px);border-bottom:1px solid rgba(255,255,255,.08)}
+.hero{background:radial-gradient(1200px 500px at 80% -10%,rgba(37,99,235,.55),transparent 60%),linear-gradient(180deg,#0B1220,#0F1B3D)!important}
+.hero h1{font-size:clamp(38px,7vw,68px)!important;letter-spacing:-.035em;line-height:1.04!important}
+.hero-in>p{font-size:clamp(16px,2vw,20px);color:#C7D2E5}
+.btn,.btn-full,.add-btn{border-radius:980px!important}
+.seg{display:inline-flex;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.16);border-radius:980px;padding:4px;margin-bottom:18px}
+.seg button{color:#CBD5E1;font-weight:600;font-size:14px;padding:8px 22px;border-radius:980px;transition:.2s}
+.seg button.on{background:#fff;color:#0F172A}
+.chips-ai{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:22px}
+.chips-ai button{display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:980px;padding:9px 16px;font-size:13.5px;font-weight:600;transition:.2s}
+.chips-ai button:hover{background:rgba(255,255,255,.18);transform:translateY(-2px)}
+.tiles{gap:14px!important;padding:0 18px;margin-top:-30px!important;position:relative;z-index:3}
+.tile{border-radius:20px!important;padding:28px 20px!important;box-shadow:0 10px 30px rgba(15,23,42,.18)}
+.pcard,.serv{border-radius:20px!important;border:1px solid rgba(0,0,0,.06)!important;box-shadow:0 2px 14px rgba(0,0,0,.05)!important}
+.pcard:hover{transform:translateY(-5px);box-shadow:0 18px 38px rgba(0,0,0,.12)!important}
+.sec-head h2{font-size:clamp(28px,4vw,42px);letter-spacing:-.03em}
+.trust-band{border-radius:20px}
+footer{background:#161616!important}
+#admin-view{font-family:'IBM Plex Sans','Inter',sans-serif}
+#admin-view .admin-top,.a-side{background:#161616!important}
+.side-i{border-radius:0!important}
+.side-i.on{background:#262626!important;box-shadow:inset 3px 0 0 #0F62FE}
+#admin-view .panel,#admin-view .stat{border-radius:8px!important;box-shadow:none!important;border:1px solid var(--line)!important}
+.table-wrap th{background:var(--bg);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.table-wrap tbody tr:hover{background:var(--bg)}
+#admin-view .s-val{font-weight:300!important;font-size:34px!important}
+/* ===== Less writing: keep headlines, hide long paragraphs ===== */
+.hero .eyebrow,.hero-in>p,.hero-stats{display:none!important}
+.tile p{display:none}
+.tile{padding:22px 16px!important}
+.sec-head p{display:none}
+.serv ul{display:none}
+.serv p{margin-bottom:22px}
+.trust-band .ti p{display:none}
+.trust-band{padding:20px 26px!important}
+[data-c="footer_about"]{display:none}
+#admin-view .note{display:none}
+/* ===== Calm palette: fewer icons, no loud colours ===== */
+.hero::before,.hero::after{display:none!important}
+.hero h1 .g{color:#BFD4FF!important}
+.btn-gold{background:#fff!important;color:#0F172A!important;box-shadow:none!important}
+.btn-teal,.add-btn{background:#1E293B!important;color:#fff!important}
+#accountBtn{background:rgba(255,255,255,.14)!important;color:#fff!important}
+.chips-ai svg,.tile .t-ico,.side-i svg{display:none!important}
+.tile{background:#fff!important;color:#0F172A!important;border:1px solid #E2E8F0;box-shadow:0 2px 12px rgba(15,23,42,.06)!important}
+.tile h4{color:#0F172A!important;font-size:16px}
+.ey{color:#64748B!important}
+.serv.sv-1,.serv.sv-2,.serv.sv-3,.serv.sv-4{border-top-color:#CBD5E1!important}
+.serv .ico{background:#EEF2F7!important;color:#334155!important}
+.serv li::before{color:#64748B!important}
+.sv-btn{background:#1E293B!important;color:#fff!important}
+.svc-orb .circle{background:#1E293B!important}
+.cat-tag{background:#334155!important}
+.pimg{background:#EEF2F7!important;color:#64748B!important}
+.trust-band{background:#1E293B!important}
+.trust-band .ti b{color:#fff!important}
+#admin-view .mini-view{background:#EEF2F7!important;color:#1E293B!important}
+#admin-view .btn-teal{background:#1E293B!important}
 </style>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 </head>
 <body>
 
@@ -441,6 +502,7 @@ tr:last-child td{border-bottom:none}
     </video>
     -->
     <div class="hero-in">
+      <div class="seg" id="heroSeg"><button class="on" onclick="heroMode('personal')">Personal</button><button onclick="heroMode('business')">Business</button></div>
       <span class="eyebrow" data-c="hero_eyebrow">Nairobi, Kenya · Genuine hardware & expert services</span>
       <h1 data-c="hero_title" data-hl>Your trusted source for [computers, spares] & cybersecurity.</h1>
       <p data-c="hero_sub">Buy genuine laptops, printers, RAM, SSDs and networking gear — then let our certified team keep it all running, secure, and powered by smart AI solutions.</p>
@@ -448,6 +510,7 @@ tr:last-child td{border-bottom:none}
         <a class="btn btn-gold" href="#shop" onclick="openShop();return false" data-c="cta_primary">Shop the store</a>
         <a class="btn btn-ghost" href="#services" data-c="cta_secondary">Book a consultation</a>
       </div>
+      <div class="chips-ai" id="heroChips"></div>
       <div class="hero-stats">
         <div><b id="stat-products">0</b><span>PRODUCTS IN STORE</span></div>
         <div><b>Genuine</b><span>TESTED HARDWARE</span></div>
@@ -1539,6 +1602,10 @@ const ROLE_PERMS={manager:{products:true,orders:true,bookings:true,reports:true}
 const ROLE_NAME={customer:'Customer',staff:'Staff',manager:'Manager',hr:'HR',finance:'Finance',stock:'Stock & Store',admin:'Admin'};
 const ROLE_DESC={manager:'Department: Manager — dashboard, orders, customers, products, inventory, requests, reports',hr:'Department: HR — employees, attendance, leave, approvals',finance:'Department: Finance — dashboard, orders, invoices, customers, reports',stock:'Department: Stock & Store — products and inventory'};
 function isStaffRole(r){ return ['admin','staff','manager','hr','finance','stock'].includes(r); }
+const HERO_MODES={personal:[['Help me choose a laptop','shop'],['Repair my computer','wa:Hi, I need a computer repair'],['Chat on WhatsApp','wa:Hi Loyalty ICT Solutions']],business:[['Get a CCTV quote','book:Systems & Infrastructure'],['IT support for my office','book:IT Support & Setup'],['Explore AI solutions','book:AI Solutions & Model Building']]};
+function heroMode(m){ document.querySelectorAll('#heroSeg button').forEach(b=>b.classList.toggle('on',b.textContent.toLowerCase()===m)); const el=document.getElementById('heroChips'); if(el) el.innerHTML=HERO_MODES[m].map(([l,a])=>`<button onclick="heroAct('${a}')">${svg('ai',14)} ${l}</button>`).join(''); }
+function heroAct(a){ if(a==='shop') openShop(); else if(a.startsWith('wa:')) window.open('https://wa.me/'+String(contentCache.whatsapp_number||'254713474115').replace(/\D/g,'')+'?text='+encodeURIComponent(a.slice(3)),'_blank'); else if(a.startsWith('book:')) openBooking(a.slice(5)); }
+heroMode('personal');
 function setTab(t){ adminTab=t; if(t==='team'){ loadTeam(); } else if(t==='logs'){ loadLogs(); } else { renderAdmin(); } }
 
 /* ---- Team tab: admins assign roles (Firestore users collection) ---- */
