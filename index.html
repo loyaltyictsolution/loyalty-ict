@@ -528,6 +528,25 @@ th.fin-r{text-align:right}
 .fin-chips .chip{padding:6px 13px;font-size:13px}
 .side-i .pill{margin-left:auto;background:#E5A93A;color:#1A1200;border-radius:99px;font-size:11px;font-weight:700;padding:0 7px;min-width:20px;text-align:center}
 @media(max-width:560px){.fin-line{grid-template-columns:minmax(0,1fr) 56px 84px}}
+.chat-wrap{display:grid;grid-template-columns:minmax(0,260px) minmax(0,1fr);gap:16px;align-items:start}
+@media(max-width:900px){.chat-wrap{grid-template-columns:minmax(0,1fr)}}
+.chat-ch{display:flex;flex-direction:column;align-items:flex-start;width:100%;text-align:left;padding:9px 12px;border-radius:9px;font-size:14px;font-weight:600;color:var(--ink)}
+.chat-ch small{font-weight:400;color:var(--muted);font-size:11.5px}
+.chat-ch:hover{background:var(--bg)}
+.chat-ch.on{background:var(--brand);color:#fff}
+.chat-ch.on small{color:rgba(255,255,255,.8)}
+.chat-main{display:flex;flex-direction:column;min-height:480px}
+.chat-msgs{flex:1;overflow-y:auto;max-height:56vh;min-height:320px;padding:14px 18px;display:grid;gap:10px;align-content:start}
+.chat-m{display:flex}.chat-m.me{justify-content:flex-end}
+.chat-b{max-width:78%;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:8px 12px}
+.chat-m.me .chat-b{background:var(--brand);border-color:var(--brand);color:#fff}
+.chat-h{display:flex;gap:8px;flex-wrap:wrap;align-items:center;font-size:12px;color:var(--muted)}
+.chat-m.me .chat-h{color:rgba(255,255,255,.85)}
+.chat-h b{color:var(--ink)}.chat-m.me .chat-h b{color:#fff}
+.chat-t{white-space:pre-wrap;word-break:break-word;font-size:14.5px;margin-top:2px}
+.chat-x{font-size:15px;line-height:1;color:inherit;opacity:.7}
+.chat-in{display:flex;gap:8px;padding:12px 14px;border-top:1px solid var(--line)}
+.chat-in input{flex:1;padding:11px 13px;border:1px solid var(--line);border-radius:10px;font-family:inherit;font-size:14.5px;background:var(--card);color:var(--ink)}
 </style>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 </head>
@@ -1492,7 +1511,7 @@ function accountPanel(u){
       <p style="color:var(--muted);font-size:13.5px">${u.email}</p>
       <div style="margin-top:8px">${roleBadge(u.role)}</div>
     </div>
-    ${canAdmin?`<button class="btn-full" onclick="closeModal();go('admin')">Open admin panel</button>`:`<div class="note">You're signed in as a customer. Browse the store and your orders stay linked to this account.</div>`}
+    ${canAdmin?`<button class="btn-full" onclick="closeModal();go('admin')">${u.role==='employee'?'Open staff portal':'Open admin panel'}</button>`:`<div class="note">You're signed in as a customer. Browse the store and your orders stay linked to this account.</div>`}
     <button class="btn-full" style="margin-top:10px;background:var(--bg);color:var(--bad);border:1px solid var(--line)" onclick="logoutUser()">Log out</button>`;
 }
 function roleBadge(role){
@@ -1501,6 +1520,7 @@ function roleBadge(role){
   if(role==='manager')return '<span class="badge b-approved">Manager</span>';
   if(role==='hr')return '<span class="badge b-completed">HR</span>';
   if(role==='finance')return '<span class="badge b-completed">Finance</span>';
+  if(role==='employee')return '<span class="badge b-completed">Employee</span>';
   if(role==='stock')return '<span class="badge b-pending">Stock & Store</span>';
   return '<span class="badge" style="background:var(--line);color:var(--muted)">Customer</span>';
 }
@@ -1528,8 +1548,11 @@ function renderAdmin(){
   if(u.role==='admin') tabs.push('employees','organisation','attendance','leave','approvals','security','logs','team');
   if(u.role==='hr'){ tabs.length=0; tabs.push('employees','organisation','attendance','leave','approvals'); }
   if(u.role==='stock') tabs.shift();
+  if(u.role==='employee') tabs.length=0;
+  if(portalMe()||u.role==='employee') tabs.push('myLeave');
+  tabs.push('notices','chat');
   if(!tabs.includes(adminTab))adminTab=tabs[0];
-  const labels={dashboard:svg('dash',16)+' Dashboard',products:svg('package',16)+' Products',orders:svg('receipt',16)+' Orders',bookings:svg('calendar',16)+' Bookings',reports:svg('chart',16)+' Reports',content:svg('edit',16)+' Content',logs:svg('clock',16)+' Logs',team:svg('team',16)+' Team',customers:svg('user',16)+' Customers',security:svg('shield',16)+' Security',employees:svg('team',16)+' Employees',organisation:svg('server',16)+' Organisation',attendance:svg('clock',16)+' Attendance',approvals:svg('receipt',16)+' Approvals',leave:svg('calendar',16)+' Leave & sick off',inventory:svg('database',16)+' Inventory',finStock:svg('package',16)+' Stock upload',finBilling:svg('receipt',16)+' Billing',finReversals:svg('undo',16)+' Reversals'+(finPend()?` <span class="pill">${finPend()}</span>`:'')};
+  const labels={dashboard:svg('dash',16)+' Dashboard',products:svg('package',16)+' Products',orders:svg('receipt',16)+' Orders',bookings:svg('calendar',16)+' Bookings',reports:svg('chart',16)+' Reports',content:svg('edit',16)+' Content',logs:svg('clock',16)+' Logs',team:svg('team',16)+' Team',customers:svg('user',16)+' Customers',security:svg('shield',16)+' Security',employees:svg('team',16)+' Employees',organisation:svg('server',16)+' Organisation',attendance:svg('clock',16)+' Attendance',approvals:svg('receipt',16)+' Approvals',leave:svg('calendar',16)+' Leave & sick off',inventory:svg('database',16)+' Inventory',finStock:svg('package',16)+' Stock upload',finBilling:svg('receipt',16)+' Billing',finReversals:svg('undo',16)+' Reversals'+(finPend()?` <span class="pill">${finPend()}</span>`:''),myLeave:svg('calendar',16)+' My leave',notices:svg('bell',16)+' Notices'+(noticesUnread()?` <span class="pill" data-n="notices">${noticesUnread()}</span>`:''),chat:svg('chat',16)+' Chat'};
   view.innerHTML=`
     <div class="admin-shell">
       <div class="admin-top">
@@ -1547,7 +1570,7 @@ function renderAdmin(){
     </div>`;
   renderTab();
 }
-const SIDE_GROUPS=[['Main',['dashboard']],['Sales',['orders','customers']],['Catalogue',['products','inventory']],['Services',['bookings']],['Finance',['finStock','finBilling','finReversals']],['Insights',['reports']],['Website',['content']],['HR Admin',['employees','organisation','attendance','leave','approvals']],['Administration',['security','logs','team']]];
+const SIDE_GROUPS=[['Main',['dashboard']],['Staff portal',['myLeave','notices','chat']],['Sales',['orders','customers']],['Catalogue',['products','inventory']],['Services',['bookings']],['Finance',['finStock','finBilling','finReversals']],['Insights',['reports']],['Website',['content']],['HR Admin',['employees','organisation','attendance','leave','approvals']],['Administration',['security','logs','team']]];
 function sideHtml(tabs,labels){ return SIDE_GROUPS.map(([g,items])=>{ const v=items.filter(t=>tabs.includes(t)); return v.length?`<div class="side-g">${g}</div>`+v.map(t=>`<button class="side-i ${t===adminTab?'on':''}" onclick="setTab('${t}');document.getElementById('aSide').classList.remove('open')">${labels[t]}</button>`).join(''):''; }).join(''); }
 function customerList(){
   const m={}, get=(k,n,p)=>m[k]||(m[k]={name:n,phone:p||'',orders:0,spent:0,last:'',services:0});
@@ -1586,8 +1609,8 @@ function printInvoice(id){
 let hrCache={employees:[],leaves:[],attendance:[]}, unsubHR=[];
 const LEAVE_TYPES=['Annual','Sick','Maternity','Paternity','Compassionate','Unpaid'];
 function startHRWatch(){ if(unsubHR.length) return; const {fdb,collection,onSnapshot}=window.FB;
-  ['employees','leaves','attendance'].forEach(k=>unsubHR.push(onSnapshot(collection(fdb,k),snap=>{ hrCache[k]=snap.docs.map(d=>({id:d.id,...d.data()})); if(adminOpen()&&['employees','leave','organisation','attendance','approvals'].includes(adminTab)) renderAdmin(); },err=>console.warn(k,err.code)))); }
-function stopHRWatch(){ unsubHR.forEach(u=>u()); unsubHR=[]; hrCache={employees:[],leaves:[],attendance:[]}; }
+  ['employees','leaves','attendance'].forEach(k=>unsubHR.push(onSnapshot(collection(fdb,k),snap=>{ hrCache[k]=snap.docs.map(d=>({id:d.id,...d.data()})); if(k==='leaves'){ if(hrLeaveInit&&!snap.metadata.fromCache) snap.docChanges().forEach(ch=>{ if(ch.type!=='added') return; const l=ch.doc.data(); if(l.source==='self'&&l.status==='pending') notify('Leave request',(l.employeeName||'')+' · '+l.type+' · '+l.days+' day(s)'); }); if(!snap.metadata.fromCache) hrLeaveInit=true; } if(adminOpen()&&['employees','leave','organisation','attendance','approvals'].includes(adminTab)) renderAdmin(); },err=>console.warn(k,err.code)))); }
+function stopHRWatch(){ unsubHR.forEach(u=>u()); unsubHR=[]; hrLeaveInit=false; hrCache={employees:[],leaves:[],attendance:[]}; }
 function leaveDays(a,b){ let n=0; for(let d=new Date(a+'T00:00:00'),e=new Date(b+'T00:00:00');d<=e;d.setDate(d.getDate()+1)){ const w=d.getDay(); if(w!==0&&w!==6) n++; } return n; }
 function hrUsed(id,type){ const y=String(new Date().getFullYear()); return hrCache.leaves.filter(l=>l.employeeId===id&&l.type===type&&l.status==='approved'&&(l.from||'').startsWith(y)).reduce((a,l)=>a+(l.days||0),0); }
 function employeesHtml(){
@@ -1595,16 +1618,16 @@ function employeesHtml(){
   const onLeave=id=>L.some(l=>l.employeeId===id&&l.status==='approved'&&l.from<=today&&l.to>=today);
   const st=(l,v,c)=>`<div class="stat"><div class="s-lab">${l}</div><div class="s-val" style="font-size:24px;color:${c||'var(--brand)'}">${v}</div></div>`;
   return `<div class="stat-grid">${st('Employees',E.filter(e=>e.status!=='left').length)}${st('On leave today',E.filter(e=>onLeave(e.id)).length,'var(--gold-d)')}${st('Pending requests',L.filter(l=>l.status==='pending').length,'var(--bad)')}${st('Sick days this month',L.filter(l=>l.type==='Sick'&&l.status==='approved'&&(l.from||'').startsWith(mo)).reduce((a,l)=>a+(l.days||0),0),'var(--teal)')}</div>
-  <div class="panel" style="margin-top:16px"><div class="panel-head"><h3>Employees (${E.length})</h3><button class="btn btn-teal" style="color:#fff;padding:9px 16px;border-radius:9px" onclick="editEmployee('')">+ Add employee</button></div>
-  <div class="table-wrap"><table><thead><tr><th>Employee</th><th>Department</th><th>Status</th><th>Annual left</th><th>Sick left</th><th>Manage</th></tr></thead><tbody>
-  ${E.map(e=>`<tr><td><b>${e.name}</b><br><span style="color:var(--muted);font-size:12px">${e.title||''} ${e.phone?'· '+e.phone:''}</span></td><td>${e.dept||'—'}</td><td>${onLeave(e.id)?'<span class="badge b-pending">On leave</span>':`<span class="badge ${e.status==='left'?'b-rejected':'b-approved'}">${e.status||'active'}</span>`}</td><td>${(e.annual||21)-hrUsed(e.id,'Annual')} / ${e.annual||21}</td><td>${(e.sick||14)-hrUsed(e.id,'Sick')} / ${e.sick||14}</td><td style="white-space:nowrap"><button class="mini mini-view" onclick="editLeave('${e.id}')">Record leave</button> <button class="mini mini-ed" onclick="editEmployee('${e.id}')">Edit</button> <button class="mini mini-del" onclick="deleteHR('employees','${e.id}')">Delete</button></td></tr>`).join('')||'<tr><td colspan="6" style="color:var(--muted);padding:22px">No employees yet. Click “Add employee”.</td></tr>'}
+  <div class="panel" style="margin-top:16px"><div class="panel-head"><h3>Employees (${E.length})</h3><span style="display:flex;gap:8px;flex-wrap:wrap"><button class="fbtn" onclick="staffNoAll()">Allocate staff numbers</button><button class="fbtn" onclick="linkPastLeaves()">Link past leave</button><button class="btn btn-teal" style="color:#fff;padding:9px 16px;border-radius:9px" onclick="editEmployee('')">+ Add employee</button></span></div>
+  <div class="table-wrap"><table><thead><tr><th>Employee</th><th>Staff no.</th><th>Department</th><th>Status</th><th>Annual left</th><th>Sick left</th><th>Manage</th></tr></thead><tbody>
+  ${E.map(e=>`<tr><td><b>${e.name}</b><br><span style="color:var(--muted);font-size:12px">${e.title||''} ${e.phone?'· '+e.phone:''}</span></td><td>${staffNoCell(e)}</td><td>${e.dept||'—'}</td><td>${onLeave(e.id)?'<span class="badge b-pending">On leave</span>':`<span class="badge ${e.status==='left'?'b-rejected':'b-approved'}">${e.status||'active'}</span>`}</td><td>${(e.annual||21)-hrUsed(e.id,'Annual')} / ${e.annual||21}</td><td>${(e.sick||14)-hrUsed(e.id,'Sick')} / ${e.sick||14}</td><td style="white-space:nowrap"><button class="mini mini-view" onclick="staffNoForm('${e.id}')">Staff no.</button> <button class="mini mini-view" onclick="editLeave('${e.id}')">Record leave</button> <button class="mini mini-ed" onclick="editEmployee('${e.id}')">Edit</button> <button class="mini mini-del" onclick="deleteHR('employees','${e.id}')">Delete</button></td></tr>`).join('')||'<tr><td colspan="7" style="color:var(--muted);padding:22px">No employees yet. Click “Add employee”.</td></tr>'}
   </tbody></table></div></div>`;
 }
 function leaveHtml(){
   const L=[...hrCache.leaves].sort((a,b)=>(b.created||'').localeCompare(a.created||''));
   return `<div class="panel"><div class="panel-head"><h3>Leave & sick off (${L.length})</h3><button class="btn btn-teal" style="color:#fff;padding:9px 16px;border-radius:9px" onclick="editLeave('')">+ Record leave</button></div>
   <div class="table-wrap"><table><thead><tr><th>Employee</th><th>Type</th><th>Dates</th><th>Days</th><th>Reason</th><th>Status</th><th></th></tr></thead><tbody>
-  ${L.map(l=>`<tr><td><b>${l.employeeName}</b></td><td>${l.type}</td><td style="white-space:nowrap">${l.from} → ${l.to}</td><td>${l.days}</td><td style="color:var(--muted)">${l.reason||'—'}</td><td><select class="status-sel" onchange="setLeaveStatus('${l.id}',this.value)">${['pending','approved','rejected'].map(x=>`<option ${l.status===x?'selected':''}>${x}</option>`).join('')}</select></td><td><button class="mini mini-del" onclick="deleteHR('leaves','${l.id}')">Delete</button></td></tr>`).join('')||'<tr><td colspan="7" style="color:var(--muted);padding:22px">No leave recorded yet.</td></tr>'}
+  ${L.map(l=>`<tr><td><b>${l.employeeName}</b></td><td>${l.type}</td><td style="white-space:nowrap">${l.from} → ${l.to}</td><td>${l.days}</td><td style="color:var(--muted)">${l.reason||'—'}</td><td><select class="status-sel" onchange="setLeaveStatus('${l.id}',this.value)">${['pending','approved','rejected','cancelled'].map(x=>`<option ${l.status===x?'selected':''}>${x}</option>`).join('')}</select></td><td><button class="mini mini-del" onclick="deleteHR('leaves','${l.id}')">Delete</button></td></tr>`).join('')||'<tr><td colspan="7" style="color:var(--muted);padding:22px">No leave recorded yet.</td></tr>'}
   </tbody></table></div></div>`;
 }
 function editEmployee(id){
@@ -1613,7 +1636,8 @@ function editEmployee(id){
 }
 async function saveEmployee(id){
   const name=val('em-name'); if(!name){ toast('Enter a name','bad'); return; }
-  const d={name,title:val('em-title'),dept:val('em-dept'),phone:val('em-phone'),email:val('em-email'),start:val('em-start'),annual:Number(val('em-annual'))||21,sick:Number(val('em-sick'))||14,status:val('em-status')};
+  const d={name,title:val('em-title'),dept:val('em-dept'),phone:val('em-phone'),email:val('em-email').trim().toLowerCase(),start:val('em-start'),annual:Number(val('em-annual'))||21,sick:Number(val('em-sick'))||14,status:val('em-status')};
+  if(d.email&&hrCache.employees.some(x=>x.id!==id&&String(x.email||'').toLowerCase()===d.email)){ toast('Another employee already uses that email','bad'); return; }
   try{ if(id){ await fbUpdate('employees',id,d); logAction('Edited employee',name); } else { await fbAdd('employees',d); logAction('Added employee',name); } closeModal(); toast('Employee saved','ok'); }
   catch(e){ toast('Failed: '+e.code,'bad'); }
 }
@@ -1625,7 +1649,7 @@ function editLeave(empId){
 async function saveLeave(){
   const emp=hrCache.employees.find(e=>e.id===val('lv-emp')), from=val('lv-from'), to=val('lv-to');
   if(!emp||!from||!to||to<from){ toast('Pick an employee and valid dates','bad'); return; }
-  const d={employeeId:emp.id,employeeName:emp.name,type:val('lv-type'),from,to,days:leaveDays(from,to),reason:val('lv-reason'),status:val('lv-status'),created:new Date().toISOString()};
+  const d={employeeId:emp.id,employeeName:emp.name,type:val('lv-type'),from,to,days:leaveDays(from,to),reason:val('lv-reason'),status:val('lv-status'),created:new Date().toISOString(),ownerEmail:String(emp.email||'').toLowerCase()};
   try{ await fbAdd('leaves',d); logAction('Recorded '+d.type+' leave',emp.name+' · '+d.days+' day(s)'); closeModal(); toast('Leave recorded','ok'); }
   catch(e){ toast('Failed: '+e.code,'bad'); }
 }
@@ -1658,9 +1682,9 @@ function approvalsHtml(){
   return `<div class="panel"><div class="panel-head"><h3>Pending approvals (${P.length})</h3></div><div style="padding:6px 18px 14px">${P.map(l=>`<div style="display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid var(--line);flex-wrap:wrap"><span style="flex:1;min-width:200px"><b>${l.employeeName}</b> · ${l.type}<br><span style="color:var(--muted);font-size:12.5px">${l.from} → ${l.to} (${l.days} days)${l.reason?' · '+l.reason:''}</span></span><button class="mini mini-ok" onclick="setLeaveStatus('${l.id}','approved')">Approve</button><button class="mini mini-no" onclick="setLeaveStatus('${l.id}','rejected')">Reject</button></div>`).join('')||'<div style="color:var(--ok);padding:16px 0;font-weight:600">Nothing waiting for approval.</div>'}</div></div>`;
 }
 const ROLE_PERMS={manager:{products:true,orders:true,bookings:true,reports:true,customers:true,inventory:true,export:true,finance:true,stockin:true},finance:{orders:true,reports:true,customers:true,export:true,finance:true,stockin:true},stock:{products:true,inventory:true,stockin:true}};
-const ROLE_NAME={customer:'Customer',staff:'Staff',manager:'Manager',hr:'HR',finance:'Finance',stock:'Stock & Store',admin:'Admin'};
+const ROLE_NAME={customer:'Customer',staff:'Staff',manager:'Manager',hr:'HR',finance:'Finance',stock:'Stock & Store',employee:'Employee',admin:'Admin'};
 const ROLE_DESC={manager:'Department: Manager — dashboard, orders, customers, products, inventory, requests, reports',hr:'Department: HR — employees, attendance, leave, approvals',finance:'Department: Finance — dashboard, orders, customers, reports, stock upload, billing, reversals',stock:'Department: Stock & Store — products and inventory'};
-function isStaffRole(r){ return ['admin','staff','manager','hr','finance','stock'].includes(r); }
+function isStaffRole(r){ return ['admin','staff','manager','hr','finance','stock','employee'].includes(r); }
 const HERO_MODES={personal:[['Help me choose a laptop','shop'],['Repair my computer','wa:Hi, I need a computer repair'],['Chat on WhatsApp','wa:Hi Loyalty ICT Solutions']],business:[['Get a CCTV quote','book:Systems & Infrastructure'],['IT support for my office','book:IT Support & Setup'],['Explore AI solutions','book:AI Solutions & Model Building']]};
 function heroMode(m){ document.querySelectorAll('#heroSeg button').forEach(b=>b.classList.toggle('on',b.textContent.toLowerCase()===m)); const el=document.getElementById('heroChips'); if(el) el.innerHTML=HERO_MODES[m].map(([l,a])=>`<button onclick="heroAct('${a}')">${svg('ai',14)} ${l}</button>`).join(''); }
 function heroAct(a){ if(a==='shop') openShop(); else if(a.startsWith('wa:')) window.open('https://wa.me/'+String(contentCache.whatsapp_number||'254713474115').replace(/\D/g,'')+'?text='+encodeURIComponent(a.slice(3)),'_blank'); else if(a.startsWith('book:')) openBooking(a.slice(5)); }
@@ -1730,7 +1754,7 @@ function teamRowsHtml(){
     return `<tr${blocked?' style="opacity:.6"':''}>
       <td><div style="display:flex;gap:11px;align-items:center">${avatar(u.name||u.email)}<div><b>${u.name||'—'}</b>${self?' <span style="color:var(--teal);font-size:12px">(you)</span>':''}<br><span style="color:var(--muted);font-size:12px">${u.email||''}</span>${u.created?`<br><span style="color:var(--muted);font-size:11.5px">Joined ${new Date(u.created).toLocaleDateString('en-KE')}</span>`:''}</div></div></td>
       <td>${status}</td><td>${roleBadge(u.role)}</td><td style="min-width:250px">${access}</td>
-      <td style="white-space:nowrap"><select onchange="setRole('${u.uid}',this.value)" ${self?'disabled':''} style="padding:7px 9px;border:1px solid var(--line);border-radius:8px;font-family:inherit;font-size:13px;background:var(--card)"><option value="customer" ${u.role==='customer'?'selected':''}>Customer</option><option value="staff" ${u.role==='staff'?'selected':''}>Staff</option><option value="manager" ${u.role==='manager'?'selected':''}>Manager</option><option value="hr" ${u.role==='hr'?'selected':''}>HR</option><option value="finance" ${u.role==='finance'?'selected':''}>Finance</option><option value="stock" ${u.role==='stock'?'selected':''}>Stock & Store</option><option value="admin" ${u.role==='admin'?'selected':''}>Admin</option></select>
+      <td style="white-space:nowrap"><select onchange="setRole('${u.uid}',this.value)" ${self?'disabled':''} style="padding:7px 9px;border:1px solid var(--line);border-radius:8px;font-family:inherit;font-size:13px;background:var(--card)"><option value="customer" ${u.role==='customer'?'selected':''}>Customer</option><option value="staff" ${u.role==='staff'?'selected':''}>Staff</option><option value="manager" ${u.role==='manager'?'selected':''}>Manager</option><option value="hr" ${u.role==='hr'?'selected':''}>HR</option><option value="finance" ${u.role==='finance'?'selected':''}>Finance</option><option value="stock" ${u.role==='stock'?'selected':''}>Stock & Store</option><option value="employee" ${u.role==='employee'?'selected':''}>Employee</option><option value="admin" ${u.role==='admin'?'selected':''}>Admin</option></select>
         ${self?'':`<div style="margin-top:6px"><button class="mini ${blocked?'mini-ok':'mini-no'}" onclick="setBlocked('${u.uid}',${blocked?'false':'true'})">${blocked?'Unblock':'Block'}</button> <button class="mini mini-ed" onclick="forceSignOut('${u.uid}')">Sign out</button> <button class="mini mini-del" onclick="deleteUser('${u.uid}')">Delete</button></div>`}</td>
     </tr>`;
   }).join('')||'<tr><td colspan="5" style="color:var(--muted);padding:22px">No users match your search.</td></tr>';
@@ -1754,7 +1778,7 @@ function teamHtml(){
   <div class="panel" style="margin-top:16px"><div class="panel-head" style="flex-wrap:wrap;gap:10px"><h3>Team, roles & access</h3>
     <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
       <input placeholder="Search name or email…" value="${teamQ.replace(/"/g,'&quot;')}" oninput="teamQ=this.value;teamRender()" style="padding:9px 12px;border:1px solid var(--line);border-radius:8px;font-family:inherit;font-size:13.5px;min-width:200px">
-      <select onchange="teamRoleF=this.value;teamRender()" style="padding:9px 10px;border:1px solid var(--line);border-radius:8px;font-family:inherit;font-size:13.5px;background:var(--card)">${['all','customer','staff','manager','hr','finance','stock','admin'].map(r=>`<option value="${r}" ${teamRoleF===r?'selected':''}>${r==='all'?'All roles':(ROLE_NAME[r]||r)}</option>`).join('')}</select>
+      <select onchange="teamRoleF=this.value;teamRender()" style="padding:9px 10px;border:1px solid var(--line);border-radius:8px;font-family:inherit;font-size:13.5px;background:var(--card)">${['all','customer','staff','manager','hr','finance','stock','employee','admin'].map(r=>`<option value="${r}" ${teamRoleF===r?'selected':''}>${r==='all'?'All roles':(ROLE_NAME[r]||r)}</option>`).join('')}</select>
       <button class="mini mini-view" onclick="exportTeam()">Export CSV</button>
       <span style="font-size:12.5px;color:var(--teal);font-weight:600">● Live</span></div></div>
   <div class="table-wrap"><table><thead><tr><th>User</th><th>Status</th><th>Role</th><th>Access</th><th>Manage</th></tr></thead><tbody id="teamRows">${teamRowsHtml()}</tbody></table></div>
@@ -2271,6 +2295,301 @@ async function finDecide(id,d){
   }catch(e){ finErr(e); }
 }
 
+/* ============================================================
+   STAFF PORTAL: staff numbers (HR), My leave, Notices, Staff chat
+   Firestore: employees (staffNo, uid), leaves (ownerEmail, ownerUid),
+   notices, chatMessages, hrMeta/counters.
+   An employee signs in with an account whose email matches the
+   email on their employee record, and an admin gives that account
+   the "Employee" role in Team.
+   ============================================================ */
+const STAFF_PREFIX='LIT-';
+let hrLeaveInit=false;
+let orgCache={employees:[],notices:[],myLeaves:[]}, unsubOrg=[], unsubMyLeaves=null, myLeavesFor='', empLinked=false, noticeInit=false;
+let chatCh='all', chatMsgs=[], unsubChat=null, chatKey='', chatErr='';
+
+const pEmail=()=>String((currentUser&&currentUser.email)||'').toLowerCase();
+const isHrUser=()=>!!currentUser&&['admin','hr'].includes(currentUser.role);
+function portalMe(){ const em=pEmail(); return em?(orgCache.employees.find(e=>String(e.email||'').toLowerCase()===em)||null):null; }
+const portalDepts=()=>[...new Set(orgCache.employees.map(e=>e.dept).filter(Boolean))].sort();
+const pStamp=iso=>{ try{ return new Date(iso).toLocaleString('en-KE',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}); }catch(e){ return ''; } };
+
+/* ---- streams (employees, notices, my own leave) ---- */
+function portalRefresh(){ if(adminOpen()&&!finBusy()&&adminTab!=='chat') renderAdmin(); }
+function startOrgWatch(){
+  if(unsubOrg.length) return;
+  const {fdb,collection,onSnapshot}=window.FB;
+  unsubOrg.push(onSnapshot(collection(fdb,'employees'),snap=>{
+    orgCache.employees=snap.docs.map(d=>({id:d.id,...d.data()}));
+    const me=portalMe();
+    if(me){
+      if(!empLinked&&me.uid!==currentUser.uid){ empLinked=true; fbUpdate('employees',me.id,{uid:currentUser.uid,lastLogin:new Date().toISOString()}).catch(()=>{}); }
+      watchMyLeaves();
+    }
+    portalRefresh();
+  },err=>console.warn('employees',err.code)));
+  unsubOrg.push(onSnapshot(collection(fdb,'notices'),snap=>{
+    if(noticeInit&&!snap.metadata.fromCache) snap.docChanges().forEach(ch=>{
+      if(ch.type!=='added') return;
+      const n={id:ch.doc.id,...ch.doc.data()};
+      if(n.by&&n.by.uid!==currentUser.uid&&noticeVisible(n)) notify('New notice',n.title||'');
+    });
+    if(!snap.metadata.fromCache) noticeInit=true;
+    orgCache.notices=snap.docs.map(d=>({id:d.id,...d.data()}));
+    portalRefresh();
+  },err=>console.warn('notices',err.code)));
+}
+function stopOrgWatch(){
+  unsubOrg.forEach(u=>u()); unsubOrg=[];
+  if(unsubMyLeaves){ unsubMyLeaves(); unsubMyLeaves=null; }
+  if(unsubChat){ unsubChat(); unsubChat=null; }
+  orgCache={employees:[],notices:[],myLeaves:[]}; myLeavesFor=''; empLinked=false; noticeInit=false; chatKey=''; chatMsgs=[]; chatErr='';
+}
+function watchMyLeaves(){
+  const em=pEmail(); if(!em||myLeavesFor===em) return;
+  myLeavesFor=em; if(unsubMyLeaves) unsubMyLeaves();
+  const {fdb,collection,onSnapshot,query,where}=window.FB;
+  unsubMyLeaves=onSnapshot(query(collection(fdb,'leaves'),where('ownerEmail','==',em)),snap=>{
+    snap.docChanges().forEach(ch=>{ if(ch.type==='modified'&&!snap.metadata.fromCache){ const l=ch.doc.data(); if(l.status==='approved'||l.status==='rejected') notify('Leave '+l.status,(l.type||'')+' · '+l.from+' to '+l.to); } });
+    orgCache.myLeaves=snap.docs.map(d=>({id:d.id,...d.data()}));
+    portalRefresh();
+  },err=>console.warn('my leave',err.code));
+}
+
+/* ---- staff numbers (HR and admin) ---- */
+const staffNoFmt=n=>STAFF_PREFIX+String(n).padStart(4,'0');
+function staffNoMax(){ let m=0; hrCache.employees.forEach(e=>{ const x=/^(?:[A-Z]+-)?(\d+)$/.exec(String(e.staffNo||'').toUpperCase()); if(x) m=Math.max(m,Number(x[1])); }); return m; }
+const staffNoTaken=(no,exceptId)=>hrCache.employees.some(e=>e.id!==exceptId&&String(e.staffNo||'').toUpperCase()===String(no).toUpperCase());
+function staffNoCell(e){
+  return (e.staffNo?`<b>${finEsc(e.staffNo)}</b>`:'<span class="fin-mut">Not allocated</span>')+(e.uid?'<br><span class="fin-mut">Portal signed in</span>':'');
+}
+function staffNoForm(id){
+  const e=hrCache.employees.find(x=>x.id===id); if(!e) return;
+  let n=staffNoMax()+1; while(staffNoTaken(staffNoFmt(n),id)) n++;
+  openModal('Staff number · '+e.name,`<div class="fin-meta"><div><span>Employee</span>${finEsc(e.name)}</div><div><span>Department</span>${finEsc(e.dept||'—')}</div><div><span>Current number</span><b>${finEsc(e.staffNo||'None')}</b></div></div>
+    ${e.staffNo?'':`<button class="fbtn p" style="width:100%;justify-content:center;margin-top:14px" onclick="staffNoAuto('${id}')">Allocate next number (${staffNoFmt(n)})</button>`}
+    <div class="field" style="margin-top:14px"><label>${e.staffNo?'Change to':'Or type a number'}</label><input id="sn-no" value="${finEsc(e.staffNo||'')}" placeholder="${staffNoFmt(n)}" autocomplete="off"></div>
+    <button class="fbtn" style="width:100%;justify-content:center" onclick="staffNoSave('${id}')">Save this number</button>
+    <p class="fin-mut" style="margin-top:10px">Letters, numbers and dashes, 3 to 16 characters. Each number can belong to one employee only.</p>`);
+}
+async function staffNoAuto(id){
+  const {fdb,doc}=window.FB, eRef=doc(fdb,'employees',id), mRef=doc(fdb,'hrMeta','counters');
+  try{
+    let made='';
+    await finTx(async tx=>{
+      const e=await tx.get(eRef), m=await tx.get(mRef);
+      if(!e.exists()) throw new Error('Employee not found.');
+      if(e.data().staffNo) throw new Error('This employee already has a staff number.');
+      let n=Math.max((m.exists()?m.data().staffNo:0)||0,staffNoMax())+1; while(staffNoTaken(staffNoFmt(n),id)) n++;
+      made=staffNoFmt(n);
+      tx.update(eRef,{staffNo:made,staffNoAt:new Date().toISOString(),staffNoBy:currentUser.name||''});
+      tx.set(mRef,{staffNo:n},{merge:true});
+    });
+    const e=hrCache.employees.find(x=>x.id===id);
+    logAction('Allocated staff number',(e?e.name:id)+' → '+made);
+    closeModal(); toast(made+' allocated','ok');
+  }catch(err){ finErr(err); }
+}
+async function staffNoSave(id){
+  const no=val('sn-no').toUpperCase().replace(/\s+/g,'');
+  if(!/^[A-Z0-9][A-Z0-9-]{2,15}$/.test(no)){ toast('Use 3 to 16 letters, numbers or dashes','bad'); return; }
+  if(staffNoTaken(no,id)){ toast(no+' already belongs to another employee','bad'); return; }
+  const e=hrCache.employees.find(x=>x.id===id);
+  try{ await fbUpdate('employees',id,{staffNo:no,staffNoAt:new Date().toISOString(),staffNoBy:currentUser.name||''}); logAction('Set staff number',(e?e.name:id)+' → '+no); closeModal(); toast('Staff number saved','ok'); }
+  catch(err){ finErr(err); }
+}
+async function staffNoAll(){
+  const todo=hrCache.employees.filter(e=>!e.staffNo&&e.status!=='left').sort((a,b)=>String(a.start||'9999').localeCompare(String(b.start||'9999'))||String(a.name||'').localeCompare(String(b.name||'')));
+  if(!todo.length){ toast('Everyone already has a staff number','ok'); return; }
+  if(!confirm('Allocate staff numbers to '+todo.length+' employee(s), oldest start date first?')) return;
+  const {fdb,doc}=window.FB, mRef=doc(fdb,'hrMeta','counters');
+  try{
+    let count=0;
+    await finTx(async tx=>{
+      const m=await tx.get(mRef), snaps=[];
+      for(const e of todo) snaps.push(await tx.get(doc(fdb,'employees',e.id)));
+      let n=Math.max((m.exists()?m.data().staffNo:0)||0,staffNoMax()); count=0;
+      snaps.forEach(s=>{ if(!s.exists()||s.data().staffNo) return; n++; count++; tx.update(s.ref,{staffNo:staffNoFmt(n),staffNoAt:new Date().toISOString(),staffNoBy:currentUser.name||''}); });
+      tx.set(mRef,{staffNo:n},{merge:true});
+    });
+    logAction('Allocated staff numbers',count+' employee(s)');
+    toast(count+' staff number(s) allocated','ok');
+  }catch(err){ finErr(err); }
+}
+/* leave recorded by HR before this update has no owner email, so the employee cannot see it. This adds it. */
+async function linkPastLeaves(){
+  const rows=hrCache.leaves.filter(l=>!l.ownerEmail&&(hrCache.employees.find(e=>e.id===l.employeeId)||{}).email);
+  if(!rows.length){ toast('All leave records are already linked','ok'); return; }
+  try{
+    for(const l of rows){ const e=hrCache.employees.find(x=>x.id===l.employeeId); await fbUpdate('leaves',l.id,{ownerEmail:String(e.email).toLowerCase()}); }
+    logAction('Linked past leave records',rows.length+' record(s)'); toast(rows.length+' leave record(s) linked','ok');
+  }catch(err){ finErr(err); }
+}
+
+/* ---- My leave (employee) ---- */
+function myLeaveStats(me){
+  const y=String(new Date().getFullYear()), L=orgCache.myLeaves.filter(l=>l.employeeId===me.id);
+  const sum=(t,st)=>L.filter(l=>(!t||l.type===t)&&l.status===st&&String(l.from||'').startsWith(y)).reduce((a,l)=>a+(l.days||0),0);
+  return {L,used:t=>sum(t,'approved'),pend:t=>sum(t,'pending')};
+}
+function mlPreview(){
+  const el=document.getElementById('mlPrev'); if(!el) return;
+  const f=val('ml-from'), t=val('ml-to');
+  if(!f||!t||t<f){ el.textContent=''; return; }
+  const d=leaveDays(f,t); el.textContent=d+' working day'+(d===1?'':'s')+' (weekends not counted)';
+}
+function myLeaveHtml(){
+  const me=portalMe();
+  if(!me) return `<div class="panel"><div class="fin-empty"><b>Your account is not linked to an employee record</b><span>Ask HR to add your work email (${finEsc(pEmail())}) to your employee record. Then your leave and staff number appear here.</span></div></div>`;
+  const st=myLeaveStats(me), ann=me.annual||21, sick=me.sick||14, today=finToday();
+  const rows=[...st.L].sort((a,b)=>String(b.from||'').localeCompare(String(a.from||''))).map(l=>{
+    const c={pending:'b-pending',approved:'b-approved',rejected:'b-rejected',cancelled:''}[l.status]||'';
+    return `<tr><td style="white-space:nowrap">${finEsc(l.from)} to ${finEsc(l.to)}</td><td>${finEsc(l.type)}</td><td>${l.days||0}</td><td class="fin-mut">${finEsc(l.reason||'—')}</td><td><span class="badge ${c}"${c?'':' style="background:var(--line);color:var(--muted)"'}>${finCap(l.status)}</span></td><td>${l.status==='pending'?`<button class="mini mini-del" onclick="myLeaveCancel('${l.id}')">Cancel</button>`:''}</td></tr>`;
+  }).join('')||'<tr><td colspan="6" style="color:var(--muted);padding:22px">No leave requests yet.</td></tr>';
+  return `<div class="panel" style="margin-bottom:16px"><div class="panel-head"><h3>${finEsc(me.name)}</h3><span>${me.staffNo?`<span class="badge b-completed">${finEsc(me.staffNo)}</span>`:'<span class="fin-mut">Staff number not allocated yet. Ask HR.</span>'}</span></div>
+    <div style="padding:14px 18px;color:var(--muted);font-size:13.5px">${finEsc(me.title||'')}${me.title&&me.dept?' · ':''}${finEsc(me.dept||'')}</div></div>
+  <div class="stat-grid">${finStat('Annual leave left',Math.max(0,ann-st.used('Annual'))+' / '+ann)}${finStat('Sick days left',Math.max(0,sick-st.used('Sick'))+' / '+sick)}${finStat('Waiting for approval',st.L.filter(l=>l.status==='pending').length,st.L.some(l=>l.status==='pending')?'var(--gold-d)':'')}${finStat('Days taken this year',st.used('')) }</div>
+  <div class="fin-grid">
+    <div class="panel"><div class="panel-head"><h3>Apply for leave</h3></div><div class="fin-form">
+      <div class="field"><label>Type</label><select id="ml-type">${LEAVE_TYPES.map(t=>`<option>${t}</option>`).join('')}</select></div>
+      <div class="field-row"><div class="field"><label>From</label><input id="ml-from" type="date" value="${today}" min="${today}" oninput="mlPreview()"></div><div class="field"><label>To</label><input id="ml-to" type="date" value="${today}" min="${today}" oninput="mlPreview()"></div></div>
+      <div class="fin-mut" id="mlPrev">1 working day</div>
+      <div class="field"><label>Reason (optional)</label><textarea id="ml-reason" placeholder="e.g. Family event, doctor appointment"></textarea></div>
+      <button class="fbtn p" style="justify-content:center" onclick="myLeaveApply()">Send to HR</button>
+    </div></div>
+    <div class="panel"><div class="panel-head"><h3>My requests</h3></div><div class="table-wrap"><table><thead><tr><th>Dates</th><th>Type</th><th>Days</th><th>Reason</th><th>Status</th><th></th></tr></thead><tbody>${rows}</tbody></table></div></div>
+  </div>`;
+}
+async function myLeaveApply(){
+  const me=portalMe(); if(!me){ toast('Your account is not linked to an employee record','bad'); return; }
+  const type=val('ml-type'), from=val('ml-from'), to=val('ml-to'), reason=val('ml-reason');
+  if(!from||!to||to<from){ toast('Pick valid dates','bad'); return; }
+  if(to<finToday()){ toast('Those dates have passed. Ask HR to record it for you.','bad'); return; }
+  const days=leaveDays(from,to); if(days<1){ toast('Those dates have no working days','bad'); return; }
+  const st=myLeaveStats(me);
+  if(st.L.some(l=>(l.status==='pending'||l.status==='approved')&&l.from<=to&&l.to>=from)){ toast('You already have leave on some of those dates','bad'); return; }
+  if(type==='Annual'||type==='Sick'){
+    const left=(type==='Annual'?(me.annual||21):(me.sick||14))-st.used(type)-st.pend(type);
+    if(days>left){ toast('You have '+Math.max(0,left)+' '+type.toLowerCase()+' day(s) left, but asked for '+days,'bad'); return; }
+  }
+  const d={employeeId:me.id,employeeName:me.name,type,from,to,days,reason,status:'pending',created:new Date().toISOString(),ownerEmail:pEmail(),ownerUid:currentUser.uid,source:'self'};
+  try{ await fbAdd('leaves',d); logAction('Applied for '+type+' leave',me.name+' · '+days+' day(s)'); renderTab(); toast('Sent to HR for approval','ok'); }
+  catch(e){ toast('Could not send: '+e.code,'bad'); }
+}
+async function myLeaveCancel(id){
+  if(!confirm('Cancel this leave request?')) return;
+  try{ await fbUpdate('leaves',id,{status:'cancelled',cancelledAt:new Date().toISOString()}); logAction('Cancelled leave request',id); toast('Request cancelled','ok'); }
+  catch(e){ toast('Could not cancel: '+e.code,'bad'); }
+}
+
+/* ---- Notices ---- */
+function noticeVisible(n){
+  if(isHrUser()) return true;
+  if(n.audience==='all') return true;
+  const me=portalMe(); return !!me&&n.audience==='dept:'+(me.dept||'');
+}
+const noticeLabel=a=>a==='all'?'Everyone':String(a||'').replace(/^dept:/,'')+' department';
+function noticeSeenAt(){ try{ return localStorage.getItem('noticeSeen_'+(currentUser||{}).uid)||''; }catch(e){ return ''; } }
+function noticesUnread(){
+  if(!currentUser) return 0; const seen=noticeSeenAt();
+  return orgCache.notices.filter(n=>noticeVisible(n)&&(n.at||'')>seen&&!(n.by&&n.by.uid===currentUser.uid)).length;
+}
+function noticesMarkSeen(){
+  try{ localStorage.setItem('noticeSeen_'+currentUser.uid,new Date().toISOString()); }catch(e){}
+  document.querySelectorAll('#aSide .pill[data-n="notices"]').forEach(p=>p.remove());
+}
+function noticesHtml(){
+  const L=orgCache.notices.filter(noticeVisible).sort((a,b)=>((b.pinned?1:0)-(a.pinned?1:0))||String(b.at||'').localeCompare(String(a.at||'')));
+  const hr=isHrUser();
+  const comp=hr?`<div class="panel" style="margin-bottom:16px"><div class="panel-head"><h3>Post a notice</h3></div><div class="fin-form">
+    <div class="field"><label>Title</label><input id="nt-title" placeholder="e.g. Office closed on Monday" autocomplete="off"></div>
+    <div class="field"><label>Message</label><textarea id="nt-body" placeholder="Write the notice for your staff"></textarea></div>
+    <div class="field-row"><div class="field"><label>Who sees it</label><select id="nt-aud"><option value="all">Everyone</option>${portalDepts().map(d=>`<option value="dept:${finEsc(d)}">${finEsc(d)} department</option>`).join('')}</select></div><div class="field"><label>&nbsp;</label><label class="fin-chk"><input type="checkbox" id="nt-pin"> Pin to the top</label></div></div>
+    <button class="fbtn p" style="justify-content:center" onclick="noticePost()">Post notice</button></div></div>`:'';
+  const items=L.map(n=>`<div class="panel" style="margin-bottom:12px"><div style="padding:16px 18px">
+    <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center"><b style="font-size:16px">${finEsc(n.title)}</b><span>${n.pinned?'<span class="badge b-pending">Pinned</span> ':''}<span class="badge" style="background:var(--line);color:var(--muted)">${finEsc(noticeLabel(n.audience))}</span></span></div>
+    <div style="white-space:pre-wrap;margin:10px 0;font-size:14.5px">${finEsc(n.body)}</div>
+    <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center"><span class="fin-mut">${finEsc((n.by||{}).name||'')} · ${pStamp(n.at)}</span>${hr?`<span><button class="mini mini-ed" onclick="noticePin('${n.id}')">${n.pinned?'Unpin':'Pin'}</button><button class="mini mini-del" onclick="noticeRemove('${n.id}')">Remove</button></span>`:''}</div></div></div>`).join('')||`<div class="panel"><div class="fin-empty"><b>No notices yet</b><span>${hr?'Post the first one above.':'New notices from HR will appear here.'}</span></div></div>`;
+  return comp+items;
+}
+async function noticePost(){
+  const title=val('nt-title'), body=val('nt-body');
+  if(title.length<3){ toast('Add a title','bad'); return; }
+  if(body.length<3){ toast('Write the message','bad'); return; }
+  const d={title,body,audience:val('nt-aud')||'all',pinned:!!document.getElementById('nt-pin').checked,by:{uid:currentUser.uid,name:currentUser.name||'',role:currentUser.role},at:new Date().toISOString()};
+  try{ await fbAdd('notices',d); logAction('Posted notice',title+' · '+noticeLabel(d.audience)); renderTab(); toast('Notice posted','ok'); }
+  catch(e){ toast('Could not post: '+e.code,'bad'); }
+}
+async function noticePin(id){ const n=orgCache.notices.find(x=>x.id===id); if(!n) return; try{ await fbUpdate('notices',id,{pinned:!n.pinned}); }catch(e){ toast('Failed: '+e.code,'bad'); } }
+async function noticeRemove(id){
+  const n=orgCache.notices.find(x=>x.id===id); if(!confirm('Remove this notice for everyone?')) return;
+  try{ await fbDelete('notices',id); logAction('Removed notice',n?n.title:id); toast('Notice removed','ok'); }catch(e){ toast('Failed: '+e.code,'bad'); }
+}
+
+/* ---- Staff chat: everyone, any department, or one person ---- */
+const dmKey=uid=>'dm:'+[currentUser.uid,uid].sort().join('_');
+function chatList(){
+  const chans=[{key:'all',label:'Everyone'},...portalDepts().map(d=>({key:'dept:'+d,label:d}))];
+  const people=orgCache.employees.filter(e=>e.uid&&e.uid!==currentUser.uid&&e.status!=='left').sort((a,b)=>String(a.name).localeCompare(String(b.name)));
+  return {chans,people};
+}
+function chatTitle(){
+  if(chatCh==='all') return 'Everyone';
+  if(chatCh.startsWith('dept:')) return chatCh.slice(5)+' department';
+  const p=orgCache.employees.find(e=>e.uid&&dmKey(e.uid)===chatCh); return p?p.name:'Direct message';
+}
+function chatSub(){
+  if(!currentUser) return;
+  if(unsubChat&&chatKey===chatCh) return;
+  if(unsubChat){ unsubChat(); unsubChat=null; }
+  chatKey=chatCh; chatMsgs=[]; chatErr='';
+  const key=chatCh, {fdb,collection,onSnapshot,query,where}=window.FB, col=collection(fdb,'chatMessages');
+  const q=key.startsWith('dm:')?query(col,where('channel','==',key),where('members','array-contains',currentUser.uid)):query(col,where('channel','==',key),where('dm','==',false));
+  unsubChat=onSnapshot(q,snap=>{
+    if(chatKey!==key) return;
+    const prev=chatMsgs.length;
+    chatMsgs=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>String(a.at||'').localeCompare(String(b.at||'')));
+    const last=chatMsgs[chatMsgs.length-1];
+    if(prev&&!snap.metadata.fromCache&&last&&last.by&&last.by.uid!==currentUser.uid&&!(adminOpen()&&adminTab==='chat')) notify('New message · '+chatTitle(),(last.by.name||'')+': '+String(last.text||'').slice(0,60));
+    chatErr=''; chatPaint();
+  },err=>{ console.warn('chat',err.code); chatErr=err.code||'error'; chatPaint(); });
+}
+function chatPaint(){
+  const el=document.getElementById('chatMsgs'); if(!el) return;
+  if(chatErr){ el.innerHTML=`<div class="fin-empty"><b>Chat is not available</b><span>${finEsc(chatErr)}. Ask the admin to publish the latest Firestore rules.</span></div>`; return; }
+  if(!chatMsgs.length){ el.innerHTML='<div class="fin-empty"><b>No messages yet</b><span>Say hello.</span></div>'; return; }
+  const hr=isHrUser();
+  el.innerHTML=chatMsgs.slice(-150).map(m=>{
+    const mine=m.by&&m.by.uid===currentUser.uid, b=m.by||{};
+    return `<div class="chat-m ${mine?'me':''}"><div class="chat-b"><div class="chat-h"><b>${finEsc(b.name||'')}</b>${b.staffNo?` <span>${finEsc(b.staffNo)}</span>`:''}${b.dept?` <span>${finEsc(b.dept)}</span>`:''}<span>${pStamp(m.at)}</span>${hr?`<button class="chat-x" title="Remove message" onclick="chatRemove('${m.id}')">×</button>`:''}</div><div class="chat-t">${finEsc(m.text)}</div></div></div>`;
+  }).join('');
+  el.scrollTop=el.scrollHeight;
+}
+function chatPick(key){ chatCh=key; chatSub(); renderTab(); }
+function chatHtml(){
+  chatSub();
+  const {chans,people}=chatList();
+  const btn=(k,l,sub)=>`<button class="chat-ch ${chatCh===k?'on':''}" onclick="chatPick('${k.replace(/'/g,"\\'")}')"><span>${finEsc(l)}</span>${sub?`<small>${finEsc(sub)}</small>`:''}</button>`;
+  setTimeout(chatPaint,0);
+  return `<div class="chat-wrap"><div class="panel chat-side"><div class="panel-head"><h3>Chat</h3></div><div style="padding:8px">
+      <div class="fin-mut" style="padding:6px 8px">Channels</div>${chans.map(c=>btn(c.key,c.label)).join('')}
+      <div class="fin-mut" style="padding:12px 8px 6px">People</div>${people.map(p=>btn(dmKey(p.uid),p.name,(p.staffNo||'')+(p.staffNo&&p.dept?' · ':'')+(p.dept||''))).join('')||'<div class="fin-mut" style="padding:6px 8px">People appear here after they sign in to the portal.</div>'}
+    </div></div>
+    <div class="panel chat-main"><div class="panel-head"><h3>${finEsc(chatTitle())}</h3><span class="fin-mut">${chatCh.startsWith('dm:')?'Private between you two':'Visible to all staff'}</span></div>
+      <div id="chatMsgs" class="chat-msgs"></div>
+      <div class="chat-in"><input id="chat-in" placeholder="Write a message" maxlength="1000" autocomplete="off" onkeydown="if(event.key==='Enter'){event.preventDefault();chatSend()}"><button class="fbtn p" onclick="chatSend()">Send</button></div>
+    </div></div>`;
+}
+async function chatSend(){
+  const el=document.getElementById('chat-in'), text=(el?el.value:'').trim(); if(!text) return;
+  const me=portalMe()||{}, dm=chatCh.startsWith('dm:');
+  const d={channel:chatCh,dm,text:text.slice(0,1000),by:{uid:currentUser.uid,name:currentUser.name||'',role:currentUser.role,staffNo:me.staffNo||'',dept:me.dept||''},at:new Date().toISOString()};
+  if(dm){ const parts=chatCh.slice(3).split('_'); d.members=parts; }
+  if(el) el.value='';
+  try{ await fbAdd('chatMessages',d); }catch(e){ if(el) el.value=text; toast('Could not send: '+e.code,'bad'); }
+}
+async function chatRemove(id){ if(!confirm('Remove this message?')) return; try{ await fbDelete('chatMessages',id); logAction('Removed chat message',id); }catch(e){ toast('Failed: '+e.code,'bad'); } }
+
 function renderTab(){
   const c=document.getElementById('tabContent');if(!c)return;
   if(adminTab==='dashboard')c.innerHTML=dashHtml();
@@ -2292,6 +2611,9 @@ function renderTab(){
   if(adminTab==='finStock')c.innerHTML=finStockHtml();
   if(adminTab==='finBilling')c.innerHTML=finBillingHtml();
   if(adminTab==='finReversals')c.innerHTML=finReversalsHtml();
+  if(adminTab==='myLeave')c.innerHTML=myLeaveHtml();
+  if(adminTab==='notices'){ c.innerHTML=noticesHtml(); noticesMarkSeen(); }
+  if(adminTab==='chat')c.innerHTML=chatHtml();
 }
 
 /* ----- dashboard ----- */
@@ -2551,16 +2873,17 @@ window.addEventListener('firebase-ready', ()=>{
       }catch(e){ currentUser={uid:user.uid,name:user.email,email:user.email,role:'customer'}; }
       if(currentUser.blocked){
         toast('This account has been blocked. Please contact the administrator.','bad');
-        stopHeartbeat(); stopStaffStreams(); stopAdminWatches(); stopFinWatch();
+        stopHeartbeat(); stopStaffStreams(); stopAdminWatches(); stopFinWatch(); stopOrgWatch();
         try{ await window.FB.signOut(window.FB.auth); }catch(e){}
         currentUser=null; updateAccountUI(); go('home'); return;
       }
       if(['admin','staff','manager','finance'].includes(currentUser.role)) startStaffStreams(); else stopStaffStreams();
       if(currentUser.role==='admin'){ startUserWatch(); startLogsWatch(); startHRWatch(); } else { stopAdminWatches(); if(currentUser.role==='hr') startHRWatch(); }
       if(['admin','manager','finance','stock','staff'].includes(currentUser.role)) startFinWatch(); else stopFinWatch();
+      if(isStaffRole(currentUser.role)) startOrgWatch(); else stopOrgWatch();
       startHeartbeat(); signInLog();
       if(pendingAdminNav && isStaffRole(currentUser.role)){ pendingAdminNav=false; go('admin'); }
-    }else{ if(currentUser) beat(false); currentUser=null; stopHeartbeat(); stopStaffStreams(); stopAdminWatches(); stopFinWatch(); }
+    }else{ if(currentUser) beat(false); currentUser=null; stopHeartbeat(); stopStaffStreams(); stopAdminWatches(); stopFinWatch(); stopOrgWatch(); }
     updateAccountUI();
     if(adminOpen()) renderAdmin();
   });
@@ -2614,7 +2937,7 @@ if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
 import { getFirestore, collection, getDocs, getDoc, addDoc, doc,
-         updateDoc, deleteDoc, onSnapshot, query, orderBy, setDoc, runTransaction }
+         updateDoc, deleteDoc, onSnapshot, query, orderBy, where, setDoc, runTransaction }
   from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
          signOut, onAuthStateChanged }
@@ -2634,7 +2957,7 @@ const fdb  = getFirestore(app);
 const auth = getAuth(app);
 
 window.FB = { fdb, auth, collection, getDocs, getDoc, addDoc, doc,
-              updateDoc, deleteDoc, onSnapshot, query, orderBy, setDoc, runTransaction,
+              updateDoc, deleteDoc, onSnapshot, query, orderBy, where, setDoc, runTransaction,
               createUserWithEmailAndPassword, signInWithEmailAndPassword,
               signOut, onAuthStateChanged };
 window.dispatchEvent(new Event('firebase-ready'));
