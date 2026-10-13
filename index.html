@@ -483,6 +483,51 @@ footer{background:#161616!important}
 @media(max-width:640px){.shop-nav .full{display:none}.shop-nav .short{display:inline}.shop-nav{padding:9px 13px}}
 .side-i{padding:11px 14px!important;font-size:14.5px}
 .side-g{margin-top:22px!important}
+
+/* ===== Finance: stock upload, billing, reversals ===== */
+.fin-grid{display:grid;grid-template-columns:minmax(0,380px) minmax(0,1fr);gap:16px;align-items:start}
+@media(max-width:1180px){.fin-grid{grid-template-columns:minmax(0,1fr)}}
+.fin-form{padding:18px;display:grid;gap:14px}
+.fin-form .field{margin-bottom:0}
+.fin-mut{color:var(--muted);font-size:12.5px}
+.fin-r{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+th.fin-r{text-align:right}
+.fbtn{display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border-radius:9px;font-weight:700;font-size:13.5px;border:1px solid var(--line);background:var(--card);color:var(--ink)}
+.fbtn:hover{border-color:var(--muted)}
+.fbtn.p{background:#0F62FE;border-color:#0F62FE;color:#fff}
+.fbtn.d{color:var(--bad)}
+.fbtn:disabled,#admin-view .mini:disabled{opacity:.45;cursor:not-allowed}
+.fin-drop{position:relative;display:grid;gap:4px;justify-items:center;text-align:center;border:1.5px dashed var(--line);border-radius:10px;padding:20px 14px;cursor:pointer;background:var(--bg)}
+.fin-drop b{font-size:14px}.fin-drop span{font-size:12.5px;color:var(--muted)}
+.fin-drop:hover,.fin-drop.over,.fin-drop:focus-within{border-color:#0F62FE}
+.fin-sum{display:flex;gap:24px;flex-wrap:wrap}
+.fin-sum div{display:grid}
+.fin-sum span{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.fin-sum b{font-size:20px;font-weight:600;font-variant-numeric:tabular-nums}
+.fin-chk{display:flex;align-items:center;gap:8px;font-size:13.5px}
+.fin-chk input{width:auto}
+.fin-bad td{background:color-mix(in srgb,var(--bad) 7%,transparent)}
+.fin-warn td{background:color-mix(in srgb,var(--warn) 9%,transparent)}
+.fin-alert{border-radius:9px;padding:11px 13px;font-size:13.5px}
+.fin-alert.bad{background:var(--badbg);color:#B91C1C}
+.fin-alert.warn{background:var(--warnbg);color:#92400E}
+.fin-alert.info{background:#DBE7FF;color:#1D4ED8}
+.fin-empty{display:grid;gap:6px;justify-items:center;text-align:center;padding:40px 18px;color:var(--muted)}
+.fin-empty b{color:var(--ink);font-size:15px}
+.fin-meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px 16px;font-size:14px}
+.fin-meta div{display:grid;gap:1px}
+.fin-meta span{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.fin-line{display:grid;grid-template-columns:minmax(0,1fr) 64px 96px;gap:8px;padding:10px 0;border-top:1px solid var(--line)}
+.fin-line input,.fin-search{padding:8px 10px;border:1px solid var(--line);border-radius:8px;font:inherit;font-size:13.5px;background:var(--card);color:inherit;width:100%;min-width:0}
+.fin-search{max-width:240px}
+.fin-line-foot{grid-column:1/-1;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.fin-totals{display:grid;gap:6px;border-top:1px solid var(--line);padding-top:12px;font-variant-numeric:tabular-nums}
+.fin-totals div{display:flex;justify-content:space-between}
+.fin-totals .big{font-size:16px;font-weight:700}
+.fin-chips{padding:0 18px 12px;display:flex;gap:6px;flex-wrap:wrap}
+.fin-chips .chip{padding:6px 13px;font-size:13px}
+.side-i .pill{margin-left:auto;background:#E5A93A;color:#1A1200;border-radius:99px;font-size:11px;font-weight:700;padding:0 7px;min-width:20px;text-align:center}
+@media(max-width:560px){.fin-line{grid-template-columns:minmax(0,1fr) 56px 84px}}
 </style>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 </head>
@@ -1018,6 +1063,7 @@ const ICONS={
   facebook:'<path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/>',
   instagram:'<rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><path d="M17.5 6.5h.01"/>',
   twitter:'<path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"/>',
+  undo:'<path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/>',
   whatsapp:'<path d="M17.47 14.38c-.3-.15-1.76-.87-2.03-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.16-.17.2-.35.22-.64.08-.3-.15-1.26-.47-2.39-1.48-.88-.79-1.48-1.76-1.65-2.06-.17-.3-.02-.46.13-.6.13-.14.3-.35.45-.52.15-.18.2-.3.3-.5.1-.2.05-.37-.03-.52-.07-.15-.67-1.6-.92-2.2-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48s1.06 2.88 1.21 3.07c.15.2 2.1 3.2 5.08 4.49.71.3 1.26.49 1.69.63.71.22 1.36.19 1.87.12.57-.09 1.76-.72 2-1.41.25-.7.25-1.29.17-1.41-.07-.12-.27-.2-.57-.35z"/><path d="M12 2a10 10 0 0 0-8.5 15.3L2 22l4.8-1.5A10 10 0 1 0 12 2z"/>'
 };
 function svg(name,size=20,sw=2){return `<svg class="ic" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round">${ICONS[name]||''}</svg>`;}
@@ -1383,9 +1429,9 @@ function go(view){
 let adminTab='dashboard';
 let currentUser=null;         // {uid,name,email,role,perms} — set by onAuthStateChanged
 let teamCache=[];             // users list for the Team tab (admins only)
-const DEFAULT_PERMS={products:true,orders:true,bookings:true,reports:true,content:false,customers:true,inventory:true,export:false};
-const PERM_KEYS=['products','orders','bookings','reports','content','customers','inventory','export'];
-const PERM_LABELS={products:'Products',orders:'Orders',bookings:'Bookings',reports:'Reports',content:'Content',customers:'Customers',inventory:'Inventory',export:'Export data'};
+const DEFAULT_PERMS={products:true,orders:true,bookings:true,reports:true,content:false,customers:true,inventory:true,export:false,finance:false,stockin:false};
+const PERM_KEYS=['products','orders','bookings','reports','content','customers','inventory','export','finance','stockin'];
+const PERM_LABELS={products:'Products',orders:'Orders',bookings:'Bookings',reports:'Reports',content:'Content',customers:'Customers',inventory:'Inventory',export:'Export data',finance:'Finance (billing, reversals)',stockin:'Stock upload'};
 /* Admin has every right. Staff have only what admin granted (delete is always admin-only). */
 function can(p){ const u=currentUser; if(!u) return false; if(u.role==='admin') return true; if(u.role!=='staff'){ const rp=ROLE_PERMS[u.role]; return !!(rp&&rp[p]); } const pp=u.perms||{}; return p in pp ? !!pp[p] : !!DEFAULT_PERMS[p]; }
 function isAdminUser(){ return currentUser && currentUser.role==='admin'; }
@@ -1478,11 +1524,12 @@ function renderAdmin(){
   if(can('bookings')) tabs.push('bookings');
   if(can('reports')) tabs.push('reports');
   if(can('content')) tabs.push('content');
+  if(can('stockin')) tabs.push('finStock'); if(can('finance')) tabs.push('finBilling','finReversals');
   if(u.role==='admin') tabs.push('employees','organisation','attendance','leave','approvals','security','logs','team');
   if(u.role==='hr'){ tabs.length=0; tabs.push('employees','organisation','attendance','leave','approvals'); }
   if(u.role==='stock') tabs.shift();
   if(!tabs.includes(adminTab))adminTab=tabs[0];
-  const labels={dashboard:svg('dash',16)+' Dashboard',products:svg('package',16)+' Products',orders:svg('receipt',16)+' Orders',bookings:svg('calendar',16)+' Bookings',reports:svg('chart',16)+' Reports',content:svg('edit',16)+' Content',logs:svg('clock',16)+' Logs',team:svg('team',16)+' Team',customers:svg('user',16)+' Customers',security:svg('shield',16)+' Security',employees:svg('team',16)+' Employees',organisation:svg('server',16)+' Organisation',attendance:svg('clock',16)+' Attendance',approvals:svg('receipt',16)+' Approvals',leave:svg('calendar',16)+' Leave & sick off',inventory:svg('database',16)+' Inventory'};
+  const labels={dashboard:svg('dash',16)+' Dashboard',products:svg('package',16)+' Products',orders:svg('receipt',16)+' Orders',bookings:svg('calendar',16)+' Bookings',reports:svg('chart',16)+' Reports',content:svg('edit',16)+' Content',logs:svg('clock',16)+' Logs',team:svg('team',16)+' Team',customers:svg('user',16)+' Customers',security:svg('shield',16)+' Security',employees:svg('team',16)+' Employees',organisation:svg('server',16)+' Organisation',attendance:svg('clock',16)+' Attendance',approvals:svg('receipt',16)+' Approvals',leave:svg('calendar',16)+' Leave & sick off',inventory:svg('database',16)+' Inventory',finStock:svg('package',16)+' Stock upload',finBilling:svg('receipt',16)+' Billing',finReversals:svg('undo',16)+' Reversals'+(finPend()?` <span class="pill">${finPend()}</span>`:'')};
   view.innerHTML=`
     <div class="admin-shell">
       <div class="admin-top">
@@ -1500,7 +1547,7 @@ function renderAdmin(){
     </div>`;
   renderTab();
 }
-const SIDE_GROUPS=[['Main',['dashboard']],['Sales',['orders','customers']],['Catalogue',['products','inventory']],['Services',['bookings']],['Insights',['reports']],['Website',['content']],['HR Admin',['employees','organisation','attendance','leave','approvals']],['Administration',['security','logs','team']]];
+const SIDE_GROUPS=[['Main',['dashboard']],['Sales',['orders','customers']],['Catalogue',['products','inventory']],['Services',['bookings']],['Finance',['finStock','finBilling','finReversals']],['Insights',['reports']],['Website',['content']],['HR Admin',['employees','organisation','attendance','leave','approvals']],['Administration',['security','logs','team']]];
 function sideHtml(tabs,labels){ return SIDE_GROUPS.map(([g,items])=>{ const v=items.filter(t=>tabs.includes(t)); return v.length?`<div class="side-g">${g}</div>`+v.map(t=>`<button class="side-i ${t===adminTab?'on':''}" onclick="setTab('${t}');document.getElementById('aSide').classList.remove('open')">${labels[t]}</button>`).join(''):''; }).join(''); }
 function customerList(){
   const m={}, get=(k,n,p)=>m[k]||(m[k]={name:n,phone:p||'',orders:0,spent:0,last:'',services:0});
@@ -1610,9 +1657,9 @@ function approvalsHtml(){
   const P=hrCache.leaves.filter(l=>l.status==='pending');
   return `<div class="panel"><div class="panel-head"><h3>Pending approvals (${P.length})</h3></div><div style="padding:6px 18px 14px">${P.map(l=>`<div style="display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid var(--line);flex-wrap:wrap"><span style="flex:1;min-width:200px"><b>${l.employeeName}</b> · ${l.type}<br><span style="color:var(--muted);font-size:12.5px">${l.from} → ${l.to} (${l.days} days)${l.reason?' · '+l.reason:''}</span></span><button class="mini mini-ok" onclick="setLeaveStatus('${l.id}','approved')">Approve</button><button class="mini mini-no" onclick="setLeaveStatus('${l.id}','rejected')">Reject</button></div>`).join('')||'<div style="color:var(--ok);padding:16px 0;font-weight:600">Nothing waiting for approval.</div>'}</div></div>`;
 }
-const ROLE_PERMS={manager:{products:true,orders:true,bookings:true,reports:true,customers:true,inventory:true,export:true},finance:{orders:true,reports:true,customers:true,export:true},stock:{products:true,inventory:true}};
+const ROLE_PERMS={manager:{products:true,orders:true,bookings:true,reports:true,customers:true,inventory:true,export:true,finance:true,stockin:true},finance:{orders:true,reports:true,customers:true,export:true,finance:true,stockin:true},stock:{products:true,inventory:true,stockin:true}};
 const ROLE_NAME={customer:'Customer',staff:'Staff',manager:'Manager',hr:'HR',finance:'Finance',stock:'Stock & Store',admin:'Admin'};
-const ROLE_DESC={manager:'Department: Manager — dashboard, orders, customers, products, inventory, requests, reports',hr:'Department: HR — employees, attendance, leave, approvals',finance:'Department: Finance — dashboard, orders, invoices, customers, reports',stock:'Department: Stock & Store — products and inventory'};
+const ROLE_DESC={manager:'Department: Manager — dashboard, orders, customers, products, inventory, requests, reports',hr:'Department: HR — employees, attendance, leave, approvals',finance:'Department: Finance — dashboard, orders, customers, reports, stock upload, billing, reversals',stock:'Department: Stock & Store — products and inventory'};
 function isStaffRole(r){ return ['admin','staff','manager','hr','finance','stock'].includes(r); }
 const HERO_MODES={personal:[['Help me choose a laptop','shop'],['Repair my computer','wa:Hi, I need a computer repair'],['Chat on WhatsApp','wa:Hi Loyalty ICT Solutions']],business:[['Get a CCTV quote','book:Systems & Infrastructure'],['IT support for my office','book:IT Support & Setup'],['Explore AI solutions','book:AI Solutions & Model Building']]};
 function heroMode(m){ document.querySelectorAll('#heroSeg button').forEach(b=>b.classList.toggle('on',b.textContent.toLowerCase()===m)); const el=document.getElementById('heroChips'); if(el) el.innerHTML=HERO_MODES[m].map(([l,a])=>`<button onclick="heroAct('${a}')">${svg('ai',14)} ${l}</button>`).join(''); }
@@ -1662,8 +1709,8 @@ async function loadTeam(){
   renderAdmin();
 }
 const mkPerm=(...k)=>Object.fromEntries(PERM_KEYS.map(x=>[x,k.includes(x)]));
-const TEAM_PRESETS={sales:mkPerm('products','orders','customers'),tech:mkPerm('bookings'),editor:mkPerm('products','content'),full:mkPerm(...PERM_KEYS)};
-const PRESET_LABELS={sales:'Sales (products + orders)',tech:'Technician (bookings)',editor:'Content editor',full:'Full access (all areas)'};
+const TEAM_PRESETS={sales:mkPerm('products','orders','customers'),tech:mkPerm('bookings'),editor:mkPerm('products','content'),full:mkPerm(...PERM_KEYS),finance:mkPerm('orders','reports','customers','finance','stockin')};
+const PRESET_LABELS={sales:'Sales (products + orders)',tech:'Technician (bookings)',editor:'Content editor',full:'Full access (all areas)',finance:'Finance (billing + stock upload)'};
 let teamQ='',teamRoleF='all';
 function presetOf(p){ const k=Object.keys(TEAM_PRESETS).find(n=>PERM_KEYS.every(x=>!!TEAM_PRESETS[n][x]===!!(p[x]!==undefined?p[x]:DEFAULT_PERMS[x]))); return k||'custom'; }
 function ago(iso){ if(!iso) return 'never'; const m=Math.round((Date.now()-new Date(iso))/60000); if(m<1) return 'just now'; if(m<60) return m+' min ago'; const h=Math.round(m/60); if(h<24) return h+' h ago'; return Math.round(h/24)+' d ago'; }
@@ -1746,6 +1793,484 @@ async function setRole(uid,role){
   loadTeam();
 }
 
+/* ============================================================
+   FINANCE: stock upload, billing and reversals
+   Firestore collections: stockBatches, finInvoices, reversals,
+   finMeta/counters (reference numbers). Nothing is ever deleted.
+   A mistake is fixed with a reversal that a second person
+   (manager or admin) approves. Stock changes run in transactions.
+   ============================================================ */
+const FIN_TABS=['finStock','finBilling','finReversals'];
+const FIN_VAT=0.16;
+let finCache={batches:[],invoices:[],reversals:[]}, unsubFin=[], finInit={reversals:false};
+let finUp={supplier:'',ref:'',date:'',rows:null,error:'',file:'',skip:false,text:'',busy:false};
+let finInv=null, finFilter='All', finQ='';
+
+const finToday=()=>{const d=new Date(),p=n=>String(n).padStart(2,'0');return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate());};
+const finAdd=(d,n)=>{const x=new Date(d+'T00:00:00');x.setDate(x.getDate()+n);const p=k=>String(k).padStart(2,'0');return x.getFullYear()+'-'+p(x.getMonth()+1)+'-'+p(x.getDate());};
+const finNum=v=>{const s=String(v==null?'':v).replace(/kes|ksh/ig,'').replace(/[,\s]/g,'');return s===''?NaN:Number(s);};
+const finEsc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const finR2=n=>Math.round(n*100)/100;
+const finFmt=n=>Number(n||0).toLocaleString('en-KE',{minimumFractionDigits:2,maximumFractionDigits:2});
+const finDate=d=>d?new Date(String(d).length===10?d+'T00:00:00':d).toLocaleDateString('en-KE'):'—';
+const finPad=n=>String(n).padStart(4,'0');
+function finBy(){ const u=currentUser||{}; return {uid:u.uid||'',name:u.name||'',email:u.email||'',role:u.role||''}; }
+function finCanApprove(){ return !!currentUser && ['admin','manager'].includes(currentUser.role); }
+function finBusy(){ const a=document.activeElement; return !!(a&&a.closest&&a.closest('#tabContent')&&/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)); }
+const finPend=()=>finCache.reversals.filter(r=>r.status==='pending').length;
+
+/* ---- live streams ---- */
+function startFinWatch(){
+  if(unsubFin.length) return;
+  const {fdb,collection,onSnapshot}=window.FB;
+  [['stockBatches','batches'],['finInvoices','invoices'],['reversals','reversals']].forEach(([col,k])=>{
+    unsubFin.push(onSnapshot(collection(fdb,col),snap=>{
+      if(k==='reversals'&&finInit.reversals&&!snap.metadata.fromCache&&finCanApprove()) snap.docChanges().forEach(ch=>{
+        const r=ch.doc.data();
+        if(ch.type==='added'&&r.status==='pending'&&r.requestedBy&&r.requestedBy.uid!==(currentUser||{}).uid) notify('Reversal needs approval',(r.ref||'')+' · '+money(r.amount||0));
+      });
+      if(k==='reversals'&&!snap.metadata.fromCache) finInit.reversals=true;
+      finCache[k]=snap.docs.map(d=>({id:d.id,...d.data()}));
+      if(!adminOpen()||finBusy()) return;
+      if(k==='reversals') renderAdmin(); else if(FIN_TABS.includes(adminTab)) renderTab();
+    },err=>console.warn(col,err.code)));
+  });
+}
+function stopFinWatch(){ unsubFin.forEach(u=>u()); unsubFin=[]; finCache={batches:[],invoices:[],reversals:[]}; finInit.reversals=false; }
+async function finTx(fn){ const {fdb,runTransaction}=window.FB; return runTransaction(fdb,fn); }
+const finErr=e=>toast((e&&e.message&&!e.code)?e.message:('Failed: '+((e&&e.code)||'error')),'bad');
+/* next reference number from finMeta/counters, inside a transaction (read it first, then call this) */
+function finRef(meta,key,tx,metaRef){ const n=(((meta.exists()?meta.data()[key]:0)||0))+1; tx.set(metaRef,{[key]:n},{merge:true}); return key+'-'+new Date().getFullYear()+'-'+finPad(n); }
+
+/* ---- status helpers ---- */
+const finBStatus=b=>b.status==='reversed'?'Reversed':(b.hold?'Reversal pending':'Posted');
+const finBal=i=>i.reversed?0:Math.max(0,finR2((i.total||0)-(i.paid||0)));
+const finIStatus=i=>i.reversed?'Reversed':(i.hold?'Reversal pending':((i.paid||0)>=(i.total||0)?'Paid':((i.paid||0)>0?'Part-paid':'Unpaid')));
+const finOver=i=>!i.reversed&&finBal(i)>0&&(i.due||'')<finToday();
+function finBadge(t){
+  const m={Posted:'b-approved',Paid:'b-approved',Approved:'b-approved','Part-paid':'b-completed',Reversed:'b-rejected',Rejected:'b-rejected',Overdue:'b-rejected','Reversal pending':'b-pending',Pending:'b-pending'};
+  const c=m[t];
+  return `<span class="badge ${c||''}"${c?'':' style="background:var(--line);color:var(--muted)"'}>${t}</span>`;
+}
+const finCap=s=>s?s.charAt(0).toUpperCase()+s.slice(1):'';
+const finWho=p=>p?`<b>${finEsc(p.name||'')}</b><br><span style="color:var(--muted);font-size:12px">${finEsc(ROLE_NAME[p.role]||p.role||'')}</span>`:'—';
+const finStat=(l,v,c)=>`<div class="stat"><div class="s-lab">${l}</div><div class="s-val" style="font-size:24px;${c?'color:'+c:''}">${v}</div></div>`;
+
+/* ---- reading the delivery file ---- */
+function finCsv(text){
+  const t=String(text).replace(/\r\n?/g,'\n').trim(); if(!t) return [];
+  const first=t.split('\n')[0];
+  const delim=first.indexOf('\t')>=0?'\t':(first.split(';').length>first.split(',').length?';':',');
+  const out=[]; let row=[],cur='',q=false;
+  for(let i=0;i<t.length;i++){
+    const c=t[i];
+    if(q){ if(c==='"'){ if(t[i+1]==='"'){cur+='"';i++;} else q=false; } else cur+=c; }
+    else if(c==='"') q=true;
+    else if(c===delim){ row.push(cur); cur=''; }
+    else if(c==='\n'){ row.push(cur); out.push(row); row=[]; cur=''; }
+    else cur+=c;
+  }
+  row.push(cur); out.push(row);
+  return out.filter(r=>r.some(x=>String(x).trim()!==''));
+}
+function finFindProduct(r){
+  const P=DB.get('products',[]), nm=r.name.toLowerCase().replace(/\s+/g,' ').trim();
+  if(r.sku){ const s=P.find(p=>String(p.sku||'').toUpperCase()===r.sku); if(s) return s; }
+  return P.find(p=>String(p.name||'').toLowerCase().replace(/\s+/g,' ').trim()===nm)||null;
+}
+function finSuggest(r){
+  const nm=r.name.toLowerCase().trim(); if(nm.length<3) return null;
+  return DB.get('products',[]).find(p=>{ const x=String(p.name||'').toLowerCase(); return x.includes(nm)||nm.includes(x); })||null;
+}
+function finBuildRows(m){
+  if(!m.length) return {rows:[],error:'That file has no rows.'};
+  const norm=s=>String(s).toLowerCase().replace(/[^a-z]/g,'');
+  const h=m[0].map(norm);
+  const NAME=['name','description','item','product','productname','itemname'], SKU=['sku','itemcode','code'], QTY=['qty','quantity','units','qtyreceived'], COST=['unitcost','cost','price','unitprice','costprice','buyingprice'];
+  const find=l=>h.findIndex(x=>l.includes(x));
+  let idx,start=0;
+  if(find(NAME)>=0||find(QTY)>=0||find(SKU)>=0){
+    idx={sku:find(SKU),name:find(NAME),qty:find(QTY),cost:find(COST)}; start=1;
+    const miss=['qty','cost'].filter(k=>idx[k]<0); if(idx.name<0&&idx.sku<0) miss.unshift('name');
+    if(miss.length) return {rows:[],error:'Missing column: '+miss.join(', ')+'. Expected name, qty, unit_cost (sku is optional).'};
+  } else idx=m[0].length>=4?{sku:0,name:1,qty:2,cost:3}:{sku:-1,name:0,qty:1,cost:2};
+  const rows=[], seen={}, get=(r,i)=>i>=0&&r[i]!=null?String(r[i]).trim():'';
+  for(let i=start;i<m.length;i++){
+    const r=m[i];
+    const row={line:i+1,sku:get(r,idx.sku).toUpperCase(),name:get(r,idx.name),qty:finNum(get(r,idx.qty)),cost:finNum(get(r,idx.cost)),errors:[],warns:[],productId:'',productName:''};
+    if(!row.name&&!row.sku) row.errors.push('Product name is missing');
+    if(!(isFinite(row.qty)&&row.qty>0&&Math.floor(row.qty)===row.qty)) row.errors.push('Quantity must be a whole number above 0');
+    if(!isFinite(row.cost)||row.cost<0) row.errors.push('Unit cost must be a number, 0 or more');
+    else if(row.cost===0) row.warns.push('Unit cost is 0');
+    if(row.name||row.sku){
+      const p=finFindProduct(row);
+      if(!p){ const s=finSuggest(row); row.errors.push('No product with this name.'+(s?' Did you mean "'+s.name+'"?':' Add it under Products first.')); }
+      else{
+        row.productId=p.id; row.productName=p.name;
+        if(seen[p.id]) row.errors.push('Same product as line '+seen[p.id]); else seen[p.id]=row.line;
+        const lc=Number(p.lastCost);
+        if(lc>0&&isFinite(row.cost)&&row.cost>0&&Math.abs(row.cost-lc)/lc>0.25) row.warns.push('Cost '+(row.cost>lc?'up ':'down ')+Math.round(Math.abs(row.cost-lc)/lc*100)+'% on last delivery ('+finFmt(lc)+')');
+        if(isFinite(row.cost)&&Number(p.price)>0&&row.cost>=Number(p.price)) row.warns.push('Cost is not below the selling price ('+money(p.price)+')');
+      }
+    }
+    rows.push(row);
+  }
+  if(rows.length>400) return {rows:[],error:'Upload at most 400 lines at a time. Split the file and upload it in parts.'};
+  return {rows,error:''};
+}
+function finLoadMatrix(m,name){ const r=finBuildRows(m); finUp.rows=r.rows; finUp.error=r.error; finUp.file=name; renderTab(); }
+function finLoadXlsx(){ return window.XLSX?Promise.resolve():new Promise((ok,no)=>{ const s=document.createElement('script'); s.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js'; s.onload=ok; s.onerror=no; document.head.appendChild(s); }); }
+function finHandleFile(f){
+  if(!f) return;
+  const ext=f.name.split('.').pop().toLowerCase(), rd=new FileReader();
+  if(ext==='xlsx'||ext==='xls'){
+    rd.onload=async()=>{ try{ await finLoadXlsx(); const wb=XLSX.read(rd.result,{type:'array'}); finLoadMatrix(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,raw:false,defval:''}),f.name); }catch(e){ toast('Could not read that workbook. Save it as CSV and try again.','bad'); } };
+    rd.readAsArrayBuffer(f);
+  } else { rd.onload=()=>finLoadMatrix(finCsv(String(rd.result)),f.name); rd.readAsText(f); }
+}
+function finUpStats(){
+  const rows=finUp.rows||[], ok=rows.filter(r=>!r.errors.length);
+  return {n:rows.length,valid:ok.length,bad:rows.length-ok.length,value:ok.reduce((a,r)=>a+r.qty*r.cost,0)};
+}
+function finCopyTemplate(){
+  const t='name,qty,unit_cost\nExact product name,10,1500';
+  const done=()=>toast('Template copied. Paste it into Excel.','ok');
+  const fb=()=>{ finUp.text=t; renderTab(); toast('Template placed in the paste box','ok'); };
+  try{ navigator.clipboard.writeText(t).then(done,fb); }catch(e){ fb(); }
+}
+function finCheckPaste(){ if(!finUp.text.trim()){ toast('Paste some rows first','bad'); return; } finLoadMatrix(finCsv(finUp.text),'pasted rows'); }
+function finClearUp(){ finUp={...finUp,rows:null,error:'',file:'',text:'',skip:false}; renderTab(); }
+
+/* ---- stock upload view ---- */
+function finReviewHtml(){
+  const u=finUp;
+  if(u.error) return `<div class="panel-head"><h3>Review</h3></div><div style="padding:18px"><div class="fin-alert bad"><b>Could not read ${finEsc(u.file||'the rows')}</b><br>${finEsc(u.error)}</div></div>`;
+  if(!u.rows) return `<div class="panel-head"><h3>Review</h3></div><div class="fin-empty"><b>No rows to check yet</b><span>Choose a file or paste rows. Every line is checked against your products before anything is posted.</span></div>`;
+  const st=finUpStats(), canPost=st.n>0&&(st.bad===0||(u.skip&&st.valid>0)), count=(u.skip&&st.bad)?st.valid:st.n;
+  const body=u.rows.map(r=>{
+    const cls=r.errors.length?'fin-bad':(r.warns.length?'fin-warn':'');
+    const chk=r.errors.length?`<span class="badge b-rejected">Fix</span> <span class="fin-mut">${finEsc(r.errors.join('. '))}</span>`:(r.warns.length?`<span class="badge b-pending">Check</span> <span class="fin-mut">${finEsc(r.warns.join('. '))}</span>`:'<span class="badge b-approved">OK</span>');
+    const val=(isFinite(r.qty)&&isFinite(r.cost))?finFmt(r.qty*r.cost):'';
+    return `<tr class="${cls}"><td class="fin-mut">${r.line}</td><td><b>${finEsc(r.productName||r.name||r.sku||'—')}</b>${r.productName&&r.name&&r.name.toLowerCase()!==r.productName.toLowerCase()?`<br><span class="fin-mut">${finEsc(r.name)}</span>`:''}</td><td class="fin-r">${isFinite(r.qty)?r.qty:'—'}</td><td class="fin-r">${isFinite(r.cost)?finFmt(r.cost):'—'}</td><td class="fin-r">${val}</td><td>${chk}</td></tr>`;
+  }).join('');
+  return `<div class="panel-head"><h3>Review · ${finEsc(u.file||'pasted rows')}</h3><button class="mini mini-ed" onclick="finClearUp()">Clear</button></div>
+    <div style="padding:16px 18px"><div class="fin-sum"><div><span>Rows</span><b>${st.n}</b></div><div><span>Ready</span><b style="color:var(--ok)">${st.valid}</b></div><div><span>Need fixing</span><b style="color:${st.bad?'var(--bad)':'inherit'}">${st.bad}</b></div><div><span>Value to post</span><b>${money(st.value)}</b></div></div></div>
+    <div class="table-wrap"><table><thead><tr><th>Line</th><th>Product</th><th class="fin-r">Qty</th><th class="fin-r">Unit cost</th><th class="fin-r">Value (KSh)</th><th>Check</th></tr></thead><tbody>${body}</tbody></table></div>
+    <div style="padding:14px 18px;display:flex;gap:12px;justify-content:space-between;align-items:center;flex-wrap:wrap;border-top:1px solid var(--line)">
+      <label class="fin-chk"><input type="checkbox" ${u.skip?'checked':''} onchange="finUp.skip=this.checked;renderTab()"> Skip rows that need fixing and post the rest</label>
+      <button class="fbtn p" onclick="finPostBatch()" ${canPost&&!u.busy?'':'disabled'}>${u.busy?'Posting…':'Post '+count+' line'+(count===1?'':'s')+' to stock'}</button>
+    </div>`;
+}
+function finStockHtml(){
+  const B=[...finCache.batches].sort((a,b)=>(b.created||'').localeCompare(a.created||'')), mo=finToday().slice(0,7);
+  const inMo=B.filter(b=>b.status!=='reversed'&&(b.date||'').startsWith(mo));
+  const pendB=finCache.reversals.filter(r=>r.status==='pending'&&r.kind==='batch').length;
+  const u=finUp, sup=[...new Set(B.map(b=>b.supplier).filter(Boolean))].map(s=>`<option value="${finEsc(s)}">`).join('');
+  const rows=B.map(b=>{
+    const st=finBStatus(b), can=st==='Posted';
+    return `<tr><td><b>${finEsc(b.ref)}</b><br><span class="fin-mut">${finDate(b.date)}</span></td><td>${finEsc(b.supplier)}<br><span class="fin-mut">${finEsc(b.docRef)}</span></td><td class="fin-r">${(b.lines||[]).length}</td><td class="fin-r">${finFmt(b.total)}</td><td>${finBadge(st)}</td><td>${finWho(b.by)}</td><td style="white-space:nowrap"><button class="mini mini-ed" onclick="finOpenBatch('${b.id}')">View</button><button class="mini mini-del" onclick="finRevForm('batch','${b.id}')" ${can?'':'disabled'}>Reverse</button></td></tr>`;
+  }).join('')||'<tr><td colspan="7" style="color:var(--muted);padding:22px">No deliveries posted yet.</td></tr>';
+  return `<div class="stat-grid">${finStat('Received this month',money(inMo.reduce((a,b)=>a+(b.total||0),0)))}${finStat('Deliveries this month',inMo.length)}${finStat('Reversals waiting',pendB,pendB?'var(--gold-d)':'')}${finStat('Last delivery',B.length?finDate(B.find(b=>b.status!=='reversed')?.date):'—')}</div>
+  <div class="fin-grid">
+    <div class="panel"><div class="panel-head"><h3>Upload a delivery</h3></div><div class="fin-form">
+      <div class="field"><label>Supplier</label><input id="fu-sup" list="fin-sups" value="${finEsc(u.supplier)}" oninput="finUp.supplier=this.value" placeholder="Supplier name" autocomplete="off"></div><datalist id="fin-sups">${sup}</datalist>
+      <div class="field-row"><div class="field"><label>Delivery note or invoice no.</label><input id="fu-ref" value="${finEsc(u.ref)}" oninput="finUp.ref=this.value" placeholder="DN-00000" autocomplete="off"></div><div class="field"><label>Received on</label><input id="fu-date" type="date" value="${finEsc(u.date||finToday())}" max="${finToday()}" oninput="finUp.date=this.value"></div></div>
+      <label class="fin-drop" id="finDrop" for="finFile" ondragover="event.preventDefault();this.classList.add('over')" ondragleave="this.classList.remove('over')" ondrop="event.preventDefault();this.classList.remove('over');finHandleFile(event.dataTransfer.files[0])"><b>Drop a file here or choose one</b><span>CSV or Excel. Columns: name, qty, unit_cost (sku optional)</span><input type="file" id="finFile" accept=".csv,.tsv,.txt,.xlsx,.xls" style="position:absolute;width:1px;height:1px;opacity:0" onchange="finHandleFile(this.files[0]);this.value=''"></label>
+      <div class="field"><label>Or paste rows from Excel</label><textarea id="fu-text" oninput="finUp.text=this.value" placeholder="name, qty, unit_cost">${finEsc(u.text)}</textarea></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="fbtn" onclick="finCheckPaste()">Check pasted rows</button><button class="fbtn" onclick="finCopyTemplate()">Copy template</button></div>
+      <div class="fin-mut">Names must match a product exactly. Posting adds the quantities to Inventory and records the unit cost.</div>
+    </div></div>
+    <div class="panel" id="finReview">${finReviewHtml()}</div>
+  </div>
+  <div class="panel" style="margin-top:16px"><div class="panel-head"><h3>Posted deliveries (${B.length})</h3></div><div class="table-wrap"><table><thead><tr><th>Batch</th><th>Supplier</th><th class="fin-r">Lines</th><th class="fin-r">Value (KSh)</th><th>Status</th><th>Posted by</th><th></th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
+}
+async function finPostBatch(){
+  const u=finUp, st=finUpStats(), sup=u.supplier.trim(), ref=u.ref.trim(), date=u.date||finToday();
+  if(!sup){ toast('Enter the supplier','bad'); return; }
+  if(!ref){ toast('Enter the delivery note or invoice number','bad'); return; }
+  if(date>finToday()){ toast('Received date cannot be in the future','bad'); return; }
+  const dup=finCache.batches.find(b=>b.status!=='reversed'&&String(b.supplier).toLowerCase()===sup.toLowerCase()&&String(b.docRef).toLowerCase()===ref.toLowerCase());
+  if(dup){ toast(ref+' from '+sup+' is already posted as '+dup.ref,'bad'); return; }
+  const rows=(u.rows||[]).filter(r=>!r.errors.length);
+  if(!rows.length||(st.bad&&!u.skip)){ toast('Fix the marked lines first','bad'); return; }
+  if(u.busy) return;
+  u.busy=true; renderTab();
+  const {fdb,doc,collection}=window.FB, metaRef=doc(fdb,'finMeta','counters'), bRef=doc(collection(fdb,'stockBatches'));
+  const add={}; rows.forEach(r=>{ const a=add[r.productId]||(add[r.productId]={qty:0,cost:r.cost}); a.qty+=r.qty; a.cost=r.cost; });
+  const total=finR2(rows.reduce((a,r)=>a+r.qty*r.cost,0));
+  try{
+    let made='';
+    await finTx(async tx=>{
+      const meta=await tx.get(metaRef), snaps={};
+      for(const id of Object.keys(add)) snaps[id]=await tx.get(doc(fdb,'products',id));
+      for(const id of Object.keys(add)) if(!snaps[id].exists()) throw new Error('A product in this file was deleted. Check the file again.');
+      made=finRef(meta,'STK',tx,metaRef);
+      for(const id of Object.keys(add)) tx.update(doc(fdb,'products',id),{stock:(Number(snaps[id].data().stock)||0)+add[id].qty,lastCost:add[id].cost});
+      tx.set(bRef,{ref:made,supplier:sup,docRef:ref,date,lines:rows.map(r=>({productId:r.productId,name:r.productName,sku:r.sku||'',qty:r.qty,cost:r.cost})),total,status:'posted',hold:null,by:finBy(),created:new Date().toISOString()});
+    });
+    logAction('Posted stock batch',made+' · '+rows.length+' line(s) · '+money(total));
+    finUp={supplier:'',ref:'',date:'',rows:null,error:'',file:'',skip:false,text:'',busy:false};
+    renderTab(); toast(made+' posted: stock updated','ok');
+  }catch(e){ u.busy=false; renderTab(); finErr(e); }
+}
+function finOpenBatch(id){
+  const b=finCache.batches.find(x=>x.id===id); if(!b) return;
+  const st=finBStatus(b);
+  const lines=(b.lines||[]).map(l=>`<tr><td><b>${finEsc(l.name)}</b></td><td class="fin-r">${l.qty}</td><td class="fin-r">${finFmt(l.cost)}</td><td class="fin-r">${finFmt(l.qty*l.cost)}</td></tr>`).join('');
+  openModal('Delivery '+b.ref,`<div class="fin-meta"><div><span>Supplier</span>${finEsc(b.supplier)}</div><div><span>Reference</span>${finEsc(b.docRef)}</div><div><span>Received</span>${finDate(b.date)}</div><div><span>Status</span>${finBadge(st)}</div></div>
+    <div class="table-wrap" style="margin-top:12px"><table><thead><tr><th>Product</th><th class="fin-r">Qty</th><th class="fin-r">Unit cost</th><th class="fin-r">Value</th></tr></thead><tbody>${lines}</tbody></table></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:14px;flex-wrap:wrap"><b>Total ${money(b.total)}</b><button class="fbtn d" onclick="finRevForm('batch','${b.id}')" ${st==='Posted'?'':'disabled'}>Reverse delivery</button></div>`);
+}
+
+/* ---- billing view ---- */
+function finNewInv(){ return {customer:'',pin:'',date:finToday(),due:finAdd(finToday(),14),vat:true,deduct:true,lines:[{desc:'',qty:'1',price:''}]}; }
+function finProdByName(n){ const x=String(n||'').toLowerCase().replace(/\s+/g,' ').trim(); return x?DB.get('products',[]).find(p=>String(p.name||'').toLowerCase().replace(/\s+/g,' ').trim()===x):null; }
+function finDraftTotals(){
+  const d=finInv, sub=finR2(d.lines.reduce((a,l)=>{ const q=finNum(l.qty),p=finNum(l.price); return a+((isFinite(q)&&isFinite(p))?q*p:0); },0)), vat=d.vat?finR2(sub*FIN_VAT):0;
+  return {sub,vat,total:finR2(sub+vat)};
+}
+function finTotalsHtml(){ const t=finDraftTotals(); return `<div><span>Subtotal</span><span>${finFmt(t.sub)}</span></div><div><span>VAT 16%</span><span>${finFmt(t.vat)}</span></div><div class="big"><span>Total (KSh)</span><span>${finFmt(t.total)}</span></div>`; }
+function finStockNote(i){
+  const l=finInv.lines[i], p=finProdByName(l.desc);
+  if(!l.desc.trim()) return '';
+  if(!p) return 'Not a stock item';
+  const q=finNum(l.qty), s=Number(p.stock)||0;
+  return s+' in stock'+((isFinite(q)&&q>s)?' (not enough)':'');
+}
+function finLinesHtml(){
+  return finInv.lines.map((l,i)=>{
+    const q=finNum(l.qty),p=finNum(l.price);
+    return `<div class="fin-line"><input list="fin-items" value="${finEsc(l.desc)}" oninput="finLine(${i},'desc',this.value)" placeholder="Item or service" aria-label="Item ${i+1}" autocomplete="off">
+      <input value="${finEsc(l.qty)}" oninput="finLine(${i},'qty',this.value)" inputmode="decimal" placeholder="Qty" aria-label="Quantity">
+      <input id="fl-p${i}" value="${finEsc(l.price)}" oninput="finLine(${i},'price',this.value)" inputmode="decimal" placeholder="Unit price" aria-label="Unit price">
+      <div class="fin-line-foot"><span class="fin-mut">Line total <b id="fl-t${i}" style="color:var(--ink)">${(isFinite(q)&&isFinite(p))?finFmt(q*p):'0.00'}</b> · <span id="fl-s${i}">${finEsc(finStockNote(i))}</span></span>${finInv.lines.length>1?`<button class="mini mini-del" onclick="finRmLine(${i})">Remove</button>`:''}</div></div>`;
+  }).join('');
+}
+function finLine(i,k,v){
+  const l=finInv.lines[i]; l[k]=v;
+  if(k==='desc'){ const p=finProdByName(v); if(p&&!String(l.price).trim()){ l.price=String(p.price); const el=document.getElementById('fl-p'+i); if(el) el.value=l.price; } }
+  const q=finNum(l.qty),p=finNum(l.price), t=document.getElementById('fl-t'+i), s=document.getElementById('fl-s'+i);
+  if(t) t.textContent=(isFinite(q)&&isFinite(p))?finFmt(q*p):'0.00';
+  if(s) s.textContent=finStockNote(i);
+  const tot=document.getElementById('finTotals'); if(tot) tot.innerHTML=finTotalsHtml();
+}
+function finAddLine(){ finInv.lines.push({desc:'',qty:'1',price:''}); document.getElementById('finLines').innerHTML=finLinesHtml(); document.getElementById('finTotals').innerHTML=finTotalsHtml(); const ins=document.querySelectorAll('#finLines .fin-line>input:first-child'); if(ins.length) ins[ins.length-1].focus(); }
+function finRmLine(i){ finInv.lines.splice(i,1); document.getElementById('finLines').innerHTML=finLinesHtml(); document.getElementById('finTotals').innerHTML=finTotalsHtml(); }
+function finInvRows(){
+  const q=finQ.trim().toLowerCase();
+  const L=[...finCache.invoices].sort((a,b)=>(b.created||'').localeCompare(a.created||'')).filter(i=>{
+    const st=finIStatus(i);
+    if(finFilter==='Overdue'){ if(!finOver(i)) return false; }
+    else if(finFilter==='Unpaid'){ if(!(st==='Unpaid'||st==='Part-paid')) return false; }
+    else if(finFilter!=='All'&&st!==finFilter) return false;
+    return !q||((i.ref||'')+' '+(i.customer||'')).toLowerCase().includes(q);
+  });
+  if(!L.length) return '<tr><td colspan="6" style="color:var(--muted);padding:22px">No invoices match.</td></tr>';
+  return L.map(i=>{
+    const st=finIStatus(i), open=!i.reversed&&!i.hold;
+    return `<tr><td><b>${finEsc(i.ref)}</b><br><span class="fin-mut">${finEsc(i.customer)}</span></td><td>${finDate(i.due)}${finOver(i)?'<br>'+finBadge('Overdue'):''}</td><td class="fin-r"><span style="${i.reversed?'text-decoration:line-through;color:var(--muted)':''}">${finFmt(i.total)}</span></td><td class="fin-r">${finFmt(finBal(i))}</td><td>${finBadge(st)}</td><td style="white-space:nowrap"><button class="mini mini-ed" onclick="finOpenInv('${i.id}')">View</button><button class="mini mini-ed" onclick="finPayForm('${i.id}')" ${open&&finBal(i)>0?'':'disabled'}>Record payment</button><button class="mini mini-del" onclick="finRevForm('invoice','${i.id}')" ${open?'':'disabled'}>Reverse</button></td></tr>`;
+  }).join('');
+}
+function finBillingHtml(){
+  if(!finInv) finInv=finNewInv();
+  const d=finInv, mo=finToday().slice(0,7), I=finCache.invoices;
+  const billed=I.filter(i=>!i.reversed&&(i.date||'').startsWith(mo)).reduce((a,i)=>a+(i.total||0),0);
+  const out=I.reduce((a,i)=>a+finBal(i),0), od=I.filter(finOver), odv=od.reduce((a,i)=>a+finBal(i),0);
+  const rev=finCache.reversals.filter(r=>r.status==='approved'&&(r.decidedAt||'').startsWith(mo));
+  const custs=[...new Set([...I.map(i=>i.customer),...DB.get('orders',[]).map(o=>o.name)].filter(Boolean))].map(c=>`<option value="${finEsc(c)}">`).join('');
+  const items=DB.get('products',[]).map(p=>`<option value="${finEsc(p.name)}">`).join('');
+  const chips=['All','Unpaid','Overdue','Part-paid','Paid','Reversed'].map(c=>`<button class="chip ${finFilter===c?'active':''}" onclick="finFilter='${c}';renderTab()">${c}</button>`).join('');
+  return `<div class="stat-grid">${finStat('Billed this month',money(billed))}${finStat('Outstanding',money(out))}${finStat('Overdue',money(odv),od.length?'var(--bad)':'')}${finStat('Reversed this month',money(rev.reduce((a,r)=>a+(r.amount||0),0)))}</div>
+  <div class="fin-grid">
+    <div class="panel"><div class="panel-head"><h3>New invoice</h3></div><div class="fin-form">
+      <div class="field"><label>Customer</label><input id="fi-cust" list="fin-custs" value="${finEsc(d.customer)}" oninput="finInv.customer=this.value" placeholder="Customer name" autocomplete="off"></div><datalist id="fin-custs">${custs}</datalist><datalist id="fin-items">${items}</datalist>
+      <div class="field-row"><div class="field"><label>Invoice date</label><input type="date" value="${finEsc(d.date)}" oninput="finInv.date=this.value"></div><div class="field"><label>Due date</label><input type="date" value="${finEsc(d.due)}" oninput="finInv.due=this.value"></div></div>
+      <div class="field"><label>Customer KRA PIN (optional)</label><input value="${finEsc(d.pin)}" oninput="finInv.pin=this.value" placeholder="A000000000Z" autocomplete="off"></div>
+      <div><div class="fin-mut" style="margin-bottom:2px">Items. Pick a product name to fill its price.</div><div id="finLines">${finLinesHtml()}</div><button class="fbtn" style="margin-top:8px" onclick="finAddLine()">Add item</button></div>
+      <label class="fin-chk"><input type="checkbox" ${d.vat?'checked':''} onchange="finInv.vat=this.checked;document.getElementById('finTotals').innerHTML=finTotalsHtml()"> Charge VAT at 16%</label>
+      <label class="fin-chk"><input type="checkbox" ${d.deduct?'checked':''} onchange="finInv.deduct=this.checked"> Take stock items out of Inventory</label>
+      <div class="fin-totals" id="finTotals">${finTotalsHtml()}</div>
+      <button class="fbtn p" style="justify-content:center" onclick="finCreateInvoice()">Create invoice</button>
+    </div></div>
+    <div><div class="panel"><div class="panel-head"><h3>Invoices (${I.length})</h3><input class="fin-search" placeholder="Search invoice or customer" value="${finEsc(finQ)}" oninput="finQ=this.value;document.getElementById('finInvBody').innerHTML=finInvRows()" aria-label="Search invoices"></div>
+      <div class="fin-chips">${chips}</div>
+      <div class="table-wrap"><table><thead><tr><th>Invoice</th><th>Due</th><th class="fin-r">Total</th><th class="fin-r">Balance</th><th>Status</th><th></th></tr></thead><tbody id="finInvBody">${finInvRows()}</tbody></table></div></div></div>
+  </div>`;
+}
+async function finCreateInvoice(){
+  const d=finInv, lines=[]; let bad='';
+  d.lines.forEach((l,i)=>{
+    if(!l.desc.trim()&&!String(l.price).trim()) return;
+    const q=finNum(l.qty), p=finNum(l.price), pr=finProdByName(l.desc);
+    if(!l.desc.trim()) bad='Item '+(i+1)+' needs a description.';
+    else if(!isFinite(q)||q<=0) bad='Item '+(i+1)+' needs a quantity above 0.';
+    else if(!isFinite(p)||p<0) bad='Item '+(i+1)+' needs a unit price.';
+    else lines.push({desc:l.desc.trim(),qty:q,price:p,productId:pr?pr.id:''});
+  });
+  if(!d.customer.trim()) bad='Enter the customer.';
+  else if(!bad&&!lines.length) bad='Add at least one item.';
+  else if(!bad&&d.due<d.date) bad='Due date cannot be before the invoice date.';
+  if(bad){ toast(bad,'bad'); return; }
+  const t=finDraftTotals(), {fdb,doc,collection}=window.FB, metaRef=doc(fdb,'finMeta','counters'), iRef=doc(collection(fdb,'finInvoices'));
+  const deduct=!!d.deduct&&lines.some(l=>l.productId), need={};
+  if(deduct) lines.forEach(l=>{ if(l.productId) need[l.productId]=(need[l.productId]||0)+l.qty; });
+  try{
+    let made='';
+    await finTx(async tx=>{
+      const meta=await tx.get(metaRef), snaps={};
+      for(const id of Object.keys(need)) snaps[id]=await tx.get(doc(fdb,'products',id));
+      for(const id of Object.keys(need)){ const s=snaps[id]; if(!s.exists()) throw new Error('A product on this invoice no longer exists.'); const cur=Number(s.data().stock)||0; if(cur<need[id]) throw new Error('Not enough stock for '+s.data().name+': '+cur+' left, '+need[id]+' needed.'); }
+      made=finRef(meta,'INV',tx,metaRef);
+      for(const id of Object.keys(need)) tx.update(doc(fdb,'products',id),{stock:(Number(snaps[id].data().stock)||0)-need[id]});
+      tx.set(iRef,{ref:made,customer:d.customer.trim(),pin:d.pin.trim(),date:d.date,due:d.due,lines,vatOn:!!d.vat,sub:t.sub,vat:t.vat,total:t.total,payments:[],paid:0,deduct,reversed:false,hold:null,by:finBy(),created:new Date().toISOString()});
+    });
+    logAction('Created invoice',made+' · '+d.customer.trim()+' · '+money(t.total));
+    finInv=null; finFilter='All'; finQ=''; renderTab(); toast(made+' created for '+money(t.total),'ok');
+  }catch(e){ finErr(e); }
+}
+function finOpenInv(id){
+  const i=finCache.invoices.find(x=>x.id===id); if(!i) return;
+  const st=finIStatus(i), open=!i.reversed&&!i.hold;
+  const lines=(i.lines||[]).map(l=>`<tr><td>${finEsc(l.desc)}</td><td class="fin-r">${l.qty}</td><td class="fin-r">${finFmt(l.price)}</td><td class="fin-r">${finFmt(l.qty*l.price)}</td></tr>`).join('');
+  const pays=(i.payments||[]).map(p=>`<div style="display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);font-size:13.5px"><span>${finDate(p.date)} · ${finEsc(p.method)}${p.ref?' · '+finEsc(p.ref):''}</span><b>${finFmt(p.amount)}</b></div>`).join('')||'<div class="fin-mut" style="padding:8px 0">No payments yet</div>';
+  openModal('Invoice '+i.ref,`<div class="fin-meta"><div><span>Customer</span>${finEsc(i.customer)}</div><div><span>Invoice date</span>${finDate(i.date)}</div><div><span>Due</span>${finDate(i.due)}</div><div><span>Status</span>${finOver(i)?finBadge('Overdue')+' ':''}${finBadge(st)}</div></div>
+    <div class="table-wrap" style="margin:12px 0"><table><thead><tr><th>Item</th><th class="fin-r">Qty</th><th class="fin-r">Unit price</th><th class="fin-r">Amount</th></tr></thead><tbody>${lines}</tbody></table></div>
+    <div class="fin-totals"><div><span>Subtotal</span><span>${finFmt(i.sub)}</span></div><div><span>VAT 16%</span><span>${finFmt(i.vat)}</span></div><div class="big"><span>Total (KSh)</span><span>${finFmt(i.total)}</span></div><div><span>Paid</span><span>${finFmt(i.paid||0)}</span></div><div><span><b>Balance</b></span><b>${finFmt(finBal(i))}</b></div></div>
+    <div style="margin-top:12px"><div class="fin-mut">Payments</div>${pays}</div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;margin-top:14px"><button class="fbtn" onclick="finPrintInvoice('${i.id}')">Print</button><button class="fbtn" onclick="finPayForm('${i.id}')" ${open&&finBal(i)>0?'':'disabled'}>Record payment</button><button class="fbtn d" onclick="finRevForm('invoice','${i.id}')" ${open?'':'disabled'}>Reverse invoice</button></div>`);
+}
+function finPrintInvoice(id){
+  const i=finCache.invoices.find(x=>x.id===id); if(!i) return;
+  const rows=(i.lines||[]).map(l=>`<tr><td>${finEsc(l.desc)}</td><td style="text-align:center">${l.qty}</td><td style="text-align:right">${money(l.price)}</td><td style="text-align:right">${money(l.qty*l.price)}</td></tr>`).join('');
+  const w=window.open('','_blank'); if(!w){ toast('Allow pop-ups to print invoices','bad'); return; }
+  w.document.write(`<html><head><title>Invoice ${finEsc(i.ref)}</title><style>body{font-family:Arial,sans-serif;padding:40px;color:#1E293B}h1{color:#2563EB;margin:0}table{width:100%;border-collapse:collapse;margin-top:24px}td,th{padding:10px;border-bottom:1px solid #E2E8F0;text-align:left}.t{text-align:right;margin-top:6px}.t b{font-size:20px}</style></head><body><h1>${i.reversed?'INVOICE (REVERSED)':'INVOICE'}</h1><p><b>Loyalty ICT Solutions</b><br>Nairobi, Kenya · ${finEsc(contentCache.contact_phone||'')} · ${finEsc(contentCache.contact_email||'')}</p><p>Invoice: <b>${finEsc(i.ref)}</b><br>Date: ${finDate(i.date)} · Due: ${finDate(i.due)}<br>Billed to: <b>${finEsc(i.customer)}</b>${i.pin?'<br>KRA PIN: '+finEsc(i.pin):''}</p><table><tr><th>Item</th><th style="text-align:center">Qty</th><th style="text-align:right">Unit price</th><th style="text-align:right">Amount</th></tr>${rows}</table><div class="t">Subtotal: ${money(i.sub)}</div><div class="t">VAT 16%: ${money(i.vat)}</div><div class="t"><b>Total: ${money(i.total)}</b></div><div class="t">Paid: ${money(i.paid||0)} · Balance: ${money(finBal(i))}</div><p style="margin-top:40px;color:#64748B">Thank you for choosing Loyalty ICT Solutions.</p><script>window.onload=function(){window.print()}<\/script></body></html>`);
+  w.document.close(); logAction('Printed invoice',i.ref);
+}
+function finPayForm(id){
+  const i=finCache.invoices.find(x=>x.id===id); if(!i) return;
+  openModal('Record payment · '+i.ref,`<div class="fin-meta"><div><span>Customer</span>${finEsc(i.customer)}</div><div><span>Balance</span><b>${money(finBal(i))}</b></div></div>
+    <div class="field-row" style="margin-top:14px"><div class="field"><label>Amount (KSh)</label><input id="pm-amt" inputmode="decimal" value="${finBal(i)}"></div><div class="field"><label>Date</label><input id="pm-date" type="date" value="${finToday()}" max="${finToday()}"></div></div>
+    <div class="field-row"><div class="field"><label>Method</label><select id="pm-method"><option>M-Pesa</option><option>Bank transfer</option><option>Cheque</option><option>Cash</option></select></div><div class="field"><label>Reference</label><input id="pm-ref" placeholder="M-Pesa code or bank ref" autocomplete="off"></div></div>
+    <button class="fbtn p" style="width:100%;justify-content:center" onclick="finSavePayment('${i.id}')">Save payment</button>`);
+}
+async function finSavePayment(id){
+  const amt=finNum(val('pm-amt')), date=val('pm-date'), method=val('pm-method'), ref=val('pm-ref').toUpperCase();
+  if(!isFinite(amt)||amt<=0){ toast('Enter an amount above 0','bad'); return; }
+  if(!date||date>finToday()){ toast('Payment date cannot be in the future','bad'); return; }
+  if(method!=='Cash'&&!ref){ toast('Enter the '+(method==='M-Pesa'?'M-Pesa code':'reference'),'bad'); return; }
+  if(method==='M-Pesa'&&!/^[A-Z0-9]{10}$/.test(ref)){ toast('M-Pesa codes have 10 letters and digits','bad'); return; }
+  if(ref&&finCache.invoices.some(x=>(x.payments||[]).some(p=>p.ref===ref))){ toast('Reference '+ref+' is already recorded on a payment','bad'); return; }
+  const {fdb,doc}=window.FB, iRef=doc(fdb,'finInvoices',id);
+  try{
+    let code='';
+    await finTx(async tx=>{
+      const s=await tx.get(iRef); if(!s.exists()) throw new Error('Invoice not found.');
+      const i=s.data(); code=i.ref;
+      if(i.reversed||i.hold) throw new Error('This invoice is reversed or waiting for a reversal.');
+      if(amt>finBal(i)+0.001) throw new Error('Amount is more than the balance of '+money(finBal(i))+'.');
+      tx.update(iRef,{payments:[...(i.payments||[]),{date,amount:finR2(amt),method,ref,by:finBy().name,at:new Date().toISOString()}],paid:finR2((i.paid||0)+amt)});
+    });
+    logAction('Recorded payment',code+' · '+method+(ref?' '+ref:'')+' · '+money(amt));
+    closeModal(); renderTab(); toast('Payment of '+money(amt)+' recorded','ok');
+  }catch(e){ finErr(e); }
+}
+
+/* ---- reversals ---- */
+const FIN_REASONS={batch:['Duplicate upload','Wrong quantity','Wrong unit cost','Goods rejected or returned to supplier','Wrong supplier','Other'],invoice:['Duplicate entry','Wrong customer','Wrong quantity','Wrong price','Order cancelled','Other']};
+function finBatchBlock(b){
+  const agg={}; (b.lines||[]).forEach(l=>{ agg[l.productId]=(agg[l.productId]||{name:l.name,qty:0}); agg[l.productId].qty+=l.qty; });
+  const msgs=[];
+  Object.keys(agg).forEach(id=>{ const p=DB.get('products',[]).find(x=>x.id===id); if(!p) return; const cur=Number(p.stock)||0; if(cur-agg[id].qty<0) msgs.push(agg[id].name+': only '+cur+' in stock, but this delivery added '+agg[id].qty+'. Some of it has already been sold.'); });
+  return msgs;
+}
+function finRevForm(kind,id){
+  const t=(kind==='batch'?finCache.batches:finCache.invoices).find(x=>x.id===id); if(!t) return;
+  const blocks=kind==='batch'?finBatchBlock(t):[];
+  const eff=kind==='batch'
+    ?'Posts a stock return that takes these quantities back out of Inventory. The original delivery stays on record marked Reversed.'
+    :'Issues a credit note for '+money(t.total)+' and cancels the balance. The original invoice stays on record marked Reversed.'+(t.deduct?' Stock items go back into Inventory.':'')+((t.paid||0)>0?' '+money(t.paid)+' already paid will show as a refund due.':'');
+  openModal('Reverse '+(kind==='batch'?'delivery ':'invoice ')+t.ref,`<div class="fin-meta"><div><span>${kind==='batch'?'Supplier':'Customer'}</span>${finEsc(kind==='batch'?t.supplier:t.customer)}</div><div><span>Amount</span><b>${money(t.total)}</b></div></div>
+    ${blocks.length?`<div class="fin-alert bad" style="margin-top:12px"><b>This delivery cannot be reversed yet</b>${blocks.map(m=>'<br>'+finEsc(m)).join('')}</div>`:`<div class="fin-alert info" style="margin-top:12px">${finEsc(eff)}<br>A Finance Manager or Admin who is not you must approve it.</div>`}
+    <div class="field" style="margin-top:14px"><label>Reason</label><select id="rv-reason">${FIN_REASONS[kind].map(r=>`<option>${r}</option>`).join('')}</select></div>
+    <div class="field"><label>What happened (at least 10 characters)</label><textarea id="rv-note" placeholder="Explain so the approver can decide without calling you"></textarea></div>
+    <button class="fbtn p" style="width:100%;justify-content:center" onclick="finSendReversal('${kind}','${id}')" ${blocks.length?'disabled':''}>Request reversal</button>`);
+}
+async function finSendReversal(kind,id){
+  const reason=val('rv-reason'), note=val('rv-note');
+  if(note.length<10){ toast('Add at least 10 characters about what happened','bad'); return; }
+  const {fdb,doc,collection}=window.FB, tRef=doc(fdb,kind==='batch'?'stockBatches':'finInvoices',id), rRef=doc(collection(fdb,'reversals')), metaRef=doc(fdb,'finMeta','counters');
+  try{
+    let made='';
+    await finTx(async tx=>{
+      const t=await tx.get(tRef), meta=await tx.get(metaRef);
+      if(!t.exists()) throw new Error('Record not found.');
+      const d=t.data();
+      if(d.hold||d.status==='reversed'||d.reversed) throw new Error('This one already has a reversal.');
+      made=finRef(meta,'REV',tx,metaRef);
+      tx.set(rRef,{ref:made,kind,targetId:id,targetRef:d.ref,party:kind==='batch'?d.supplier:d.customer,amount:d.total,reason,note,status:'pending',requestedBy:finBy(),created:new Date().toISOString()});
+      tx.update(tRef,{hold:rRef.id});
+    });
+    logAction('Reversal requested',made+' on '+(kind==='batch'?'delivery':'invoice')+' · '+reason);
+    closeModal(); adminTab='finReversals'; renderAdmin(); toast(made+' sent for approval','ok');
+  }catch(e){ finErr(e); }
+}
+function finReversalsHtml(){
+  const can=finCanApprove(), uid=(currentUser||{}).uid;
+  const L=[...finCache.reversals].sort((a,b)=>((a.status==='pending'?0:1)-(b.status==='pending'?0:1))||(b.created||'').localeCompare(a.created||''));
+  const n=finPend();
+  const rows=L.map(r=>{
+    let out='';
+    if(r.status==='pending'){
+      if(r.requestedBy&&r.requestedBy.uid===uid) out='<span class="fin-mut">Needs another approver</span>';
+      else if(!can) out='<span class="fin-mut">Waiting for a manager</span>';
+      else out=`<button class="mini mini-ok" onclick="finDecideForm('${r.id}','approve')">Approve</button><button class="mini mini-no" onclick="finDecideForm('${r.id}','reject')">Reject</button>`;
+    } else if(r.outRef){ out=`<b>${finEsc(r.outRef)}</b>${r.refundDue>0?`<br><span class="fin-mut">Refund due ${money(r.refundDue)}</span>`:''}`; }
+    else if(r.decisionNote){ out=`<span class="fin-mut">${finEsc(r.decisionNote)}</span>`; }
+    return `<tr><td><b>${finEsc(r.ref)}</b><br><span class="fin-mut">${finDate(r.created)}</span></td><td>${r.kind==='batch'?'Delivery':'Invoice'}<br><b>${finEsc(r.targetRef||'')}</b></td><td class="fin-r">${finFmt(r.amount)}</td><td><b>${finEsc(r.reason)}</b><br><span class="fin-mut" style="white-space:normal;display:block;max-width:34ch">${finEsc(r.note)}</span></td><td>${finWho(r.requestedBy)}</td><td>${finBadge(finCap(r.status))}${r.decidedBy?`<br><span class="fin-mut">${finEsc(r.decidedBy.name||'')}</span>`:''}</td><td style="white-space:nowrap">${out}</td></tr>`;
+  }).join('')||'<tr><td colspan="7" style="color:var(--muted);padding:22px">No reversals yet. Use Reverse on a delivery or invoice.</td></tr>';
+  return `${n?`<div class="fin-alert ${can?'info':'warn'}" style="margin-bottom:14px"><b>${n} waiting for approval</b><br>${can?'You cannot approve a reversal you requested yourself.':'A Finance Manager or Admin must approve these.'}</div>`:''}
+  <div class="panel"><div class="panel-head"><h3>Reversals (${L.length})</h3></div><div class="table-wrap"><table><thead><tr><th>Reversal</th><th>Original</th><th class="fin-r">Amount (KSh)</th><th>Reason</th><th>Requested by</th><th>Status</th><th>Outcome</th></tr></thead><tbody>${rows}</tbody></table></div>
+  <div style="padding:14px 18px;border-top:1px solid var(--line);font-size:13px;color:var(--muted)">A reversal posts an opposite entry and keeps the original on record. Nothing here can be edited or deleted.</div></div>`;
+}
+function finDecideForm(id,d){
+  const r=finCache.reversals.find(x=>x.id===id); if(!r) return;
+  openModal((d==='approve'?'Approve ':'Reject ')+r.ref,`<div class="fin-meta"><div><span>Original</span>${finEsc(r.targetRef||'')}</div><div><span>Amount</span><b>${money(r.amount)}</b></div><div><span>Reason</span>${finEsc(r.reason)}</div><div><span>Requested by</span>${finEsc((r.requestedBy||{}).name||'')}</div></div>
+    <p style="margin:12px 0;color:var(--muted);font-size:13.5px">${finEsc(r.note)}</p>
+    <div class="field"><label>Note${d==='reject'?' (required)':' (optional)'}</label><textarea id="dc-note" placeholder="${d==='reject'?'Tell the requester why this was rejected':'Add a note for the record'}"></textarea></div>
+    <button class="fbtn p" style="width:100%;justify-content:center" onclick="finDecide('${r.id}','${d}')">${d==='approve'?'Approve reversal':'Reject reversal'}</button>`);
+}
+async function finDecide(id,d){
+  const r=finCache.reversals.find(x=>x.id===id), note=val('dc-note'); if(!r) return;
+  if(r.requestedBy&&r.requestedBy.uid===(currentUser||{}).uid){ toast('You requested this reversal. Someone else must decide it.','bad'); return; }
+  if(!finCanApprove()){ toast('Only a Finance Manager or Admin can decide reversals','bad'); return; }
+  if(d==='reject'&&note.length<5){ toast('Tell the requester why it was rejected','bad'); return; }
+  const {fdb,doc}=window.FB, rRef=doc(fdb,'reversals',id), tRef=doc(fdb,r.kind==='batch'?'stockBatches':'finInvoices',r.targetId), metaRef=doc(fdb,'finMeta','counters');
+  try{
+    let outRef='';
+    await finTx(async tx=>{
+      const rs=await tx.get(rRef); if(!rs.exists()||rs.data().status!=='pending') throw new Error('This reversal was already decided.');
+      const ts=await tx.get(tRef); if(!ts.exists()) throw new Error('The original record is missing.');
+      const t=ts.data(), now=new Date().toISOString();
+      if(d==='reject'){
+        tx.update(rRef,{status:'rejected',decidedBy:finBy(),decidedAt:now,decisionNote:note});
+        tx.update(tRef,{hold:null}); return;
+      }
+      const lines=r.kind==='batch'?(t.lines||[]):((t.deduct?(t.lines||[]):[]).filter(l=>l.productId)), agg={};
+      lines.forEach(l=>{ agg[l.productId]=(agg[l.productId]||0)+l.qty; });
+      const meta=await tx.get(metaRef), ps={};
+      for(const pid of Object.keys(agg)) ps[pid]=await tx.get(doc(fdb,'products',pid));
+      if(r.kind==='batch') for(const pid of Object.keys(agg)){ const s=ps[pid]; if(!s.exists()) continue; const cur=Number(s.data().stock)||0; if(cur-agg[pid]<0) throw new Error(s.data().name+': only '+cur+' in stock, '+agg[pid]+' needed to take this delivery back.'); }
+      outRef=finRef(meta,r.kind==='batch'?'SR':'CN',tx,metaRef);
+      for(const pid of Object.keys(agg)){ const s=ps[pid]; if(!s.exists()) continue; const cur=Number(s.data().stock)||0; tx.update(doc(fdb,'products',pid),{stock:r.kind==='batch'?cur-agg[pid]:cur+agg[pid]}); }
+      if(r.kind==='batch') tx.update(tRef,{status:'reversed',hold:null,reversedBy:rRef.id});
+      else tx.update(tRef,{reversed:true,hold:null,reversedBy:rRef.id,creditNote:outRef});
+      tx.update(rRef,{status:'approved',decidedBy:finBy(),decidedAt:now,decisionNote:note,outRef,refundDue:r.kind==='invoice'?(t.paid||0):0});
+    });
+    logAction(d==='approve'?'Reversal approved':'Reversal rejected',r.ref+(outRef?' · '+outRef:'')+' on '+(r.targetRef||''));
+    closeModal(); renderAdmin(); toast(r.ref+(d==='approve'?' approved, '+outRef+' posted':' rejected'),'ok');
+  }catch(e){ finErr(e); }
+}
+
 function renderTab(){
   const c=document.getElementById('tabContent');if(!c)return;
   if(adminTab==='dashboard')c.innerHTML=dashHtml();
@@ -1764,6 +2289,9 @@ function renderTab(){
   if(adminTab==='organisation')c.innerHTML=organisationHtml();
   if(adminTab==='attendance')c.innerHTML=attendanceHtml();
   if(adminTab==='approvals')c.innerHTML=approvalsHtml();
+  if(adminTab==='finStock')c.innerHTML=finStockHtml();
+  if(adminTab==='finBilling')c.innerHTML=finBillingHtml();
+  if(adminTab==='finReversals')c.innerHTML=finReversalsHtml();
 }
 
 /* ----- dashboard ----- */
@@ -2023,14 +2551,16 @@ window.addEventListener('firebase-ready', ()=>{
       }catch(e){ currentUser={uid:user.uid,name:user.email,email:user.email,role:'customer'}; }
       if(currentUser.blocked){
         toast('This account has been blocked. Please contact the administrator.','bad');
-        stopHeartbeat(); stopStaffStreams(); stopAdminWatches();
+        stopHeartbeat(); stopStaffStreams(); stopAdminWatches(); stopFinWatch();
         try{ await window.FB.signOut(window.FB.auth); }catch(e){}
         currentUser=null; updateAccountUI(); go('home'); return;
       }
       if(['admin','staff','manager','finance'].includes(currentUser.role)) startStaffStreams(); else stopStaffStreams();
-      if(currentUser.role==='admin'){ startUserWatch(); startLogsWatch(); startHRWatch(); } else { stopAdminWatches(); if(currentUser.role==='hr') startHRWatch(); }\n    startHeartbeat(); signInLog();
+      if(currentUser.role==='admin'){ startUserWatch(); startLogsWatch(); startHRWatch(); } else { stopAdminWatches(); if(currentUser.role==='hr') startHRWatch(); }
+      if(['admin','manager','finance','stock','staff'].includes(currentUser.role)) startFinWatch(); else stopFinWatch();
+      startHeartbeat(); signInLog();
       if(pendingAdminNav && isStaffRole(currentUser.role)){ pendingAdminNav=false; go('admin'); }
-    }else{ if(currentUser) beat(false); currentUser=null; stopHeartbeat(); stopStaffStreams(); stopAdminWatches(); }
+    }else{ if(currentUser) beat(false); currentUser=null; stopHeartbeat(); stopStaffStreams(); stopAdminWatches(); stopFinWatch(); }
     updateAccountUI();
     if(adminOpen()) renderAdmin();
   });
@@ -2084,7 +2614,7 @@ if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
 import { getFirestore, collection, getDocs, getDoc, addDoc, doc,
-         updateDoc, deleteDoc, onSnapshot, query, orderBy, setDoc }
+         updateDoc, deleteDoc, onSnapshot, query, orderBy, setDoc, runTransaction }
   from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
          signOut, onAuthStateChanged }
@@ -2104,7 +2634,7 @@ const fdb  = getFirestore(app);
 const auth = getAuth(app);
 
 window.FB = { fdb, auth, collection, getDocs, getDoc, addDoc, doc,
-              updateDoc, deleteDoc, onSnapshot, query, orderBy, setDoc,
+              updateDoc, deleteDoc, onSnapshot, query, orderBy, setDoc, runTransaction,
               createUserWithEmailAndPassword, signInWithEmailAndPassword,
               signOut, onAuthStateChanged };
 window.dispatchEvent(new Event('firebase-ready'));
