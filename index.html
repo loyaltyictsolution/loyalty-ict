@@ -467,6 +467,20 @@ footer{background:#161616!important}
 .trust-band .ti b{color:#fff!important}
 #admin-view .mini-view{background:#EEF2F7!important;color:#1E293B!important}
 #admin-view .btn-teal{background:#1E293B!important}
+/* hero headline removed from view (kept for search engines) */
+.hero h1{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.hero{padding-top:70px!important}
+/* ===== Layout polish ===== */
+.shop-nav{background:rgba(255,255,255,.14);color:#fff;font-weight:600;font-size:14px;padding:10px 16px;border-radius:980px;display:inline-flex;gap:6px;align-items:center;transition:.2s}
+.shop-nav:hover,.shop-nav.on{background:#fff;color:#0F172A}
+.shop-nav .short{display:none}
+#shop{display:none;margin-top:56px}
+#shop.open{display:block}
+.shop-toggle,#shop>.ey{display:none!important}
+.shop-body{margin-top:0!important}
+#services,#why{margin-top:80px}
+#services .sec-head,#why .sec-head{text-align:center;justify-content:center}
+@media(max-width:640px){.shop-nav .full{display:none}.shop-nav .short{display:inline}.shop-nav{padding:9px 13px}}
 </style>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 </head>
@@ -481,12 +495,12 @@ footer{background:#161616!important}
         <span>Loyalty<small>ICT Solutions</small></span>
       </a>
       <nav class="nav-links" id="navlinks">
-        <a href="#shop" class="active" onclick="closeNav();openShop();return false">Shop</a>
         <a href="#services" onclick="closeNav()">IT & Security</a>
         <a href="#why" onclick="closeNav()">Why Us</a>
         <a href="#contact" onclick="closeNav()">Contact</a>
       </nav>
       <div class="nav-right">
+        <button class="shop-nav" onclick="navShop()"><span class="full">Shop Hardware</span><span class="short">Shop</span> <small id="shopCountNav" style="opacity:.75;font-weight:500"></small></button>
         <button class="cart-btn" onclick="openCart()"><svg class="ic" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg> <span>Cart</span><span class="cart-count hidden" id="cartCount">0</span></button>
         <a class="admin-link" id="accountBtn" onclick="openAccount()"><svg class="ic" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> <span>Account</span></a>
         <button class="burger" onclick="toggleNav()"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 12h16M4 6h16M4 18h16"/></svg></button>
@@ -626,11 +640,6 @@ footer{background:#161616!important}
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
         </button>
         <div class="car-dots" id="servDots"></div>
-      </div>
-
-      <div class="svc-gallery">
-        <div class="svc-gallery-head">What we deliver</div>
-        <div class="svc-marquee"><div class="svc-marquee-track" id="svcTrack"></div></div>
       </div>
     </section>
 
@@ -952,7 +961,7 @@ function contentAdminHtml(){
       <button class="btn btn-teal" style="color:#fff;padding:10px 18px;border-radius:9px" onclick="saveContent()">Save changes</button>
     </div>
     <div class="note" style="margin-bottom:16px">Changes apply to the live site immediately after saving. In the headline, put square brackets around words to colour them, e.g. <b>[computers, spares]</b>.</div>
-    ${galleryAdminHtml()}
+    
     ${groups}
     <button class="btn-full btn-teal" onclick="saveContent()">Save changes</button>`;
 }
@@ -1064,8 +1073,9 @@ function toggleShop(open){
   const body=document.getElementById('shopBody'),btn=document.getElementById('shopToggle');
   const willOpen = (open===true||open===false)?open:!body.classList.contains('open');
   body.classList.toggle('open',willOpen);
-  btn.classList.toggle('open',willOpen);
+  btn.classList.toggle('open',willOpen); document.getElementById('shop').classList.toggle('open',willOpen); const sn=document.querySelector('.shop-nav'); if(sn) sn.classList.toggle('on',willOpen);
 }
+function navShop(){ const b=document.getElementById('shopBody'); if(b&&b.classList.contains('open')) toggleShop(false); else openShop(); }
 function openShop(){ toggleShop(true); const s=document.getElementById('shop'); if(s) s.scrollIntoView({behavior:'smooth'}); }
 
 /* ---- Services carousel ---- */
@@ -1166,7 +1176,7 @@ function renderProducts(){
   const q=(document.getElementById('search').value||'').toLowerCase();
   const grid=document.getElementById('productGrid');
   document.getElementById('stat-products').textContent=products.length;
-  const sc=document.getElementById('shopCount'); if(sc) sc.textContent='('+products.length+' product'+(products.length===1?'':'s')+')';
+  const sc=document.getElementById('shopCount'); if(sc) sc.textContent='('+products.length+' product'+(products.length===1?'':'s')+')'; const sn2=document.getElementById('shopCountNav'); if(sn2) sn2.textContent='('+products.length+')';
   let list=products.filter(p=>(activeCat==='All'||p.cat===activeCat)&&(p.name.toLowerCase().includes(q)||p.desc.toLowerCase().includes(q)||p.cat.toLowerCase().includes(q)));
   if(!list.length){grid.innerHTML='<div class="empty">No products match your search. Try another keyword or category.</div>';return;}
   grid.innerHTML=list.map(p=>{
@@ -1965,7 +1975,6 @@ renderCats();renderProducts();updateCartUI();updateAccountUI();applyContent(DEFA
 window.addEventListener('firebase-ready', ()=>{
   startProductsStream();                       // public product list
   startContentStream();                        // editable site wording
-  startGalleryStream();                        // editable service gallery
   window.FB.onAuthStateChanged(window.FB.auth, async user=>{
     if(user){
       try{
