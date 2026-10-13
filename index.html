@@ -481,6 +481,8 @@ footer{background:#161616!important}
 #services,#why{margin-top:80px}
 #services .sec-head,#why .sec-head{text-align:center;justify-content:center}
 @media(max-width:640px){.shop-nav .full{display:none}.shop-nav .short{display:inline}.shop-nav{padding:9px 13px}}
+.side-i{padding:11px 14px!important;font-size:14.5px}
+.side-g{margin-top:22px!important}
 </style>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 </head>
@@ -789,7 +791,7 @@ async function beat(on){
 }
 function startHeartbeat(){
   stopHeartbeat(); beat(true);
-  heartbeatTimer=setInterval(()=>beat(true), 40000);
+  heartbeatTimer=setInterval(()=>{ beat(true); checkSession(); }, 40000);
   window.addEventListener('beforeunload', beatOff);
   document.addEventListener('visibilitychange', ()=>{ if(document.hidden) beat(false); else beat(true); });
 }
@@ -1381,9 +1383,9 @@ function go(view){
 let adminTab='dashboard';
 let currentUser=null;         // {uid,name,email,role,perms} — set by onAuthStateChanged
 let teamCache=[];             // users list for the Team tab (admins only)
-const DEFAULT_PERMS={products:true,orders:true,bookings:true,reports:true,content:false};
-const PERM_KEYS=['products','orders','bookings','reports','content'];
-const PERM_LABELS={products:'Products',orders:'Orders',bookings:'Bookings',reports:'Reports',content:'Content'};
+const DEFAULT_PERMS={products:true,orders:true,bookings:true,reports:true,content:false,customers:true,inventory:true,export:false};
+const PERM_KEYS=['products','orders','bookings','reports','content','customers','inventory','export'];
+const PERM_LABELS={products:'Products',orders:'Orders',bookings:'Bookings',reports:'Reports',content:'Content',customers:'Customers',inventory:'Inventory',export:'Export data'};
 /* Admin has every right. Staff have only what admin granted (delete is always admin-only). */
 function can(p){ const u=currentUser; if(!u) return false; if(u.role==='admin') return true; if(u.role!=='staff'){ const rp=ROLE_PERMS[u.role]; return !!(rp&&rp[p]); } const pp=u.perms||{}; return p in pp ? !!pp[p] : !!DEFAULT_PERMS[p]; }
 function isAdminUser(){ return currentUser && currentUser.role==='admin'; }
@@ -1471,16 +1473,16 @@ function renderAdmin(){
   if(!u){view.innerHTML=noAccessHtml('Please log in to reach the staff area.');return;}
   if(!isStaffRole(u.role)){view.innerHTML=noAccessHtml('This account has no admin access. Ask an administrator to make you staff or admin.');return;}
   const tabs=['dashboard'];
-  if(can('products')) tabs.push('products','inventory');
-  if(can('orders')) tabs.push('orders','customers');
+  if(can('products')) tabs.push('products'); if(can('inventory')) tabs.push('inventory');
+  if(can('orders')) tabs.push('orders'); if(can('customers')) tabs.push('customers');
   if(can('bookings')) tabs.push('bookings');
   if(can('reports')) tabs.push('reports');
   if(can('content')) tabs.push('content');
-  if(u.role==='admin') tabs.push('employees','organisation','attendance','leave','approvals','logs','team');
+  if(u.role==='admin') tabs.push('employees','organisation','attendance','leave','approvals','security','logs','team');
   if(u.role==='hr'){ tabs.length=0; tabs.push('employees','organisation','attendance','leave','approvals'); }
   if(u.role==='stock') tabs.shift();
   if(!tabs.includes(adminTab))adminTab=tabs[0];
-  const labels={dashboard:svg('dash',16)+' Dashboard',products:svg('package',16)+' Products',orders:svg('receipt',16)+' Orders',bookings:svg('calendar',16)+' Bookings',reports:svg('chart',16)+' Reports',content:svg('edit',16)+' Content',logs:svg('clock',16)+' Logs',team:svg('team',16)+' Team',customers:svg('user',16)+' Customers',employees:svg('team',16)+' Employees',organisation:svg('server',16)+' Organisation',attendance:svg('clock',16)+' Attendance',approvals:svg('receipt',16)+' Approvals',leave:svg('calendar',16)+' Leave & sick off',inventory:svg('database',16)+' Inventory'};
+  const labels={dashboard:svg('dash',16)+' Dashboard',products:svg('package',16)+' Products',orders:svg('receipt',16)+' Orders',bookings:svg('calendar',16)+' Bookings',reports:svg('chart',16)+' Reports',content:svg('edit',16)+' Content',logs:svg('clock',16)+' Logs',team:svg('team',16)+' Team',customers:svg('user',16)+' Customers',security:svg('shield',16)+' Security',employees:svg('team',16)+' Employees',organisation:svg('server',16)+' Organisation',attendance:svg('clock',16)+' Attendance',approvals:svg('receipt',16)+' Approvals',leave:svg('calendar',16)+' Leave & sick off',inventory:svg('database',16)+' Inventory'};
   view.innerHTML=`
     <div class="admin-shell">
       <div class="admin-top">
@@ -1498,7 +1500,7 @@ function renderAdmin(){
     </div>`;
   renderTab();
 }
-const SIDE_GROUPS=[['Main',['dashboard']],['Sales',['orders','customers']],['Catalogue',['products','inventory']],['Services',['bookings']],['Insights',['reports']],['Website',['content']],['HR Admin',['employees','organisation','attendance','leave','approvals']],['Administration',['logs','team']]];
+const SIDE_GROUPS=[['Main',['dashboard']],['Sales',['orders','customers']],['Catalogue',['products','inventory']],['Services',['bookings']],['Insights',['reports']],['Website',['content']],['HR Admin',['employees','organisation','attendance','leave','approvals']],['Administration',['security','logs','team']]];
 function sideHtml(tabs,labels){ return SIDE_GROUPS.map(([g,items])=>{ const v=items.filter(t=>tabs.includes(t)); return v.length?`<div class="side-g">${g}</div>`+v.map(t=>`<button class="side-i ${t===adminTab?'on':''}" onclick="setTab('${t}');document.getElementById('aSide').classList.remove('open')">${labels[t]}</button>`).join(''):''; }).join(''); }
 function customerList(){
   const m={}, get=(k,n,p)=>m[k]||(m[k]={name:n,phone:p||'',orders:0,spent:0,last:'',services:0});
@@ -1608,7 +1610,7 @@ function approvalsHtml(){
   const P=hrCache.leaves.filter(l=>l.status==='pending');
   return `<div class="panel"><div class="panel-head"><h3>Pending approvals (${P.length})</h3></div><div style="padding:6px 18px 14px">${P.map(l=>`<div style="display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid var(--line);flex-wrap:wrap"><span style="flex:1;min-width:200px"><b>${l.employeeName}</b> · ${l.type}<br><span style="color:var(--muted);font-size:12.5px">${l.from} → ${l.to} (${l.days} days)${l.reason?' · '+l.reason:''}</span></span><button class="mini mini-ok" onclick="setLeaveStatus('${l.id}','approved')">Approve</button><button class="mini mini-no" onclick="setLeaveStatus('${l.id}','rejected')">Reject</button></div>`).join('')||'<div style="color:var(--ok);padding:16px 0;font-weight:600">Nothing waiting for approval.</div>'}</div></div>`;
 }
-const ROLE_PERMS={manager:{products:true,orders:true,bookings:true,reports:true},finance:{orders:true,reports:true},stock:{products:true}};
+const ROLE_PERMS={manager:{products:true,orders:true,bookings:true,reports:true,customers:true,inventory:true,export:true},finance:{orders:true,reports:true,customers:true,export:true},stock:{products:true,inventory:true}};
 const ROLE_NAME={customer:'Customer',staff:'Staff',manager:'Manager',hr:'HR',finance:'Finance',stock:'Stock & Store',admin:'Admin'};
 const ROLE_DESC={manager:'Department: Manager — dashboard, orders, customers, products, inventory, requests, reports',hr:'Department: HR — employees, attendance, leave, approvals',finance:'Department: Finance — dashboard, orders, invoices, customers, reports',stock:'Department: Stock & Store — products and inventory'};
 function isStaffRole(r){ return ['admin','staff','manager','hr','finance','stock'].includes(r); }
@@ -1616,6 +1618,41 @@ const HERO_MODES={personal:[['Help me choose a laptop','shop'],['Repair my compu
 function heroMode(m){ document.querySelectorAll('#heroSeg button').forEach(b=>b.classList.toggle('on',b.textContent.toLowerCase()===m)); const el=document.getElementById('heroChips'); if(el) el.innerHTML=HERO_MODES[m].map(([l,a])=>`<button onclick="heroAct('${a}')">${svg('ai',14)} ${l}</button>`).join(''); }
 function heroAct(a){ if(a==='shop') openShop(); else if(a.startsWith('wa:')) window.open('https://wa.me/'+String(contentCache.whatsapp_number||'254713474115').replace(/\D/g,'')+'?text='+encodeURIComponent(a.slice(3)),'_blank'); else if(a.startsWith('book:')) openBooking(a.slice(5)); }
 heroMode('personal');
+const sessionStart=new Date().toISOString(); let idleT=null;
+function idleMinutes(){ return Number(contentCache.sec_idle===undefined?15:contentCache.sec_idle)||0; }
+function idleReset(){ if(!currentUser||!isStaffRole(currentUser.role)) return; clearTimeout(idleT); const m=idleMinutes(); if(!m) return; idleT=setTimeout(()=>{ if(currentUser){ toast('Signed out after '+m+' minutes of inactivity','bad'); logoutUser(); } }, m*60000); }
+['click','keydown','mousemove','touchstart'].forEach(ev=>document.addEventListener(ev,idleReset,{passive:true}));
+function signInLog(){ try{ if(!currentUser||!isStaffRole(currentUser.role)||sessionStorage.getItem('sl')) { idleReset(); return; } sessionStorage.setItem('sl','1'); logAction('Signed in',ROLE_NAME[currentUser.role]||currentUser.role); idleReset(); }catch(e){} }
+async function checkSession(){
+  if(!currentUser) return;
+  try{ const snap=await window.FB.getDoc(window.FB.doc(window.FB.fdb,'users',currentUser.uid)), d=snap.exists()?snap.data():null;
+    if(d&&(d.blocked||(d.forceLogout&&d.forceLogout>sessionStart))){ toast('Your session was ended by an administrator','bad'); logoutUser(); } }catch(e){}
+}
+async function forceSignOut(uid){ const u=teamCache.find(x=>x.uid===uid); try{ await window.FB.updateDoc(window.FB.doc(window.FB.fdb,'users',uid),{forceLogout:new Date().toISOString()}); logAction('Forced sign-out',u?u.email:uid); toast('Sign-out sent. It applies within a minute.','ok'); }catch(e){ toast('Failed: '+e.code,'bad'); } }
+async function setIdle(v){ try{ await window.FB.setDoc(window.FB.doc(window.FB.fdb,'settings','content'),{sec_idle:v},{merge:true}); logAction('Changed idle sign-out',v==='0'?'Off':v+' min'); toast('Saved','ok'); }catch(e){ toast('Failed: '+e.code,'bad'); } }
+function exportLogs(){
+  const esc=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"';
+  const rows=[['When','Who','Email','Role','Action','Details'],...combinedLogs().map(l=>[l.at,l.byName,l.byEmail,l.byRole,l.action,l.detail])];
+  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob(['\ufeff'+rows.map(r=>r.map(esc).join(',')).join('\n')],{type:'text/csv'})); a.download='loyalty-logs-'+new Date().toISOString().slice(0,10)+'.csv'; a.click();
+}
+function securityHtml(){
+  const U=teamCache||[], mo=Date.now()-30*864e5, adm=U.filter(u=>u.role==='admin').length;
+  const ins=logsCache.filter(l=>l.action==='Signed in').sort((a,b)=>(b.at||'').localeCompare(a.at||''));
+  const dormant=U.filter(u=>u.role!=='customer'&&currentUser&&u.uid!==currentUser.uid&&(!u.lastSeen||new Date(u.lastSeen).getTime()<mo));
+  const st=(l,v,c)=>`<div class="stat"><div class="s-lab">${l}</div><div class="s-val" style="color:${c||'var(--brand)'}">${v}</div></div>`;
+  const idle=String(contentCache.sec_idle===undefined?15:contentCache.sec_idle);
+  return `<div class="stat-grid">${st('Admins',adm,adm<2?'var(--bad)':'var(--ok)')}${st('Blocked users',U.filter(u=>u.blocked).length)}${st('Online now',U.filter(isUserOnline).length,'var(--ok)')}${st('Staff sign-ins (24h)',ins.filter(l=>Date.now()-new Date(l.at).getTime()<864e5).length)}</div>
+  ${adm<2?'<div class="panel" style="margin-top:16px;padding:14px 18px;border-left:3px solid var(--bad)"><b>Only one admin.</b> If that account is locked or lost, nobody can manage the site. Promote a trusted second admin in Team.</div>':''}
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px;margin-top:16px">
+    <div class="panel"><div class="panel-head"><h3>Session security</h3></div><div style="padding:16px 18px;font-size:14px">
+      <label style="display:block;margin-bottom:6px;color:var(--muted)">Auto sign-out after inactivity (staff and admins)</label>
+      <select onchange="setIdle(this.value)" style="padding:9px 12px;border:1px solid var(--line);border-radius:8px;font-family:inherit">${[['0','Off'],['10','10 minutes'],['15','15 minutes'],['30','30 minutes'],['60','1 hour']].map(([v,l])=>`<option value="${v}" ${idle===v?'selected':''}>${l}</option>`).join('')}</select>
+      <p style="margin-top:14px;color:var(--muted);font-size:13px">Blocked users and forced sign-outs now end an active session within about a minute. Use <b>Sign out</b> in Team.</p></div></div>
+    <div class="panel"><div class="panel-head"><h3>Dormant staff accounts</h3><span class="badge b-pending">${dormant.length}</span></div><div style="padding:6px 18px 14px">
+      ${dormant.map(u=>`<div style="display:flex;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid var(--line);font-size:13.5px"><span style="flex:1"><b>${u.name||u.email}</b><br><span style="color:var(--muted);font-size:12px">${ROLE_NAME[u.role]||u.role} · seen ${ago(u.lastSeen)}</span></span><button class="mini mini-no" onclick="setBlocked('${u.uid}',true)">Block</button></div>`).join('')||'<div style="color:var(--ok);padding:14px 0;font-weight:600">No staff account has been idle for 30+ days.</div>'}</div></div>
+  </div>
+  <div class="panel" style="margin-top:16px"><div class="panel-head"><h3>Recent staff sign-ins</h3><button class="mini mini-view" onclick="exportLogs()">Export all logs (CSV)</button></div><div class="table-wrap"><table><thead><tr><th>When</th><th>Who</th><th>Role</th></tr></thead><tbody>${ins.slice(0,10).map(l=>`<tr><td>${new Date(l.at).toLocaleString('en-KE')}</td><td><b>${l.byName}</b><br><span style="color:var(--muted);font-size:12px">${l.byEmail}</span></td><td>${roleBadge(l.byRole)}</td></tr>`).join('')||'<tr><td colspan="3" style="color:var(--muted);padding:20px">Sign-ins are recorded from now on.</td></tr>'}</tbody></table></div></div>`;
+}
 function setTab(t){ adminTab=t; if(t==='team'){ loadTeam(); } else if(t==='logs'){ loadLogs(); } else { renderAdmin(); } }
 
 /* ---- Team tab: admins assign roles (Firestore users collection) ---- */
@@ -1624,7 +1661,8 @@ async function loadTeam(){
   catch(e){ teamCache=[]; toast('Could not load users: '+e.code,'bad'); }
   renderAdmin();
 }
-const TEAM_PRESETS={sales:{products:true,orders:true,bookings:false,reports:false,content:false},tech:{products:false,orders:false,bookings:true,reports:false,content:false},editor:{products:true,orders:false,bookings:false,reports:false,content:true},full:{products:true,orders:true,bookings:true,reports:true,content:true}};
+const mkPerm=(...k)=>Object.fromEntries(PERM_KEYS.map(x=>[x,k.includes(x)]));
+const TEAM_PRESETS={sales:mkPerm('products','orders','customers'),tech:mkPerm('bookings'),editor:mkPerm('products','content'),full:mkPerm(...PERM_KEYS)};
 const PRESET_LABELS={sales:'Sales (products + orders)',tech:'Technician (bookings)',editor:'Content editor',full:'Full access (all areas)'};
 let teamQ='',teamRoleF='all';
 function presetOf(p){ const k=Object.keys(TEAM_PRESETS).find(n=>PERM_KEYS.every(x=>!!TEAM_PRESETS[n][x]===!!(p[x]!==undefined?p[x]:DEFAULT_PERMS[x]))); return k||'custom'; }
@@ -1646,7 +1684,7 @@ function teamRowsHtml(){
       <td><div style="display:flex;gap:11px;align-items:center">${avatar(u.name||u.email)}<div><b>${u.name||'—'}</b>${self?' <span style="color:var(--teal);font-size:12px">(you)</span>':''}<br><span style="color:var(--muted);font-size:12px">${u.email||''}</span>${u.created?`<br><span style="color:var(--muted);font-size:11.5px">Joined ${new Date(u.created).toLocaleDateString('en-KE')}</span>`:''}</div></div></td>
       <td>${status}</td><td>${roleBadge(u.role)}</td><td style="min-width:250px">${access}</td>
       <td style="white-space:nowrap"><select onchange="setRole('${u.uid}',this.value)" ${self?'disabled':''} style="padding:7px 9px;border:1px solid var(--line);border-radius:8px;font-family:inherit;font-size:13px;background:var(--card)"><option value="customer" ${u.role==='customer'?'selected':''}>Customer</option><option value="staff" ${u.role==='staff'?'selected':''}>Staff</option><option value="manager" ${u.role==='manager'?'selected':''}>Manager</option><option value="hr" ${u.role==='hr'?'selected':''}>HR</option><option value="finance" ${u.role==='finance'?'selected':''}>Finance</option><option value="stock" ${u.role==='stock'?'selected':''}>Stock & Store</option><option value="admin" ${u.role==='admin'?'selected':''}>Admin</option></select>
-        ${self?'':`<div style="margin-top:6px"><button class="mini ${blocked?'mini-ok':'mini-no'}" onclick="setBlocked('${u.uid}',${blocked?'false':'true'})">${blocked?'Unblock':'Block'}</button> <button class="mini mini-del" onclick="deleteUser('${u.uid}')">Delete</button></div>`}</td>
+        ${self?'':`<div style="margin-top:6px"><button class="mini ${blocked?'mini-ok':'mini-no'}" onclick="setBlocked('${u.uid}',${blocked?'false':'true'})">${blocked?'Unblock':'Block'}</button> <button class="mini mini-ed" onclick="forceSignOut('${u.uid}')">Sign out</button> <button class="mini mini-del" onclick="deleteUser('${u.uid}')">Delete</button></div>`}</td>
     </tr>`;
   }).join('')||'<tr><td colspan="5" style="color:var(--muted);padding:22px">No users match your search.</td></tr>';
 }
@@ -1722,6 +1760,7 @@ function renderTab(){
   if(adminTab==='inventory')c.innerHTML=inventoryHtml();
   if(adminTab==='employees')c.innerHTML=employeesHtml();
   if(adminTab==='leave')c.innerHTML=leaveHtml();
+  if(adminTab==='security')c.innerHTML=securityHtml();
   if(adminTab==='organisation')c.innerHTML=organisationHtml();
   if(adminTab==='attendance')c.innerHTML=attendanceHtml();
   if(adminTab==='approvals')c.innerHTML=approvalsHtml();
@@ -1730,6 +1769,7 @@ function renderTab(){
 /* ----- dashboard ----- */
 function waLink(phone,msg){ let n=String(phone||'').replace(/\D/g,''); if(n.startsWith('0'))n='254'+n.slice(1); else if(n.length===9)n='254'+n; return 'https://wa.me/'+n+'?text='+encodeURIComponent(msg||''); }
 function exportCSV(kind){
+  if(!can('export')){ toast('You do not have permission to export data','bad'); return; }
   const O=DB.get('orders',[]),B=DB.get('bookings',[]),P=DB.get('products',[]);
   const sets={
     orders:[['Ref','Customer','Phone','Total','Status','Date','Items'],O.map(o=>[o.ref,o.name,o.phone,o.total,o.status,new Date(o.date).toLocaleString('en-KE'),(o.items||[]).map(i=>i.qty+'x '+i.name).join('; ')])],
@@ -1988,8 +2028,7 @@ window.addEventListener('firebase-ready', ()=>{
         currentUser=null; updateAccountUI(); go('home'); return;
       }
       if(['admin','staff','manager','finance'].includes(currentUser.role)) startStaffStreams(); else stopStaffStreams();
-      if(currentUser.role==='admin'){ startUserWatch(); startLogsWatch(); startHRWatch(); } else { stopAdminWatches(); if(currentUser.role==='hr') startHRWatch(); }
-      startHeartbeat();
+      if(currentUser.role==='admin'){ startUserWatch(); startLogsWatch(); startHRWatch(); } else { stopAdminWatches(); if(currentUser.role==='hr') startHRWatch(); }\n    startHeartbeat(); signInLog();
       if(pendingAdminNav && isStaffRole(currentUser.role)){ pendingAdminNav=false; go('admin'); }
     }else{ if(currentUser) beat(false); currentUser=null; stopHeartbeat(); stopStaffStreams(); stopAdminWatches(); }
     updateAccountUI();
