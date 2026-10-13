@@ -1,0 +1,140 @@
+/* ============================================================
+   ui-polish.css
+   Nicer buttons + phone fix for the admin header.
+   Load it LAST, just before </head>:
+   <link rel="stylesheet" href="ui-polish.css">
+   ============================================================ */
+:root{
+  --b1:#3B82F6; --b2:#2563EB; --b3:#1D4ED8;
+  --ring:0 0 0 3px rgba(37,99,235,.30);
+  --lift:0 1px 2px rgba(15,23,42,.10),0 6px 16px rgba(15,23,42,.10);
+  --lift-b:0 2px 4px rgba(37,99,235,.20),0 10px 22px rgba(37,99,235,.30);
+}
+
+/* ---------- shared behaviour ---------- */
+button,.btn,.btn-full,.fbtn,.mini,.add-btn,.logout,.admin-link,.shop-nav,.cart-btn,
+.a-ic,.a-bell,.chip,.seg button,.chips-ai button,.car-arrow,.tab,.side-i,.qty button{
+  -webkit-tap-highlight-color:transparent;
+  transition:transform .15s ease,box-shadow .2s ease,background .2s ease,color .2s ease,border-color .2s ease,filter .2s ease;
+}
+button:focus-visible,.btn:focus-visible,.admin-link:focus-visible,a.mini:focus-visible{outline:none;box-shadow:var(--ring)}
+button:active:not(:disabled),.btn:active,a.mini:active{transform:translateY(1px) scale(.985)}
+button:disabled,.fbtn:disabled{opacity:.5;cursor:not-allowed;box-shadow:none!important;transform:none!important}
+
+/* ---------- primary (full width, blue) ---------- */
+.btn-full{
+  background:linear-gradient(180deg,var(--b1),var(--b2));
+  color:#fff;border:1px solid transparent;font-weight:700;letter-spacing:.01em;
+  box-shadow:0 1px 0 rgba(255,255,255,.25) inset,0 6px 16px rgba(37,99,235,.28);
+}
+.btn-full:hover{
+  background:linear-gradient(180deg,#4B8DF8,var(--b3));
+  transform:translateY(-1px);
+  box-shadow:0 1px 0 rgba(255,255,255,.25) inset,0 10px 22px rgba(37,99,235,.36);
+}
+/* red and grey variants that already carry inline colours */
+.btn-full[style*="--bad"]{box-shadow:0 6px 16px rgba(239,68,68,.30)}
+.btn-full[style*="--bad"]:hover{filter:brightness(1.06)}
+.btn-full[style*="var(--bg)"]{box-shadow:0 1px 2px rgba(15,23,42,.06)}
+.btn-full[style*="var(--bg)"]:hover{border-color:var(--b2)!important;box-shadow:var(--lift)}
+
+/* ---------- dark slate (Add to cart, Print, service buttons, Add employee) ---------- */
+.btn-teal,.sv-btn{
+  background:linear-gradient(180deg,#334155,#1E293B)!important;
+  color:#fff!important;border:1px solid #0F172A!important;
+  box-shadow:0 1px 0 rgba(255,255,255,.12) inset,0 6px 14px rgba(15,23,42,.25);
+}
+.btn-teal:hover,.sv-btn:hover{
+  background:linear-gradient(180deg,#475569,#1E293B)!important;
+  transform:translateY(-1px);box-shadow:0 1px 0 rgba(255,255,255,.12) inset,0 10px 20px rgba(15,23,42,.32);
+}
+
+/* ---------- product "Add +" ---------- */
+.add-btn{
+  background:linear-gradient(180deg,var(--b1),var(--b2))!important;
+  color:#fff!important;border:1px solid var(--b3);padding:9px 17px;font-weight:700;
+  box-shadow:0 4px 12px rgba(37,99,235,.28);
+}
+.add-btn:hover{transform:translateY(-1px);box-shadow:var(--lift-b)}
+
+/* ---------- hero buttons ---------- */
+.btn-gold{background:#fff!important;color:#0F172A!important;box-shadow:0 8px 24px rgba(0,0,0,.25)!important}
+.btn-gold:hover{transform:translateY(-2px);box-shadow:0 12px 28px rgba(0,0,0,.32)!important}
+.btn-ghost{background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.35);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+.btn-ghost:hover{background:rgba(255,255,255,.20);transform:translateY(-2px)}
+
+/* ---------- top navigation ---------- */
+.cart-btn,.shop-nav,#accountBtn,.admin-link{border-radius:999px!important;border:1px solid rgba(255,255,255,.18)}
+.cart-btn:hover,.shop-nav:hover,#accountBtn:hover{background:rgba(255,255,255,.24)!important;transform:translateY(-1px)}
+.shop-nav.on,.shop-nav.on:hover{background:#fff!important;color:#0F172A}
+
+/* ---------- chips, segmented toggle, carousel arrows ---------- */
+.chip{box-shadow:0 1px 2px rgba(15,23,42,.05)}
+.chip:hover{border-color:var(--b2);color:var(--b2);transform:translateY(-1px)}
+.chip.active{
+  background:linear-gradient(180deg,var(--b1),var(--b2));color:#fff;border-color:var(--b3);
+  box-shadow:0 6px 14px rgba(37,99,235,.28);
+}
+.chip.active:hover{color:#fff}
+.seg button.on{box-shadow:0 2px 8px rgba(0,0,0,.22)}
+.chips-ai button:hover{box-shadow:0 8px 20px rgba(0,0,0,.25)}
+.car-arrow:hover{transform:translateY(-1px);box-shadow:var(--lift-b)}
+.qty button{border-radius:8px}
+.qty button:hover{background:var(--b2);color:#fff;border-color:var(--b2)}
+
+/* ---------- admin header ---------- */
+.a-ic,.a-bell{border:1px solid rgba(255,255,255,.12);border-radius:12px}
+.a-ic:hover,.a-bell:hover{background:rgba(255,255,255,.22);transform:translateY(-1px)}
+.logout{background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:8px 16px}
+.logout:hover{background:rgba(255,255,255,.22);transform:translateY(-1px)}
+
+/* ---------- admin small action buttons (soft pills, fill on hover) ---------- */
+.mini{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:7px 13px;border-radius:999px;border:1px solid transparent;
+  font-size:12.5px;font-weight:700;line-height:1.1;margin-right:6px;cursor:pointer;
+}
+.mini-ok{background:#DCFCE7;color:#15803D;border-color:#BBF7D0}
+.mini-ok:hover{background:#22C55E;color:#fff;border-color:#22C55E;filter:none;transform:translateY(-1px);box-shadow:0 6px 14px rgba(34,197,94,.32)}
+.mini-no,.mini-del{background:#FEE2E2;color:#B91C1C;border-color:#FECACA}
+.mini-no:hover,.mini-del:hover{background:#EF4444;color:#fff;border-color:#EF4444;transform:translateY(-1px);box-shadow:0 6px 14px rgba(239,68,68,.32)}
+.mini-ed{background:var(--card);color:var(--ink);border-color:var(--line)}
+.mini-ed:hover{background:#EFF6FF;color:var(--b2);border-color:var(--b2);transform:translateY(-1px);box-shadow:var(--lift)}
+#admin-view .mini-view{background:#DBEAFE!important;color:#1D4ED8!important;border-color:#BFDBFE!important}
+#admin-view .mini-view:hover{background:#2563EB!important;color:#fff!important;border-color:#2563EB!important;transform:translateY(-1px);box-shadow:0 6px 14px rgba(37,99,235,.32)}
+
+/* ---------- finance / HR buttons ---------- */
+.fbtn{border-radius:12px;padding:9px 16px;box-shadow:0 1px 2px rgba(15,23,42,.06)}
+.fbtn:hover{border-color:#94A3B8;transform:translateY(-1px);box-shadow:var(--lift)}
+.fbtn.p{background:linear-gradient(180deg,#4F8BFF,#0F62FE);border-color:#0B4FD6;color:#fff;box-shadow:0 6px 16px rgba(15,98,254,.28)}
+.fbtn.p:hover{background:linear-gradient(180deg,#5C96FF,#0B57E6);border-color:#0B4FD6;box-shadow:0 10px 22px rgba(15,98,254,.38)}
+.fbtn.d{color:#B91C1C;background:#FEF2F2;border-color:#FECACA}
+.fbtn.d:hover{background:#EF4444;color:#fff;border-color:#EF4444}
+
+/* ---------- dark admin theme ---------- */
+#admin-view.adm-dark .mini-ok{background:rgba(34,197,94,.16);color:#4ADE80;border-color:rgba(34,197,94,.35)}
+#admin-view.adm-dark .mini-ok:hover{background:#22C55E;color:#fff}
+#admin-view.adm-dark .mini-no,#admin-view.adm-dark .mini-del{background:rgba(239,68,68,.16);color:#F87171;border-color:rgba(239,68,68,.35)}
+#admin-view.adm-dark .mini-no:hover,#admin-view.adm-dark .mini-del:hover{background:#EF4444;color:#fff}
+#admin-view.adm-dark .mini-ed:hover{background:rgba(37,99,235,.20);color:#93C5FD;border-color:#3B82F6}
+#admin-view.adm-dark .mini-view{background:rgba(37,99,235,.20)!important;color:#93C5FD!important;border-color:rgba(59,130,246,.40)!important}
+#admin-view.adm-dark .mini-view:hover{background:#2563EB!important;color:#fff!important}
+#admin-view.adm-dark .fbtn.d{background:rgba(239,68,68,.14);color:#F87171;border-color:rgba(239,68,68,.35)}
+#admin-view.adm-dark .fbtn.d:hover{background:#EF4444;color:#fff}
+
+/* ---------- small fixes ---------- */
+.drawer-head{justify-content:space-between}
+
+/* ---------- phone: keep the admin header inside the screen ---------- */
+@media(max-width:860px){
+  #admin-view,.admin-shell{max-width:100vw;overflow-x:clip}
+  .admin-top{flex-wrap:wrap;gap:10px;padding:10px 12px}
+  .admin-top .a-right{margin-left:0;width:100%;flex-wrap:wrap;gap:8px}
+  .admin-top .who,.admin-top .a-av,
+  .admin-top .a-ic[title="Help"],.admin-top .a-ic[title="Full screen"]{display:none}
+  .admin-top .a-right .logout{padding:8px 14px}
+  .a-burger{position:relative;z-index:130}
+  .a-side{top:0;padding-top:64px}
+  .a-layout{min-height:auto}
+  .mini{padding:8px 14px;min-height:34px}
+}
