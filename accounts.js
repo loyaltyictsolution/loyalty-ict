@@ -8,23 +8,23 @@
 import { getApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
 import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-functions.js";
 
-const OTP_STAFF = true;     // set to true to REQUIRE the staff sign-in code (false = switched off)
+const OTP_STAFF = false;     // set to true to REQUIRE the staff sign-in code (false = switched off)
 const OTP_HOURS = 12;        // a verified staff sign-in is trusted this long
 const REGION = 'europe-west1';
-const STAFF_DEFAULT_CH = 'email';   // first channel tried at staff sign-in: 'email' | 'sms' | 'whatsapp'
+const STAFF_DEFAULT_CH = 'whatsapp';   // channel used for the staff sign-in code
 
 const fns = getFunctions(getApp(), REGION);
 const call = (name, data) => httpsCallable(fns, name)(data || {}).then(r => r.data);
 const msg = e => (e && e.message) ? e.message : 'Something went wrong. Try again.';
 
 /* channels */
-const CHANNELS = ['email', 'sms', 'whatsapp'];
+const CHANNELS = ['whatsapp'];   // channels switched on; add 'email' / 'sms' once the backend can send them
 const chLabel = c => c === 'sms' ? 'SMS' : c === 'whatsapp' ? 'WhatsApp' : 'email';
 const needsPhone = c => c === 'sms' || c === 'whatsapp';
 
 const maskEmail = e => { const [u, d] = String(e || '').split('@'); return (u || '').slice(0, 1) + '•••@' + (d || ''); };
 
-let pendingReg = null, otpMode = '', otpChannel = 'email', otpDest = '', regCh = 'email';
+let pendingReg = null, otpMode = '', otpChannel = 'whatsapp', otpDest = '', regCh = 'whatsapp';
 let resendTimer = null, resendAt = 0;
 window.OTP_OK = !OTP_STAFF;
 
@@ -104,17 +104,14 @@ window.authFormHtml = function (mode) {
     .replace('At least 6 characters', 'At least 8 characters')
     .replace('Create an account to check out faster and keep track of your orders and service requests.',
       mode === 'register'
-        ? 'Customer accounts only. We send a code by email, SMS or WhatsApp to confirm you. Staff accounts are opened by HR or the administrator.'
-        : 'Staff sign in here too. You will be asked for a code by email, SMS or WhatsApp.');
+        ? 'Customer accounts only. We send a code by WhatsApp to confirm you. Staff accounts are opened by HR or the administrator.'
+        : 'Staff sign in here too. You will be asked for a code by WhatsApp.');
   if (mode === 'register') {
-    regCh = 'email';
+    regCh = CHANNELS[0];
     h = h.replace('<div class="field"><label>Password</label>',
       `<div class="field"><label>Phone number</label><input id="au-phone" type="tel" placeholder="07XX XXX XXX" autocomplete="tel">
-         <small style="color:var(--muted);font-size:12px">Needed for SMS or WhatsApp codes. WhatsApp must be active on this number.</small></div>
-       <div class="field"><label>Send my code by</label><div id="au-ch" style="display:flex;gap:8px;flex-wrap:wrap">
-         <button type="button" class="chip active" data-v="email" onclick="pickCh('email')">Email</button>
-         <button type="button" class="chip" data-v="sms" onclick="pickCh('sms')">SMS</button>
-         <button type="button" class="chip" data-v="whatsapp" onclick="pickCh('whatsapp')">WhatsApp</button></div></div>
+         <small style="color:var(--muted);font-size:12px">Your confirmation code is sent to this number on WhatsApp, so WhatsApp must be active on it.</small></div>
+       <div class="field"><label>Send my code by</label><div id="au-ch" style="display:flex;gap:8px;flex-wrap:wrap">${CHANNELS.map((c, i) => `<button type="button" class="chip${i === 0 ? ' active' : ''}" data-v="${c}" onclick="pickCh('${c}')">${chLabel(c)}</button>`).join('')}</div></div>
        <div class="field"><label>Password</label>`);
   }
   return h;
@@ -143,7 +140,7 @@ function gateHtml() {
 }
 window.staffOtpOpen = function () {
   otpMode = 'login';
-  if (!otpDest) { otpChannel = 'email'; otpDest = maskEmail(window.FB.auth.currentUser.email); }
+  if (!otpDest) { otpChannel = CHANNELS[0]; otpDest = 'your registered WhatsApp number'; }
   otpShow(); startCooldown(false);
 };
 async function staffOtpStart() {
@@ -152,7 +149,7 @@ async function staffOtpStart() {
     otpChannel = r.channel; otpDest = r.to; resendAt = Date.now() + 60000;
   } catch (e) {
     // e.g. no phone saved for WhatsApp/SMS: fall back to email
-    if (STAFF_DEFAULT_CH !== 'email') {
+    if (STAFF_DEFAULT_CH !== 'email' && CHANNELS.includes('email')) {
       try {
         const r = await call('sendOtp', { purpose: 'login', channel: 'email' });
         otpChannel = r.channel; otpDest = r.to; resendAt = Date.now() + 60000;
@@ -205,8 +202,9 @@ window.employeesHtml = function () {
 window.empCreateLogin = function (id) {
   const e = hrCache.employees.find(x => x.id === id); if (!e) return;
   if (!e.email) { toast('Add the employee email first (Edit)', 'bad'); return; }
+  if (!e.phone) { toast('Add the employee WhatsApp number first (Edit)', 'bad'); return; }
   openModal('Create staff login', `<div class="fin-meta"><div><span>Employee</span>${finEsc(e.name)}</div><div><span>Email</span>${finEsc(e.email)}</div><div><span>Phone</span>${finEsc(e.phone || 'Not saved')}</div><div><span>Role</span>Employee</div></div>
-    <p class="fin-mut" style="margin:12px 0">The employee gets an email with a link to set their own password. You never see it. Each sign-in is confirmed with a code sent by email, or by SMS or WhatsApp if a phone number is saved.</p>
+    <p class="fin-mut" style="margin:12px 0">The employee gets a link to set their own password. You never see it. Each sign-in is confirmed with a code sent to the employee's WhatsApp.</p>
     <button class="fbtn p" id="ecl-go" style="width:100%;justify-content:center" onclick="empCreateLoginGo('${id}')">Create login and send invite</button>`);
 };
 window.empCreateLoginGo = async function (id) {
@@ -214,7 +212,12 @@ window.empCreateLoginGo = async function (id) {
   try {
     const r = await call('createEmployeeAccount', { employeeId: id });
     logAction('Created employee login', r.email || id); closeModal();
-    toast(r.upgraded ? 'Customer account upgraded to employee' : 'Login created. Invite sent to ' + r.email, 'ok');
+    if (r.upgraded) { toast('Customer account upgraded to employee', 'ok'); return; }
+    let sent = false;
+    try {   // Firebase's own email carries the set-password link
+      if (window.FB.sendPasswordResetEmail) { await window.FB.sendPasswordResetEmail(window.FB.auth, r.email); sent = true; }
+    } catch (_) {}
+    if (sent) toast('Login created. Invite sent to ' + r.email, 'ok'); else showInviteLink(r);
   } catch (e) { if (b) { b.disabled = false; b.textContent = 'Create login and send invite'; } toast(msg(e), 'bad'); }
 };
 
@@ -230,4 +233,12 @@ window.securityHtml = function () {
     h = h.split(old).join(now);
   });
   return h;
+};
+
+/* ---------- show the set-password link when no email could be sent ---------- */
+window.showInviteLink = function (r) {
+  if (!r.inviteLink) { toast('Login created for ' + r.email, 'ok'); return; }
+  openModal('Staff login created', `<p class="fin-mut" style="margin-bottom:10px">Send this link to <b>${escHtml(r.email)}</b> so they can set their own password. It works once.</p>
+    <input id="inv-link" readonly value="${escHtml(r.inviteLink)}" style="width:100%" onclick="this.select()">
+    <button class="btn-full" style="margin-top:10px" onclick="navigator.clipboard.writeText(document.getElementById('inv-link').value);toast('Link copied','ok')">Copy link</button>`);
 };
