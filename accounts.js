@@ -8,7 +8,7 @@
 import { getApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
 import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-functions.js";
 
-const OTP_STAFF = false;     // set to true to REQUIRE the staff sign-in code (false = switched off)
+const OTP_STAFF = true;     // set to true to REQUIRE the staff sign-in code (false = switched off)
 const OTP_HOURS = 12;        // a verified staff sign-in is trusted this long
 const REGION = 'europe-west1';
 const STAFF_DEFAULT_CH = 'email';   // first channel tried at staff sign-in: 'email' | 'sms' | 'whatsapp'
