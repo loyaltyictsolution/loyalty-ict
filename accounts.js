@@ -1,21 +1,27 @@
 /* ============================================================
    accounts.js  (load AFTER the Firebase module in index.html)
-   - Customers register themselves; the code goes by email or SMS.
+   - Customers register themselves; the code goes by email, SMS or WhatsApp.
    - Employee logins are created by HR or an administrator only.
-   - Staff and admins confirm sign-in with a code (email or SMS).
+   - Staff and admins confirm sign-in with a code (email, SMS or WhatsApp).
    Everything here replaces or wraps functions from index.html.
    ============================================================ */
 import { getApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
 import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-functions.js";
 
-const OTP_STAFF = false;     // set to false to switch off the staff sign-in code
-const OTP_HOURS = 12;       // a verified staff sign-in is trusted this long
+const OTP_STAFF = false;     // set to true to REQUIRE the staff sign-in code (false = switched off)
+const OTP_HOURS = 12;        // a verified staff sign-in is trusted this long
 const REGION = 'europe-west1';
+const STAFF_DEFAULT_CH = 'email';   // first channel tried at staff sign-in: 'email' | 'sms' | 'whatsapp'
 
 const fns = getFunctions(getApp(), REGION);
 const call = (name, data) => httpsCallable(fns, name)(data || {}).then(r => r.data);
 const msg = e => (e && e.message) ? e.message : 'Something went wrong. Try again.';
-const chLabel = c => c === 'sms' ? 'SMS' : 'email';
+
+/* channels */
+const CHANNELS = ['email', 'sms', 'whatsapp'];
+const chLabel = c => c === 'sms' ? 'SMS' : c === 'whatsapp' ? 'WhatsApp' : 'email';
+const needsPhone = c => c === 'sms' || c === 'whatsapp';
+
 const maskEmail = e => { const [u, d] = String(e || '').split('@'); return (u || '').slice(0, 1) + '•••@' + (d || ''); };
 
 let pendingReg = null, otpMode = '', otpChannel = 'email', otpDest = '', regCh = 'email';
@@ -24,15 +30,16 @@ window.OTP_OK = !OTP_STAFF;
 
 /* ---------- the code screen ---------- */
 function otpFormHtml(mode) {
-  const other = otpChannel === 'sms' ? 'email' : 'sms';
-  const canSwitch = other === 'email' || mode === 'login' || !!(pendingReg && pendingReg.phone);
+  // other channels the person can switch to
+  const alts = CHANNELS.filter(c => c !== otpChannel &&
+    (c === 'email' || mode === 'login' || !!(pendingReg && pendingReg.phone)));
   return `<p style="color:var(--muted);font-size:14px;margin-bottom:14px">We sent a 6-digit code by <b>${chLabel(otpChannel)}</b> to <b>${escHtml(otpDest)}</b>. It expires in 10 minutes.</p>
   <div class="field"><label>Verification code</label>
     <input id="otp-code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="000000"
       style="font-size:24px;letter-spacing:.4em;text-align:center" onkeydown="if(event.key==='Enter')otpSubmit()"></div>
   <button class="btn-full" id="otp-go" onclick="otpSubmit()">${mode === 'register' ? 'Verify and create account' : 'Verify and continue'}</button>
   <button class="btn-full" id="otp-resend" style="margin-top:10px;background:var(--bg);color:var(--brand);border:1px solid var(--line)" onclick="otpResend()">Resend code</button>
-  ${canSwitch ? `<button class="btn-full" id="otp-switch" style="margin-top:10px;background:var(--bg);color:var(--ink);border:1px solid var(--line)" onclick="otpResend('${other}')">Send by ${chLabel(other)} instead</button>` : ''}`;
+  ${alts.map(c => `<button class="btn-full otp-alt" style="margin-top:10px;background:var(--bg);color:var(--ink);border:1px solid var(--line)" onclick="otpResend('${c}')">Send by ${chLabel(c)} instead</button>`).join('')}`;
 }
 function otpShow() {
   openModal(otpMode === 'register' ? 'Verify your account' : 'Staff sign-in code', otpFormHtml(otpMode));
@@ -41,11 +48,18 @@ function startCooldown(fresh) {
   clearInterval(resendTimer);
   if (fresh) resendAt = Date.now() + 60000;
   const tick = () => {
-    const b = document.getElementById('otp-resend'), s2 = document.getElementById('otp-switch');
+    const b = document.getElementById('otp-resend');
+    const alts = document.querySelectorAll('.otp-alt');
     if (!b) { clearInterval(resendTimer); return; }
     const s = Math.ceil((resendAt - Date.now()) / 1000);
-    if (s > 0) { b.disabled = true; b.textContent = 'Resend code in ' + s + 's'; if (s2) s2.disabled = true; }
-    else { b.disabled = false; b.textContent = 'Resend code'; if (s2) s2.disabled = false; clearInterval(resendTimer); }
+    if (s > 0) {
+      b.disabled = true; b.textContent = 'Resend code in ' + s + 's';
+      alts.forEach(a => a.disabled = true);
+    } else {
+      b.disabled = false; b.textContent = 'Resend code';
+      alts.forEach(a => a.disabled = false);
+      clearInterval(resendTimer);
+    }
   };
   tick(); resendTimer = setInterval(tick, 1000);
   setTimeout(() => { const i = document.getElementById('otp-code'); if (i) i.focus(); }, 60);
@@ -90,13 +104,17 @@ window.authFormHtml = function (mode) {
     .replace('At least 6 characters', 'At least 8 characters')
     .replace('Create an account to check out faster and keep track of your orders and service requests.',
       mode === 'register'
-        ? 'Customer accounts only. We send a code by email or SMS to confirm you. Staff accounts are opened by HR or the administrator.'
-        : 'Staff sign in here too. You will be asked for a code by email or SMS.');
+        ? 'Customer accounts only. We send a code by email, SMS or WhatsApp to confirm you. Staff accounts are opened by HR or the administrator.'
+        : 'Staff sign in here too. You will be asked for a code by email, SMS or WhatsApp.');
   if (mode === 'register') {
     regCh = 'email';
     h = h.replace('<div class="field"><label>Password</label>',
-      `<div class="field"><label>Phone number</label><input id="au-phone" type="tel" placeholder="07XX XXX XXX" autocomplete="tel"></div>
-       <div class="field"><label>Send my code by</label><div id="au-ch" style="display:flex;gap:8px"><button type="button" class="chip active" data-v="email" onclick="pickCh('email')">Email</button><button type="button" class="chip" data-v="sms" onclick="pickCh('sms')">SMS</button></div></div>
+      `<div class="field"><label>Phone number</label><input id="au-phone" type="tel" placeholder="07XX XXX XXX" autocomplete="tel">
+         <small style="color:var(--muted);font-size:12px">Needed for SMS or WhatsApp codes. WhatsApp must be active on this number.</small></div>
+       <div class="field"><label>Send my code by</label><div id="au-ch" style="display:flex;gap:8px;flex-wrap:wrap">
+         <button type="button" class="chip active" data-v="email" onclick="pickCh('email')">Email</button>
+         <button type="button" class="chip" data-v="sms" onclick="pickCh('sms')">SMS</button>
+         <button type="button" class="chip" data-v="whatsapp" onclick="pickCh('whatsapp')">WhatsApp</button></div></div>
        <div class="field"><label>Password</label>`);
   }
   return h;
@@ -105,7 +123,7 @@ window.registerUser = async function () {
   const name = val('au-name'), email = val('au-email').toLowerCase(), password = val('au-pass'), phone = val('au-phone');
   if (!name || !email || !password) { toast('Fill in all fields', 'bad'); return; }
   if (password.length < 8) { toast('Password must be 8+ characters', 'bad'); return; }
-  if (regCh === 'sms' && !phone) { toast('Enter your phone number to get the code by SMS', 'bad'); return; }
+  if (needsPhone(regCh) && !phone) { toast('Enter your phone number to get the code by ' + chLabel(regCh), 'bad'); return; }
   try {
     const r = await call('sendOtp', { email, purpose: 'register', channel: regCh, phone });
     pendingReg = { name, email, password, phone }; otpMode = 'register'; otpChannel = r.channel; otpDest = r.to;
@@ -130,9 +148,17 @@ window.staffOtpOpen = function () {
 };
 async function staffOtpStart() {
   try {
-    const r = await call('sendOtp', { purpose: 'login', channel: 'email' });
+    const r = await call('sendOtp', { purpose: 'login', channel: STAFF_DEFAULT_CH });
     otpChannel = r.channel; otpDest = r.to; resendAt = Date.now() + 60000;
-  } catch (e) { toast(msg(e), 'bad'); }
+  } catch (e) {
+    // e.g. no phone saved for WhatsApp/SMS: fall back to email
+    if (STAFF_DEFAULT_CH !== 'email') {
+      try {
+        const r = await call('sendOtp', { purpose: 'login', channel: 'email' });
+        otpChannel = r.channel; otpDest = r.to; resendAt = Date.now() + 60000;
+      } catch (e2) { toast(msg(e2), 'bad'); }
+    } else toast(msg(e), 'bad');
+  }
   window.staffOtpOpen();
 }
 const _renderAdmin = window.renderAdmin;
@@ -180,7 +206,7 @@ window.empCreateLogin = function (id) {
   const e = hrCache.employees.find(x => x.id === id); if (!e) return;
   if (!e.email) { toast('Add the employee email first (Edit)', 'bad'); return; }
   openModal('Create staff login', `<div class="fin-meta"><div><span>Employee</span>${finEsc(e.name)}</div><div><span>Email</span>${finEsc(e.email)}</div><div><span>Phone</span>${finEsc(e.phone || 'Not saved')}</div><div><span>Role</span>Employee</div></div>
-    <p class="fin-mut" style="margin:12px 0">The employee gets an email with a link to set their own password. You never see it. Each sign-in is confirmed with a code sent by email, or by SMS if a phone number is saved.</p>
+    <p class="fin-mut" style="margin:12px 0">The employee gets an email with a link to set their own password. You never see it. Each sign-in is confirmed with a code sent by email, or by SMS or WhatsApp if a phone number is saved.</p>
     <button class="fbtn p" id="ecl-go" style="width:100%;justify-content:center" onclick="empCreateLoginGo('${id}')">Create login and send invite</button>`);
 };
 window.empCreateLoginGo = async function (id) {
