@@ -116,10 +116,21 @@ async function consumeCode(key, code) {
   return s;
 }
 
+/** Turns any unexpected crash into a readable message instead of a bare "internal". */
+const guard = (fn) => async (req) => {
+  try {
+    return await fn(req);
+  } catch (e) {
+    if (e instanceof HttpsError) throw e;
+    console.error("Unhandled error", e);
+    throw new HttpsError("internal", `Server error: ${e.code || ""} ${e.message || e}`.trim());
+  }
+};
+
 const regKey = (email) => "reg_" + sha(email).slice(0, 32);
 
 /* ---------- sendOtp ---------- */
-exports.sendOtp = onCall({ region: REGION, secrets: [WHATSAPP_TOKEN, WHATSAPP_PHONE_ID] }, async (req) => {
+exports.sendOtp = onCall({ region: REGION, secrets: [WHATSAPP_TOKEN, WHATSAPP_PHONE_ID] }, guard(async (req) => {
   const d = req.data || {};
   if (d.channel && d.channel !== "whatsapp") {
     throw new HttpsError("failed-precondition", "Codes are sent by WhatsApp only.");
@@ -156,10 +167,10 @@ exports.sendOtp = onCall({ region: REGION, secrets: [WHATSAPP_TOKEN, WHATSAPP_PH
   await sendWhatsAppOtp(phone, code);
   await ref.set({ hash: sha(code + ":" + key), phone, tries: 0, sentAt: Date.now(), expiresAt: Date.now() + OTP_TTL_MS });
   return { channel: "whatsapp", to: maskPhone(phone) };
-});
+}));
 
 /* ---------- registerCustomer ---------- */
-exports.registerCustomer = onCall({ region: REGION }, async (req) => {
+exports.registerCustomer = onCall({ region: REGION }, guard(async (req) => {
   const d = req.data || {};
   const name = String(d.name || "").trim();
   const email = String(d.email || "").trim().toLowerCase();
@@ -184,19 +195,19 @@ exports.registerCustomer = onCall({ region: REGION }, async (req) => {
     createdAt: admin.firestore.FieldValue.serverTimestamp(),
   });
   return { ok: true };
-});
+}));
 
 /* ---------- verifyLoginOtp (staff / admin) ---------- */
-exports.verifyLoginOtp = onCall({ region: REGION }, async (req) => {
+exports.verifyLoginOtp = onCall({ region: REGION }, guard(async (req) => {
   if (!req.auth) throw new HttpsError("unauthenticated", "Log in first.");
   await consumeCode("login_" + req.auth.uid, (req.data || {}).code);
   const u = await auth.getUser(req.auth.uid);
   await auth.setCustomUserClaims(req.auth.uid, { ...(u.customClaims || {}), otpAt: Date.now() });
   return { ok: true };
-});
+}));
 
 /* ---------- createEmployeeAccount (HR / admin only) ---------- */
-exports.createEmployeeAccount = onCall({ region: REGION }, async (req) => {
+exports.createEmployeeAccount = onCall({ region: REGION }, guard(async (req) => {
   if (!req.auth) throw new HttpsError("unauthenticated", "Log in first.");
   const me = (await db.collection("users").doc(req.auth.uid).get()).data() || {};
   if (me.blocked || !["admin", "hr"].includes(me.role)) {
@@ -231,4 +242,4 @@ exports.createEmployeeAccount = onCall({ region: REGION }, async (req) => {
 
   const inviteLink = upgraded ? null : await auth.generatePasswordResetLink(email);
   return { email, upgraded, inviteLink };
-});
+}));
