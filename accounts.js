@@ -217,7 +217,8 @@ window.empCreateLoginGo = async function (id) {
     try {   // Firebase's own email carries the set-password link
       if (window.FB.sendPasswordResetEmail) { await window.FB.sendPasswordResetEmail(window.FB.auth, r.email); sent = true; }
     } catch (_) {}
-    if (sent) toast('Login created. Invite sent to ' + r.email, 'ok'); else showInviteLink(r);
+    const emp = (hrCache.employees || []).find(x => x.id === id) || {};
+    showInviteLink(Object.assign({}, r, { sent, name: emp.name, phone: emp.phone }));
   } catch (e) { if (b) { b.disabled = false; b.textContent = 'Create login and send invite'; } toast(msg(e), 'bad'); }
 };
 
@@ -235,10 +236,19 @@ window.securityHtml = function () {
   return h;
 };
 
-/* ---------- show the set-password link when no email could be sent ---------- */
+/* ---------- send the set-password link to the employee on WhatsApp ---------- */
+const waNumber = raw => {            // 0712... / +254712... -> 254712...
+  let p = String(raw || '').replace(/[^\d+]/g, '');
+  if (p.startsWith('+')) p = p.slice(1); else if (p.startsWith('00')) p = p.slice(2); else if (p.startsWith('0')) p = '254' + p.slice(1);
+  return /^\d{10,15}$/.test(p) ? p : '';
+};
 window.showInviteLink = function (r) {
   if (!r.inviteLink) { toast('Login created for ' + r.email, 'ok'); return; }
-  openModal('Staff login created', `<p class="fin-mut" style="margin-bottom:10px">Send this link to <b>${escHtml(r.email)}</b> so they can set their own password. It works once.</p>
-    <input id="inv-link" readonly value="${escHtml(r.inviteLink)}" style="width:100%" onclick="this.select()">
-    <button class="btn-full" style="margin-top:10px" onclick="navigator.clipboard.writeText(document.getElementById('inv-link').value);toast('Link copied','ok')">Copy link</button>`);
+  const num = waNumber(r.phone);
+  const text = `Hi ${r.name || ''}, your Loyalty ICT Solutions staff login is ready. Set your password here: ${r.inviteLink}`;
+  const wa = num ? `https://wa.me/${num}?text=${encodeURIComponent(text)}` : '';
+  openModal('Staff login created', `<p class="fin-mut" style="margin-bottom:10px">${r.sent ? 'An email with the link was also sent. ' : ''}Send the set-password link to <b>${escHtml(r.name || r.email)}</b>. It works once.</p>
+    ${wa ? `<a class="btn-full" href="${escHtml(wa)}" target="_blank" rel="noopener" style="display:block;text-align:center;text-decoration:none">Send invite on WhatsApp</a>` : '<p class="fin-mut">No valid WhatsApp number saved. Copy the link instead.</p>'}
+    <input id="inv-link" readonly value="${escHtml(r.inviteLink)}" style="width:100%;margin-top:10px" onclick="this.select()">
+    <button class="btn-full" style="margin-top:10px;background:var(--bg);color:var(--ink);border:1px solid var(--line)" onclick="navigator.clipboard.writeText(document.getElementById('inv-link').value);toast('Link copied','ok')">Copy link</button>`);
 };
