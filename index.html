@@ -547,6 +547,12 @@ th.fin-r{text-align:right}
 .chat-x{font-size:15px;line-height:1;color:inherit;opacity:.7}
 .chat-in{display:flex;gap:8px;padding:12px 14px;border-top:1px solid var(--line)}
 .chat-in input{flex:1;padding:11px 13px;border:1px solid var(--line);border-radius:10px;font-family:inherit;font-size:14.5px;background:var(--card);color:var(--ink)}
+
+/* ---------- STAFF PORTAL LAYER ---------- */
+#portal-layer{position:fixed;inset:0;z-index:9000;background:#0B1220;display:none}
+#portal-layer.open{display:block}
+#portal-frame{width:100%;height:100%;border:0;display:block;background:#0B1220}
+html.portal-on,html.portal-on body{overflow:hidden}
 </style>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="ui-polish.css">
@@ -752,6 +758,1199 @@ th.fin-r{text-align:right}
   </footer>
 </div>
 
+<div id="portal-layer" role="dialog" aria-label="Staff portal"><iframe id="portal-frame" title="Loyalty ICT staff portal"></iframe></div>
+<script type="text/plain" id="portal-src"><!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0F172A">
+<meta name="robots" content="noindex,nofollow">
+<title>Loyalty ICT · Admin Portal</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect x='1' y='1' width='38' height='38' rx='10' fill='%232563EB'/%3E%3Cpath d='M14 10v14h11' fill='none' stroke='%23fff' stroke-width='4.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='27' cy='24' r='3.2' fill='%2310B981'/%3E%3Ccircle cx='14' cy='10' r='2.6' fill='%23F59E0B'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<script>
+try{var t=localStorage.getItem('lyTheme');if(!t)t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.setAttribute('data-theme',t);}catch(e){document.documentElement.setAttribute('data-theme','light');}
+<@@/script>
+<style>
+:root{--brand:#2563EB;--brand-d:#1D4ED8;--navy:#0F172A;--navy2:#1E293B;--teal:#10B981;--gold:#F59E0B;
+--bg:#F1F5F9;--card:#fff;--ink:#0F172A;--ink2:#334155;--muted:#64748B;--line:#E2E8F0;--soft:#F8FAFC;
+--ok:#15803D;--okbg:#DCFCE7;--warn:#B45309;--warnbg:#FEF3C7;--bad:#DC2626;--badbg:#FEE2E2;--info:#1D4ED8;--infobg:#DBEAFE;
+--r:12px;--sh:0 1px 2px rgba(15,23,42,.05),0 4px 16px rgba(15,23,42,.05);--fh:'Plus Jakarta Sans',system-ui,sans-serif;--fb:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif}
+html[data-theme=dark]{--bg:#0B1220;--card:#111A2E;--ink:#E6EDF7;--ink2:#C3CEDF;--muted:#8A98B0;--line:#22304A;--soft:#0E1627;
+--ok:#4ADE80;--okbg:#0F3321;--warn:#FBBF24;--warnbg:#3A2A0B;--bad:#F87171;--badbg:#3F1515;--info:#93C5FD;--infobg:#142A52;--sh:0 1px 2px rgba(0,0,0,.3),0 4px 16px rgba(0,0,0,.25)}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{font-family:var(--fb);background:var(--bg);color:var(--ink);font-size:14.5px;line-height:1.5;min-height:100vh}
+h1,h2,h3,h4{font-family:var(--fh);letter-spacing:-.01em}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+input,select,textarea{font:inherit;color:var(--ink)}
+a{color:var(--brand)}
+.hidden{display:none!important}
+.ic{flex:none;vertical-align:middle}
+.boot{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:var(--bg);z-index:200}
+.spin{width:34px;height:34px;border:3.5px solid var(--line);border-top-color:var(--brand);border-radius:50%;animation:sp .8s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+
+/* auth screens */
+.auth{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:radial-gradient(1200px 600px at 10% -10%,rgba(37,99,235,.35),transparent 60%),radial-gradient(900px 500px at 100% 110%,rgba(16,185,129,.25),transparent 60%),var(--navy)}
+.auth-card{width:100%;max-width:410px;background:var(--card);border-radius:18px;padding:30px 28px;box-shadow:0 24px 70px rgba(0,0,0,.4)}
+.brand{display:flex;align-items:center;gap:11px;font-family:var(--fh);font-weight:800;font-size:19px;color:var(--ink)}
+.brand small{display:block;font-weight:600;font-size:11.5px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;margin-top:1px}
+.auth-card h2{font-size:22px;margin:22px 0 4px}
+.auth-card .sub{color:var(--muted);font-size:13.5px;margin-bottom:18px}
+.lock-note{display:flex;gap:9px;align-items:flex-start;background:var(--soft);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:12.5px;color:var(--muted);margin-top:16px}
+
+/* forms */
+.field{margin-bottom:13px}
+.field label{display:block;font-size:12.5px;font-weight:600;color:var(--ink2);margin-bottom:5px}
+.field input,.field select,.field textarea,.inp{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:9px;background:var(--card);outline:none;transition:border-color .15s,box-shadow .15s}
+.field textarea{min-height:84px;resize:vertical}
+.field input:focus,.field select:focus,.field textarea:focus,.inp:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(37,99,235,.18)}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.row3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+@media(max-width:560px){.row2,.row3{grid-template-columns:1fr}}
+.hint{font-size:12px;color:var(--muted);margin-top:4px}
+.err{color:var(--bad);font-size:13px;min-height:18px;margin:2px 0 8px;font-weight:500}
+.pw{position:relative}.pw button{position:absolute;right:6px;top:6px;padding:5px 8px;border-radius:7px;font-size:12px;color:var(--muted)}
+
+/* buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:9px 15px;border-radius:9px;font-weight:600;font-size:13.5px;border:1px solid transparent;transition:.15s;white-space:nowrap}
+.btn-p{background:var(--brand);color:#fff}.btn-p:hover{background:var(--brand-d)}
+.btn-g{background:var(--card);border-color:var(--line);color:var(--ink2)}.btn-g:hover{background:var(--soft)}
+.btn-ok{background:var(--teal);color:#fff}.btn-ok:hover{filter:brightness(.93)}
+.btn-d{background:var(--bad);color:#fff}.btn-d:hover{filter:brightness(.93)}
+.btn-w{width:100%;padding:11px}
+.btn-s{padding:6px 10px;font-size:12.5px;border-radius:7px}
+.btn[disabled]{opacity:.5;cursor:not-allowed}
+.icon-btn{width:38px;height:38px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;color:var(--ink2);position:relative}
+.icon-btn:hover{background:var(--soft)}
+
+/* layout */
+.app{display:grid;grid-template-columns:262px minmax(0,1fr);min-height:100vh}
+aside{background:var(--navy);color:#CBD5E1;position:sticky;top:0;height:100vh;display:flex;flex-direction:column;z-index:60}
+.side-h{padding:20px 18px 14px}
+.side-h .brand{color:#fff}.side-h .brand small{color:#94A3B8}
+nav{flex:1;overflow-y:auto;padding:4px 10px 12px}
+nav::-webkit-scrollbar{width:6px}nav::-webkit-scrollbar-thumb{background:#334155;border-radius:3px}
+.nav-g{font-size:10.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:#64748B;padding:14px 10px 6px}
+.nav-i{display:flex;align-items:center;gap:11px;width:100%;padding:9px 11px;border-radius:9px;color:#CBD5E1;font-weight:500;font-size:13.8px;text-align:left}
+.nav-i:hover{background:rgba(255,255,255,.07);color:#fff}
+.nav-i.on{background:var(--brand);color:#fff}
+.nav-i .bd{margin-left:auto;background:var(--gold);color:#1a1100;font-size:11px;font-weight:700;border-radius:20px;padding:1px 7px;min-width:20px;text-align:center}
+.nav-i.on .bd{background:#fff;color:var(--brand)}
+.side-f{border-top:1px solid #1E293B;padding:12px 14px;display:flex;gap:10px;align-items:center}
+.side-f .nm{font-weight:600;font-size:13px;color:#fff;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.side-f .rl{font-size:11.5px;color:#94A3B8}
+.av{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;flex:none;font-family:var(--fh);font-size:14px}
+main{min-width:0;display:flex;flex-direction:column}
+.top{position:sticky;top:0;z-index:30;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px;padding:10px 22px}
+.top h1{font-size:19px;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.srch{display:flex;align-items:center;gap:8px;padding:8px 12px;border:1px solid var(--line);background:var(--card);border-radius:10px;color:var(--muted);font-size:13px;min-width:210px}
+.srch kbd{margin-left:auto;font-size:11px;border:1px solid var(--line);border-radius:5px;padding:0 5px;background:var(--soft)}
+.dot{position:absolute;top:3px;right:3px;background:var(--bad);color:#fff;font-size:10px;font-weight:700;min-width:17px;height:17px;border-radius:9px;display:flex;align-items:center;justify-content:center;padding:0 4px}
+#view{padding:22px;max-width:1500px;width:100%}
+.scrim{display:none}
+@media(max-width:600px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.kpi{padding:12px 13px}.kpi .v{font-size:20px}.kpi .l{font-size:10.5px}}
+@media(max-width:900px){
+ .app{grid-template-columns:minmax(0,1fr)}
+ aside{position:fixed;left:0;top:0;bottom:0;width:276px;transform:translateX(-102%);transition:transform .25s}
+ aside.open{transform:none;box-shadow:0 0 60px rgba(0,0,0,.5)}
+ .scrim.show{display:block;position:fixed;inset:0;background:rgba(2,6,23,.55);z-index:55}
+ .top{padding:10px 14px}#view{padding:14px}.srch{min-width:0}.srch span,.srch kbd{display:none}
+ .menu-b{display:inline-flex!important}
+}
+.menu-b{display:none}
+
+/* cards & tables */
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh)}
+.card-h{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:14px 18px;border-bottom:1px solid var(--line)}
+.card-h h3{font-size:15.5px;flex:1;min-width:120px}
+.card-b{padding:16px 18px}
+.grid{display:grid;gap:16px}
+.g2{grid-template-columns:repeat(auto-fit,minmax(340px,1fr))}
+.g3{grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;margin-bottom:16px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:15px 17px;box-shadow:var(--sh);position:relative;overflow:hidden}
+.kpi .l{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.kpi .v{font-family:var(--fh);font-weight:800;font-size:25px;margin-top:5px;line-height:1.15}
+.kpi .s{font-size:12px;color:var(--muted);margin-top:3px}
+.kpi::after{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--c,var(--brand))}
+.tw{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13.7px}
+th{text-align:left;font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;padding:10px 14px;background:var(--soft);border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:11px 14px;border-bottom:1px solid var(--line);vertical-align:middle}
+tr:last-child td{border-bottom:0}
+tbody tr:hover td{background:color-mix(in srgb,var(--soft) 70%,transparent)}
+.sub-t{display:block;color:var(--muted);font-size:12px}
+.num{text-align:right;white-space:nowrap}
+.acts{white-space:nowrap;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.badge{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11.8px;font-weight:700;white-space:nowrap}.badge::first-letter{text-transform:uppercase}
+.b-pending,.b-warn,.b-partial{background:var(--warnbg);color:var(--warn)}
+.b-approved,.b-info,.b-received{background:var(--infobg);color:var(--info)}
+.b-completed,.b-ok,.b-paid,.b-present{background:var(--okbg);color:var(--ok)}
+.b-rejected,.b-bad,.b-void,.b-reversed,.b-cancelled,.b-absent,.b-unpaid{background:var(--badbg);color:var(--bad)}
+.b-muted{background:var(--soft);color:var(--muted);border:1px solid var(--line)}
+.sel{padding:6px 9px;border:1px solid var(--line);border-radius:8px;background:var(--card);font-size:12.8px;font-weight:600;text-transform:capitalize;cursor:pointer}
+.bar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+.bar .inp{width:auto;min-width:200px;flex:1;max-width:340px}
+.bar select.inp{flex:0 0 auto;min-width:130px}
+.tabs{display:flex;gap:4px;background:var(--soft);border:1px solid var(--line);border-radius:11px;padding:4px;margin-bottom:16px;flex-wrap:wrap;width:fit-content;max-width:100%}
+.tab{padding:7px 14px;border-radius:8px;font-weight:600;font-size:13.2px;color:var(--muted)}
+.tab.on{background:var(--card);color:var(--brand);box-shadow:var(--sh)}
+.tab .bd{background:var(--bad);color:#fff;border-radius:10px;font-size:10.5px;padding:1px 6px;margin-left:5px}
+.empty{padding:34px 18px;text-align:center;color:var(--muted)}
+.empty b{display:block;color:var(--ink2);margin-bottom:3px}
+.denied{background:var(--warnbg);color:var(--warn);border-radius:10px;padding:11px 14px;font-size:13px;margin-bottom:14px}
+.pill-row{display:flex;gap:7px;flex-wrap:wrap}
+.thumb{width:42px;height:42px;border-radius:9px;object-fit:cover;background:var(--soft);border:1px solid var(--line);flex:none;display:flex;align-items:center;justify-content:center;color:var(--muted);overflow:hidden}
+.flex{display:flex;align-items:center;gap:10px}
+.sp{flex:1}
+.mut{color:var(--muted)}
+.sm{font-size:12.5px}
+.stat-line{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px dashed var(--line);font-size:13.5px}
+.stat-line:last-child{border:0}
+.list-i{display:flex;gap:11px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
+.list-i:last-child{border:0}
+.on-dot{width:9px;height:9px;border-radius:50%;background:#94A3B8;display:inline-block;margin-right:6px}
+.on-dot.on{background:var(--teal);box-shadow:0 0 0 3px rgba(16,185,129,.25)}
+.chart text{fill:var(--muted);font-size:13px;font-family:var(--fb)}
+.hbar{height:8px;background:var(--soft);border-radius:5px;overflow:hidden;border:1px solid var(--line)}
+.hbar i{display:block;height:100%;background:var(--brand);border-radius:5px}
+
+/* modal */
+.modal-wrap{position:fixed;inset:0;background:rgba(2,6,23,.6);display:none;align-items:flex-start;justify-content:center;padding:4vh 14px;overflow-y:auto;z-index:100}
+.modal-wrap.show{display:flex}
+.modal{background:var(--card);border-radius:16px;width:100%;max-width:560px;box-shadow:0 30px 80px rgba(0,0,0,.45);animation:pop .18s ease}
+.modal.wide{max-width:820px}
+@keyframes pop{from{transform:translateY(10px) scale(.98);opacity:0}to{transform:none;opacity:1}}
+.modal-h{display:flex;align-items:center;gap:10px;padding:16px 20px;border-bottom:1px solid var(--line)}
+.modal-h h3{flex:1;font-size:17px}
+#mBody{padding:18px 20px 20px}
+.m-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:16px;flex-wrap:wrap}
+
+/* toasts */
+#toasts{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;gap:8px;z-index:300;align-items:center;pointer-events:none;width:calc(100% - 28px)}
+.toast{background:var(--navy);color:#fff;padding:11px 18px;border-radius:11px;font-size:13.8px;font-weight:500;box-shadow:0 10px 30px rgba(0,0,0,.35);max-width:480px;animation:pop .2s ease}
+.toast.ok{background:#047857}.toast.bad{background:#B91C1C}
+#notifs{position:fixed;top:70px;right:16px;display:flex;flex-direction:column;gap:10px;z-index:250;width:320px;max-width:calc(100% - 32px)}
+.notif{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--brand);border-radius:11px;padding:11px 14px;box-shadow:0 14px 40px rgba(0,0,0,.25);animation:pop .22s ease;cursor:pointer}
+.notif b{display:block;font-size:13.5px}.notif span{font-size:12.8px;color:var(--muted)}
+
+/* chat */
+.chat{display:grid;grid-template-columns:230px minmax(0,1fr);height:calc(100vh - 128px);min-height:420px;overflow:hidden}
+.chat-l{border-right:1px solid var(--line);overflow-y:auto;padding:10px}
+.chat-l .nav-i{color:var(--ink2);font-size:13.5px}.chat-l .nav-i:hover{background:var(--soft);color:var(--ink)}
+.chat-l .nav-i.on{background:var(--brand);color:#fff}
+.chat-r{display:flex;flex-direction:column;min-width:0}
+.chat-m{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:9px}
+.msg{max-width:min(520px,82%);padding:8px 12px;border-radius:13px;background:var(--soft);border:1px solid var(--line);align-self:flex-start;word-wrap:break-word;white-space:pre-wrap}
+.msg.me{align-self:flex-end;background:var(--brand);color:#fff;border-color:var(--brand)}
+.msg .who{font-size:11.5px;font-weight:700;opacity:.75;margin-bottom:1px}
+.msg .at{font-size:10.5px;opacity:.65;text-align:right;margin-top:2px}
+.chat-f{display:flex;gap:9px;padding:12px;border-top:1px solid var(--line)}
+.chat-f input{flex:1}
+@media(max-width:700px){.chat{grid-template-columns:1fr;grid-template-rows:auto 1fr}.chat-l{display:flex;gap:6px;overflow-x:auto;border-right:0;border-bottom:1px solid var(--line)}.chat-l .nav-i{width:auto;white-space:nowrap}.chat-l .nav-g{display:none}}
+.notice{border:1px solid var(--line);border-left:4px solid var(--brand);border-radius:11px;padding:13px 16px;background:var(--card);margin-bottom:12px}
+.notice.high{border-left-color:var(--bad)}.notice.low{border-left-color:var(--muted)}
+.notice h4{font-size:15px;margin-bottom:3px}
+.notice p{white-space:pre-wrap;color:var(--ink2);font-size:13.8px}
+.perm-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--line)}
+.perm-row:last-child{border:0}
+.perm-row input{width:18px;height:18px;accent-color:var(--brand)}
+.cmd-r{display:flex;gap:11px;align-items:center;padding:9px 11px;border-radius:9px;cursor:pointer}
+.cmd-r:hover,.cmd-r.sel{background:var(--soft)}
+.cmd-t{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);width:68px;flex:none}
+@media print{aside,.top,#toasts,#notifs{display:none!important}.app{display:block}}
+
+.back-red{display:inline-flex;align-items:center;gap:7px;background:#DC2626;color:#fff;font-weight:700;font-size:13.5px;padding:8px 14px;border-radius:10px;white-space:nowrap;margin-left:4px;box-shadow:0 2px 8px rgba(220,38,38,.35)}
+.back-red:hover{background:#B91C1C}
+.back-red:focus-visible{outline:3px solid rgba(220,38,38,.4);outline-offset:2px}
+@media(max-width:560px){.top .back-red{padding:8px 11px}.top .back-red span{display:none}}
+</style>
+</head>
+<body>
+
+<div id="boot" class="boot"><div class="spin"></div></div>
+
+<@@!-- ============ SIGN IN ============ -->
+<div id="login" class="auth hidden">
+  <form class="auth-card" id="loginForm" autocomplete="on">
+    <div class="brand"><svg viewBox="0 0 40 40" width="38" height="38"><rect x="1" y="1" width="38" height="38" rx="10" fill="#2563EB"/><path d="M14 10v14h11" fill="none" stroke="#fff" stroke-width="4.2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="27" cy="24" r="3.2" fill="#10B981"/><circle cx="14" cy="10" r="2.6" fill="#F59E0B"/></svg><div>Loyalty ICT<small>Admin Portal</small></div></div>
+    <h2>Staff sign in</h2>
+    <p class="sub">Use the email and password your administrator gave you.</p>
+    <div class="field"><label for="lg-email">Email</label><input id="lg-email" type="email" autocomplete="username" required placeholder="you@loyaltyict.co.ke"></div>
+    <div class="field pw"><label for="lg-pass">Password</label><input id="lg-pass" type="password" autocomplete="current-password" required placeholder="Your password"><button type="button" data-act="togglePw" tabindex="-1">Show</button></div>
+    <div class="err" id="lg-err" role="alert"></div>
+    <button class="btn btn-p btn-w" id="lg-btn" type="submit">Sign in</button>
+    <div style="text-align:center;margin-top:13px"><button type="button" class="btn-s" style="color:var(--brand);font-weight:600" data-act="forgot">Forgot password?</button></div>
+    <div style="text-align:center;margin-top:13px"><button type="button" class="back-red" data-act="backStore"><svg class="ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg><span>Back to store</span></button></div>
+    <div class="lock-note"><svg class="ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg><span>Authorised staff only. Your activity is recorded. You are signed out after 30 minutes of inactivity.</span></div>
+  </form>
+</div>
+
+<@@!-- ============ NO ACCESS ============ -->
+<div id="noaccess" class="auth hidden">
+  <div class="auth-card" style="text-align:center">
+    <div class="brand" style="justify-content:center"><svg viewBox="0 0 40 40" width="38" height="38"><rect x="1" y="1" width="38" height="38" rx="10" fill="#2563EB"/><path d="M14 10v14h11" fill="none" stroke="#fff" stroke-width="4.2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="27" cy="24" r="3.2" fill="#10B981"/><circle cx="14" cy="10" r="2.6" fill="#F59E0B"/></svg><div>Loyalty ICT<small>Admin Portal</small></div></div>
+    <h2>No staff access yet</h2>
+    <p class="sub" id="na-msg">This account is not set up as staff. Ask an administrator to give you a role.</p>
+    <p class="sm mut" style="margin-bottom:16px" id="na-who"></p>
+    <button class="btn btn-p btn-w" data-act="signOut">Sign out</button>
+    <p style="margin-top:14px"><button type="button" class="back-red" data-act="backStore"><svg class="ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg><span>Back to store</span></button></p>
+  </div>
+</div>
+
+<@@!-- ============ APP ============ -->
+<div id="app" class="app hidden">
+  <aside id="side">
+    <div class="side-h"><div class="brand"><svg viewBox="0 0 40 40" width="34" height="34"><rect x="1" y="1" width="38" height="38" rx="10" fill="#2563EB"/><path d="M14 10v14h11" fill="none" stroke="#fff" stroke-width="4.2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="27" cy="24" r="3.2" fill="#10B981"/><circle cx="14" cy="10" r="2.6" fill="#F59E0B"/></svg><div>Loyalty ICT<small>Admin Portal</small></div></div></div>
+    <nav id="nav"></nav>
+    <div class="side-f"><div class="av" id="sf-av">?</div><div style="min-width:0;flex:1"><div class="nm" id="sf-nm"></div><div class="rl" id="sf-rl"></div></div><button class="icon-btn" style="color:#94A3B8" data-act="signOut" title="Sign out" aria-label="Sign out"><svg class="ic" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg></button></div>
+  </aside>
+  <div class="scrim" id="scrim" data-act="closeNav"></div>
+  <main>
+    <header class="top">
+      <button class="icon-btn menu-b" data-act="openNav" aria-label="Menu"><svg class="ic" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 12h18M3 6h18M3 18h18"/></svg></button>
+      <h1 id="pageTitle">Dashboard</h1>
+      <button class="srch" data-act="openSearch" aria-label="Search"><svg class="ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.3-4.3"/></svg><span>Search…</span><kbd>Ctrl K</kbd></button>
+      <button class="icon-btn" data-act="bell" aria-label="Alerts" id="bellBtn"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0"/></svg><span class="dot hidden" id="bellDot">0</span></button>
+      <button class="icon-btn" data-act="theme" aria-label="Toggle theme"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></button>
+      <button class="back-red" data-act="backStore" aria-label="Close portal and go back to the store" title="Back to store"><svg class="ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg><span>Back to store</span></button>
+    </header>
+    <section id="view"></section>
+  </main>
+</div>
+
+<div class="modal-wrap" id="modalWrap"><div class="modal" id="modal"><div class="modal-h"><h3 id="mTitle"></h3><button class="icon-btn" data-act="closeModal" aria-label="Close"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg></button></div><div id="mBody"></div></div></div>
+<div id="notifs"></div>
+<div id="toasts"></div>
+<script type="module">
+/* ==========================================================================
+   LOYALTY ICT · ADMIN PORTAL
+   Single-file portal on the same Firebase project as the store.
+   Works with the Firestore rules you supplied (no rule changes needed).
+   Roles: admin · manager · hr · finance · stock · staff · employee
+   ========================================================================== */
+import { initializeApp, deleteApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword,
+         signOut, sendPasswordResetEmail, updatePassword, reauthenticateWithCredential, EmailAuthProvider }
+  from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+import { getFirestore, collection, doc, getDoc, getDocs, addDoc, setDoc, updateDoc, deleteDoc, deleteField,
+         onSnapshot, query, where, orderBy, limit, increment, writeBatch, runTransaction }
+  from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCqI46mSiSgXE1tz7_U_PI1kSpO8QVrqUc",
+  authDomain: "loyaltyitsolutions-a82f0.firebaseapp.com",
+  projectId: "loyaltyitsolutions-a82f0",
+  storageBucket: "loyaltyitsolutions-a82f0.firebasestorage.app",
+  messagingSenderId: "675554083683",
+  appId: "1:675554083683:web:5a6513495907b43a870956"
+};
+const app  = initializeApp(firebaseConfig);
+const db   = getFirestore(app);
+const auth = getAuth(app);
+
+/* ---------------------------------------------------------------- helpers */
+const $  = (s, r=document) => r.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const money = n => 'KSh ' + Number(n||0).toLocaleString('en-KE',{maximumFractionDigits:0});
+const nowISO = () => new Date().toISOString();
+const pad = n => String(n).padStart(2,'0');
+const ymd = d => d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+const today = () => ymd(new Date());
+const fmtD  = s => { if(!s) return '—'; const d = /^\d{4}-\d{2}-\d{2}$/.test(s) ? new Date(s+'T00:00:00') : new Date(s); return isNaN(d)?'—':d.toLocaleDateString('en-KE',{day:'numeric',month:'short',year:'numeric'}); };
+const fmtDT = s => { if(!s) return '—'; const d=new Date(s); return isNaN(d)?'—':d.toLocaleString('en-KE',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}); };
+const ago = iso => { if(!iso) return 'never'; const m=Math.round((Date.now()-new Date(iso))/60000); if(m<1) return 'just now'; if(m<60) return m+' min ago'; const h=Math.round(m/60); if(h<24) return h+' h ago'; return Math.round(h/24)+' d ago'; };
+const v = id => { const e=document.getElementById(id); return e ? String(e.value).trim() : ''; };
+const num = id => Number(v(id)) || 0;
+const sum = (a,f) => a.reduce((t,x)=>t+(Number(f(x))||0),0);
+const by = (f,dir=1) => (a,b) => { const x=f(a), y=f(b); return x<y?-dir:x>y?dir:0; };
+const initials = n => String(n||'?').trim().charAt(0).toUpperCase();
+const COLORS = ['#2563EB','#10B981','#F59E0B','#6366F1','#EF4444','#0EA5E9','#14B8A6','#8B5CF6'];
+const avatar = (n,sz=36) => `<div class="av" style="width:${sz}px;height:${sz}px;background:${COLORS[[...String(n||'?')].reduce((a,c)=>a+c.charCodeAt(0),0)%COLORS.length]}">${esc(initials(n))}</div>`;
+const badge = (txt, cls) => `<span class="badge b-${esc(cls||String(txt).toLowerCase().replace(/\s+/g,'-'))}">${esc(txt)}</span>`;
+const options = (list, cur) => list.map(o => { const [val,lab] = Array.isArray(o)?o:[o,o]; return `<option value="${esc(val)}" ${val===cur?'selected':''}>${esc(lab)}</option>`; }).join('');
+
+const ICONS = {
+ dash:'<rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/>',
+ cart:'<circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6"/>',
+ book:'<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18M9 16l2 2 4-4"/>',
+ box:'<path d="M21 8l-9-5-9 5v8l9 5 9-5z"/><path d="M3.3 7L12 12l8.7-5M12 22V12"/>',
+ inbox:'<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>',
+ receipt:'<path d="M4 2v20l3-2 3 2 3-2 3 2 3-2V2z"/><path d="M8 7h8M8 11h8M8 15h5"/>',
+ chart:'<path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/>',
+ users:'<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/>',
+ user:'<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
+ cal:'<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>',
+ clock:'<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>',
+ chat:'<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
+ mega:'<path d="M3 11l18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/>',
+ shield:'<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',
+ log:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h8"/>',
+ globe:'<circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20 15 15 0 0 1 0-20z"/>',
+ brief:'<rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>',
+ org:'<rect x="9" y="2" width="6" height="6"/><rect x="2" y="16" width="6" height="6"/><rect x="16" y="16" width="6" height="6"/><path d="M12 8v4M5 16v-4h14v4"/>',
+ plane:'<path d="M17.8 19.2L16 11l3.5-3.5a2.1 2.1 0 0 0-3-3L13 8 4.8 6.2 3 8l6 3-3 3-3-.5-1 1 4 2 2 4 1-1-.5-3 3-3 3 6z"/>',
+ edit:'<path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/>',
+ print:'<path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/>',
+ alert:'<path d="M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0zM12 9v4M12 17h.01"/>',
+ plus:'<path d="M12 5v14M5 12h14"/>',
+};
+const ic = (n,s=18) => `<svg class="ic" width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICONS[n]||''}</svg>`;
+
+/* ------------------------------------------------------------------ state */
+const S = { fbUser:null, me:null, emp:null, mod:'dashboard', denied:{}, sessionStart:Date.now(), baseForce:undefined, booted:false };
+const D = { products:[], orders:[], bookings:[], batches:[], reversals:[], invoices:[], counters:{}, employees:[], leaves:[], myLeaves:[],
+            attendance:[], hrPolicy:{}, notices:[], chatGen:[], chatDm:[], users:[], logs:[], content:{}, gallery:[] };
+const U = {};            // per-view UI state (search text, active tab, ...)
+let unsubs = [], unsubMe = null, hb = null, idleT = null, renderQ = false, bell = 0;
+
+/* ------------------------------------------------------- roles & rights
+   These mirror the Firestore rules exactly, so the buttons you see are the
+   actions the database will actually allow.                                */
+const role = () => S.me ? S.me.role : '';
+const isAdmin = () => role()==='admin';
+const isMgr   = () => role()==='manager';
+const isHR    = () => role()==='hr';
+const isStaffR = () => ['admin','staff','manager'].includes(role());                                             // rules: isStaff()
+const isWorker = () => ['admin','staff','manager','hr','finance','stock','employee'].includes(role());           // rules: isWorker()
+const rulePerm = p => role()==='staff' && !!(S.me.perms && S.me.perms[p]===true);                                // rules: perm(p)
+const canFinance = () => isAdmin()||isMgr()||role()==='finance'||rulePerm('finance');
+const canStock   = () => canFinance()||role()==='stock'||rulePerm('stockin');
+const hrManage   = () => isAdmin()||isHR();
+const DEFAULT_PERMS = {products:true,orders:true,bookings:true,reports:true,content:false,finance:false,stockin:false};
+const PERM_LABELS = {products:'Products',orders:'Orders',bookings:'Service requests',reports:'Reports',content:'Site content',finance:'Finance (invoices & expenses)',stockin:'Stock-in'};
+const uiPerm = p => role()!=='staff' ? true : (S.me.perms && p in S.me.perms ? !!S.me.perms[p] : !!DEFAULT_PERMS[p]);
+const ROLES = [['admin','Admin'],['manager','Manager'],['hr','HR'],['finance','Finance'],['stock','Stock & Store'],['staff','Staff'],['employee','Employee'],['customer','Customer (no access)']];
+const ROLE_NAME = Object.fromEntries(ROLES);
+const myEmail = () => (S.fbUser && S.fbUser.email ? S.fbUser.email : '').toLowerCase();
+
+/* -------------------------------------------------------------------- ui */
+function toast(msg, kind=''){
+  const t = document.createElement('div'); t.className='toast '+kind; t.textContent=msg;
+  $('#toasts').appendChild(t); setTimeout(()=>t.remove(), kind==='bad'?5200:3200);
+}
+function beep(){ try{ const AC=window.AudioContext||window.webkitAudioContext; if(!AC) return; const c=new AC(), o=c.createOscillator(), g=c.createGain(); o.connect(g); g.connect(c.destination); o.type='sine'; o.frequency.value=880; g.gain.value=.05; o.start(); o.frequency.setValueAtTime(1320,c.currentTime+.09); o.stop(c.currentTime+.18); }catch(e){} }
+function notify(title, body, mod){
+  const el=document.createElement('div'); el.className='notif'; el.innerHTML=`<b>${esc(title)}</b><span>${esc(body)}</span>`;
+  el.onclick=()=>{ if(mod) go(mod); el.remove(); };
+  $('#notifs').appendChild(el); beep(); setTimeout(()=>el.remove(), 7000);
+}
+function openModal(title, html, wide){ $('#mTitle').textContent=title; $('#mBody').innerHTML=html; $('#modal').classList.toggle('wide',!!wide); $('#modalWrap').classList.add('show'); const f=$('#mBody input:not([type=hidden]),#mBody select,#mBody textarea'); if(f&&!wide) setTimeout(()=>f.focus(),30); }
+function closeModal(){ $('#modalWrap').classList.remove('show'); $('#mBody').innerHTML=''; }
+function ask(title, msg, okText='Confirm', danger=false){
+  return new Promise(res=>{
+    openModal(title, `<p style="color:var(--ink2);margin-bottom:6px">${msg}</p><div class="m-actions"><button class="btn btn-g" id="ask-no">Cancel</button><button class="btn ${danger?'btn-d':'btn-p'}" id="ask-ok">${esc(okText)}</button></div>`);
+    $('#ask-ok').onclick=()=>{ closeModal(); res(true); }; $('#ask-no').onclick=()=>{ closeModal(); res(false); };
+  });
+}
+const errMsg = e => (e && e.code==='permission-denied') ? 'Not allowed: your role does not permit that.' : (e && e.code==='unavailable') ? 'Network problem — check your connection.' : 'Failed: ' + ((e && (e.code||e.message)) || 'unknown error');
+async function run(fn, okMsg){ try{ await fn(); if(okMsg) toast(okMsg,'ok'); return true; }catch(e){ console.error(e); toast(errMsg(e),'bad'); return false; } }
+async function logAct(action, detail){
+  try{ if(!S.me) return; await addDoc(collection(db,'logs'),{action,detail:detail||'',byName:S.me.name||'',byEmail:S.me.email||'',byRole:S.me.role||'',at:nowISO()}); }catch(e){}
+}
+function downloadCSV(name, rows){
+  const csv = rows.map(r=>r.map(c=>{ c=String(c??''); return /[",\n]/.test(c)?'"'+c.replace(/"/g,'""')+'"':c; }).join(',')).join('\n');
+  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob(['﻿'+csv],{type:'text/csv'})); a.download=name; document.body.appendChild(a); a.click(); a.remove();
+}
+function readImage(file, max=900, q=.82){
+  return new Promise((res,rej)=>{
+    if(!file) return rej(new Error('No file'));
+    const fr=new FileReader(); fr.onerror=()=>rej(new Error('Could not read file'));
+    fr.onload=()=>{ const im=new Image(); im.onerror=()=>rej(new Error('Not an image'));
+      im.onload=()=>{ const k=Math.min(1,max/Math.max(im.width,im.height)); const c=document.createElement('canvas'); c.width=Math.round(im.width*k); c.height=Math.round(im.height*k); c.getContext('2d').drawImage(im,0,0,c.width,c.height); res(c.toDataURL('image/jpeg',q)); };
+      im.src=fr.result; };
+    fr.readAsDataURL(file);
+  });
+}
+
+/* --------------------------------------------------- modules & navigation */
+const MODS = [];
+const mod = (id,label,icon,group,show,view,extra={}) => MODS.push({id,label,icon,group,show,view,...extra});
+const modById = id => MODS.find(m=>m.id===id);
+const visibleMods = () => MODS.filter(m=>{ try{ return m.show(); }catch(e){ return false; } });
+function go(id){ if(location.hash!=='#'+id) location.hash=id; else route(); closeNav(); }
+function route(){
+  const id=(location.hash||'').slice(1)||'dashboard'; const m=modById(id); const vis=visibleMods();
+  S.mod = (m && vis.includes(m)) ? id : 'dashboard'; render();
+}
+window.addEventListener('hashchange', route);
+function openNav(){ $('#side').classList.add('open'); $('#scrim').classList.add('show'); }
+function closeNav(){ $('#side').classList.remove('open'); $('#scrim').classList.remove('show'); }
+
+function badges(){
+  const b={};
+  b.orders = D.orders.filter(o=>o.status==='pending').length;
+  b.bookings = D.bookings.filter(o=>o.status==='pending').length;
+  b.leave = hrManage() ? D.leaves.filter(l=>l.status==='pending').length : 0;
+  b.stock = (isAdmin()||isMgr()) ? D.reversals.filter(r=>r.status==='pending'&&r.requestedBy&&r.requestedBy.uid!==S.me.uid).length : 0;
+  b.chat = chatUnreadTotal();
+  return b;
+}
+function renderNav(){
+  const vis=visibleMods(), bd=badges(); let g=null, h='';
+  vis.forEach(m=>{ if(m.group!==g){ g=m.group; if(g) h+=`<div class="nav-g">${esc(g)}</div>`; }
+    h+=`<button class="nav-i ${S.mod===m.id?'on':''}" data-act="go" data-id="${m.id}">${ic(m.icon,18)}<span>${esc(m.label)}</span>${bd[m.id]?`<span class="bd">${bd[m.id]}</span>`:''}</button>`; });
+  $('#nav').innerHTML=h;
+  $('#sf-nm').textContent=S.me.name||S.me.email; $('#sf-rl').textContent=ROLE_NAME[role()]||role();
+  const av=$('#sf-av'); av.textContent=initials(S.me.name||S.me.email); av.style.background=COLORS[[...String(S.me.name||'?')].reduce((a,c)=>a+c.charCodeAt(0),0)%COLORS.length];
+}
+function scheduleRender(){ if(renderQ) return; renderQ=true; requestAnimationFrame(()=>{ renderQ=false; render(); }); }
+function render(){
+  if(!S.me || $('#app').classList.contains('hidden')) return;
+  const m=modById(S.mod)||modById('dashboard');
+  renderNav(); $('#pageTitle').textContent=m.label;
+  const view=$('#view'), ae=document.activeElement, keep=ae&&view.contains(ae)&&ae.id?{id:ae.id,s:ae.selectionStart,e:ae.selectionEnd}:null;
+  const cm=$('.chat-m'), nearBottom=cm?(cm.scrollHeight-cm.scrollTop-cm.clientHeight<80):true, cl=$('.chat-l'), clTop=cl?cl.scrollTop:0;
+  const top=window.scrollY;
+  let html; try{ html=m.view(); }catch(e){ console.error(e); html=`<div class="denied">This page hit an error: ${esc(e.message)}</div>`; }
+  view.innerHTML=html;
+  if(S.mod==='chat'){ const c2=$('.chat-m'); if(c2&&(nearBottom||U.chatStick)) c2.scrollTop=c2.scrollHeight; U.chatStick=false; const l2=$('.chat-l'); if(l2) l2.scrollTop=clTop; markChatRead(); }
+  else window.scrollTo(0,top);
+  if(keep){ const el=document.getElementById(keep.id); if(el){ el.focus(); try{ el.setSelectionRange(keep.s,keep.e); }catch(e){} } }
+  const bl=$('#bellDot'); bl.textContent=bell; bl.classList.toggle('hidden',bell<=0);
+}
+const deniedBanner = (...names) => names.some(n=>S.denied[n]) ? `<div class="denied">Some data could not be loaded (${names.filter(n=>S.denied[n]).join(', ')}). Your role may not have access, or the database rules block it.</div>` : '';
+
+/* -------------------------------------------------------- event delegation */
+const ACT = {};   // click actions   data-act="name"
+const CHG = {};   // change handlers data-change="name"
+const INP = {};   // input handlers  data-input="name"
+document.addEventListener('click', e=>{
+  const el=e.target.closest('[data-act]'); if(!el) return;
+  const fn=ACT[el.dataset.act]; if(fn){ e.preventDefault(); fn(el.dataset, el, e); }
+});
+document.addEventListener('change', e=>{ const el=e.target.closest('[data-change]'); if(el&&CHG[el.dataset.change]) CHG[el.dataset.change](el.dataset, el, e); });
+document.addEventListener('input',  e=>{ const el=e.target.closest('[data-input]');  if(el&&INP[el.dataset.input]) INP[el.dataset.input](el.dataset, el, e); });
+$('#modalWrap').addEventListener('mousedown', e=>{ if(e.target.id==='modalWrap') closeModal(); });
+document.addEventListener('keydown', e=>{
+  if(e.key==='Escape') closeModal();
+  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'&&S.me&&!$('#app').classList.contains('hidden')){ e.preventDefault(); ACT.openSearch(); }
+});
+Object.assign(ACT, {
+  go:(d)=>go(d.id), closeModal, openNav, closeNav,
+  togglePw:(d,el)=>{ const i=el.parentElement.querySelector('input'); i.type=i.type==='password'?'text':'password'; el.textContent=i.type==='password'?'Show':'Hide'; },
+  backStore:()=>{ try{ if(window.parent&&window.parent!==window){ window.parent.postMessage({lyPortal:'close'},'*'); return; } }catch(e){} location.href='./'; },
+  theme:()=>{ const t=document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark'; document.documentElement.setAttribute('data-theme',t); try{ localStorage.setItem('lyTheme',t); }catch(e){} },
+  bell:()=>{ bell=0; render(); go(visibleMods().find(m=>m.id==='orders')?'orders':'dashboard'); },
+  signOut:()=>doSignOut(),
+  forgot:async()=>{
+    const email=v('lg-email'); if(!email){ $('#lg-err').textContent='Type your email first, then tap “Forgot password”.'; return; }
+    try{ await sendPasswordResetEmail(auth,email); }catch(e){ if(e.code!=='auth/user-not-found') console.warn(e); }
+    $('#lg-err').style.color='var(--ok)'; $('#lg-err').textContent='If that email has an account, a reset link is on its way.';
+  },
+  tab:(d)=>{ U[d.k]=d.v; render(); },
+});
+INP.q = (d,el)=>{ U[d.k]=el.value; scheduleRender(); };
+CHG.q = (d,el)=>{ U[d.k]=el.value; render(); };
+
+/* ============================================================ AUTH & DATA */
+const show = name => { ['boot','login','noaccess','app'].forEach(id=>$('#'+id).classList.toggle('hidden', id!==name)); };
+const docs = snap => snap.docs.map(d=>({id:d.id,...d.data()}));
+const seen = {};
+
+function stopStreams(){
+  unsubs.forEach(u=>{ try{ u(); }catch(e){} }); unsubs=[];
+  Object.keys(D).forEach(k=>{ D[k] = Array.isArray(D[k]) ? [] : {}; });
+  S.denied={}; Object.keys(seen).forEach(k=>delete seen[k]); S.empLinked=false;
+}
+function watch(name, ref, cb){
+  const un=onSnapshot(ref, snap=>{ delete S.denied[name]; try{ cb(snap); }catch(e){ console.error(name,e); } scheduleRender(); },
+                      err=>{ console.warn('stream',name,err.code); S.denied[name]=err.code||'error'; scheduleRender(); });
+  unsubs.push(un);
+}
+function notifyNew(key, snap, fmt, mod){
+  if(seen[key]) snap.docChanges().forEach(ch=>{ if(ch.type==='added' && !ch.doc.metadata.hasPendingWrites){ const r=fmt(ch.doc.data()); if(!r) return; notify(r[0],r[1],mod); bell++; } });
+  seen[key]=true;
+}
+const canOrders   = () => (isStaffR()||role()==='finance') && (role()!=='staff'||uiPerm('orders')||uiPerm('reports'));
+const canBookings = () => isStaffR() && uiPerm('bookings');
+
+function startStreams(){
+  const c=n=>collection(db,n);
+  watch('products', c('products'), s=>{ D.products=docs(s); });
+  watch('settings', doc(db,'settings','content'), s=>{ D.content=s.exists()?s.data():{}; });
+  if(canOrders()) watch('orders', query(c('orders'),orderBy('date','desc'),limit(500)), s=>{
+    notifyNew('orders',s,o=>['New order '+(o.ref||''),(o.name||'Customer')+' · '+money(o.total)],'orders'); D.orders=docs(s); });
+  if(canBookings()) watch('bookings', query(c('bookings'),orderBy('created','desc'),limit(300)), s=>{
+    notifyNew('bookings',s,b=>['New service request',(b.name||'Customer')+' · '+(b.service||'')],'bookings'); D.bookings=docs(s); });
+  if(canStock()){
+    watch('stockBatches', query(c('stockBatches'),orderBy('created','desc'),limit(300)), s=>{ D.batches=docs(s); });
+    watch('reversals', query(c('reversals'),orderBy('created','desc'),limit(200)), s=>{
+      if(isAdmin()||isMgr()) notifyNew('rev',s,r=>['Reversal needs approval',(r.productName||'')+' × '+(r.qty||'')+' by '+((r.requestedBy||{}).name||'')],'stock'); D.reversals=docs(s); });
+    watch('finMeta', doc(db,'finMeta','counters'), s=>{ D.counters=s.exists()?s.data():{}; });
+  }
+  if(canFinance()) watch('finInvoices', query(c('finInvoices'),orderBy('created','desc'),limit(500)), s=>{ D.invoices=docs(s); });
+  watch('employees', c('employees'), s=>{ D.employees=docs(s); linkEmployee(); });
+  if(hrManage()){
+    watch('leaves', c('leaves'), s=>{ notifyNew('leaves',s,l=>['Leave request',(l.employeeName||'')+' · '+(l.type||'')],'leave'); D.leaves=docs(s); });
+    watch('attendance', c('attendance'), s=>{ D.attendance=docs(s); });
+    watch('hrMeta', doc(db,'hrMeta','policy'), s=>{ D.hrPolicy=s.exists()?s.data():{}; });
+  } else {
+    watch('leaves', query(c('leaves'),where('ownerEmail','==',myEmail())), s=>{ D.leaves=docs(s); });
+  }
+  watch('notices', c('notices'), s=>{ notifyNew('notices',s,n=>['New notice',n.title||''],'notices'); D.notices=docs(s); });
+  watch('chatGen', query(c('chatMessages'),where('dm','==',false)), s=>{
+    notifyNew('chatGen',s,m=>(m.by&&m.by.uid!==S.me.uid)?['#general · '+(m.by.name||''),String(m.text||'').slice(0,80)]:null,'chat'); D.chatGen=docs(s); });
+  watch('chatDm', query(c('chatMessages'),where('members','array-contains',S.me.uid)), s=>{ D.chatDm=docs(s).filter(m=>m.dm===true); });
+  if(isAdmin()){
+    watch('users', c('users'), s=>{ D.users=s.docs.map(d=>({uid:d.id,...d.data()})); });
+    watch('logs', query(c('logs'),orderBy('at','desc'),limit(500)), s=>{ D.logs=docs(s); });
+  }
+  if(isStaffR() && uiPerm('content')) watch('gallery', c('gallery'), s=>{ D.gallery=docs(s); });
+}
+function linkEmployee(){
+  const me=myEmail(); S.emp = D.employees.find(e=>(e.email||'').toLowerCase()===me) || null;
+  if(S.emp && !S.empLinked && S.me){ S.empLinked=true;
+    const patch={lastLogin:nowISO()}; if(S.emp.uid!==S.me.uid) patch.uid=S.me.uid;
+    updateDoc(doc(db,'employees',S.emp.id),patch).catch(()=>{});
+  }
+}
+
+/* ------------------------------------------------------------- session */
+function beat(on){ if(!S.me) return; updateDoc(doc(db,'users',S.me.uid),{online:!!on,lastSeen:nowISO()}).catch(()=>{}); }
+function startSessionTimers(){
+  stopSessionTimers(); beat(true); hb=setInterval(()=>beat(!document.hidden), 45000);
+  const reset=()=>{ clearTimeout(idleT); idleT=setTimeout(()=>doSignOut('You were signed out after 30 minutes of inactivity.'), 30*60*1000); };
+  ['mousemove','keydown','click','touchstart','scroll'].forEach(ev=>window.addEventListener(ev,reset,{passive:true})); S._idleReset=reset; reset();
+}
+function stopSessionTimers(){
+  if(hb) clearInterval(hb); hb=null; clearTimeout(idleT);
+  if(S._idleReset){ ['mousemove','keydown','click','touchstart','scroll'].forEach(ev=>window.removeEventListener(ev,S._idleReset)); S._idleReset=null; }
+}
+document.addEventListener('visibilitychange', ()=>{ if(S.me&&S.booted) beat(!document.hidden); });
+window.addEventListener('pagehide', ()=>{ if(S.me&&S.booted) beat(false); });
+
+async function doSignOut(msg){
+  if(S.signingOut) return; S.signingOut=true;
+  S.logoutMsg = typeof msg==='string' ? msg : '';
+  try{ if(S.me) await updateDoc(doc(db,'users',S.me.uid),{online:false,lastSeen:nowISO()}).catch(()=>{}); }catch(e){}
+  try{ await signOut(auth); }catch(e){ console.error(e); }
+}
+function cleanupSession(){
+  stopStreams(); stopSessionTimers(); if(unsubMe){ unsubMe(); unsubMe=null; }
+  S.signingOut=false; S.me=null; S.emp=null; S.booted=false; S.logged=false; S.sig=''; S.baseForce=undefined; S.creating=false; bell=0;
+  Object.keys(U).forEach(k=>delete U[k]); closeModal();
+}
+function showNoAccess(msg){
+  stopStreams(); stopSessionTimers(); S.booted=false;
+  $('#na-msg').textContent = msg || 'This account is not set up as staff yet. Ask an administrator to give you a role, then sign in again.';
+  $('#na-who').textContent = S.fbUser ? 'Signed in as '+(S.fbUser.email||'') : '';
+  show('noaccess');
+}
+function boot(){
+  try{ closeNav(); }catch(e){}
+  stopStreams(); startStreams(); startSessionTimers();
+  show('app'); S.booted=true;
+  if(!S.logged){ S.logged=true; if(window.parent===window) logAct('Signed in', ROLE_NAME[role()]||role()); }
+  route();
+}
+async function ensureProfile(user){
+  if(S.creating) return; S.creating=true;
+  try{ await setDoc(doc(db,'users',user.uid),{name:(user.email||'User').split('@')[0],email:user.email||'',role:'customer',created:nowISO()}); }
+  catch(e){ console.error(e); showNoAccess('Could not create your profile ('+(e.code||'error')+').'); }
+}
+
+onAuthStateChanged(auth, user=>{
+  cleanupSession();
+  if(!user){ S.fbUser=null; if(window.parent&&window.parent!==window){ try{ window.parent.postMessage({lyPortal:'close',msg:S.logoutMsg||''},'*'); }catch(e){} S.logoutMsg=''; } show('login'); const er=$('#lg-err'); er.style.color=''; er.textContent=S.logoutMsg||''; S.logoutMsg=''; $('#lg-btn').disabled=false; $('#lg-btn').textContent='Sign in'; $('#lg-pass').value=''; return; }
+  S.fbUser=user;
+  unsubMe=onSnapshot(doc(db,'users',user.uid), snap=>{
+    if(S.signingOut) return;
+    if(!snap.exists()){ ensureProfile(user); return; }
+    S.me={uid:user.uid,...snap.data()};
+    if(S.me.blocked===true){ doSignOut('This account has been blocked. Contact an administrator.'); return; }
+    const fl=S.me.forceLogout||null;
+    if(S.baseForce===undefined) S.baseForce=fl; else if(fl!==S.baseForce){ doSignOut('An administrator signed you out. Please sign in again.'); return; }
+    if(!isWorker()){ showNoAccess(); return; }
+    const sig=role()+'|'+JSON.stringify(S.me.perms||{});
+    if(!S.booted || sig!==S.sig){ S.sig=sig; boot(); } else scheduleRender();
+  }, err=>{ console.warn(err); showNoAccess('Could not load your profile ('+(err.code||'error')+').'); });
+});
+$('#loginForm').addEventListener('submit', async e=>{
+  e.preventDefault(); const btn=$('#lg-btn'), er=$('#lg-err'); er.style.color=''; er.textContent='';
+  const email=v('lg-email').toLowerCase(), pass=$('#lg-pass').value; if(!email||!pass) return;
+  btn.disabled=true; btn.textContent='Signing in…';
+  try{ await signInWithEmailAndPassword(auth,email,pass); }
+  catch(err){ btn.disabled=false; btn.textContent='Sign in';
+    er.textContent = ['auth/invalid-credential','auth/wrong-password','auth/user-not-found','auth/invalid-email'].includes(err.code) ? 'Wrong email or password.'
+      : err.code==='auth/too-many-requests' ? 'Too many attempts. Wait a few minutes or reset your password.'
+      : err.code==='auth/network-request-failed' ? 'No connection. Check your internet and try again.' : 'Could not sign in ('+(err.code||'error')+').'; }
+});
+
+/* ============================================================== SHARED UI */
+const CATS = ['Laptops & Desktops','Printers','RAM','Storage','Flash Disks','Networking','Cables','Monitors','Components'];
+const STATUSES = ['pending','approved','completed','rejected'];
+const searchBar = (key, ph, extra='') => `<div class="bar"><input class="inp" id="s-${key}" data-input="q" data-k="${key}" placeholder="${esc(ph)}" value="${esc(U[key]||'')}">${extra}</div>`;
+const tabsBar = (key, list, def) => { const cur=U[key]||def; return `<div class="tabs">${list.map(([id,l,n])=>`<button class="tab ${cur===id?'on':''}" data-act="tab" data-k="${key}" data-v="${id}">${esc(l)}${n?`<span class="bd">${n}</span>`:''}</button>`).join('')}</div>`; };
+const kpi = (l,val,s,c) => `<div class="kpi" style="--c:${c||'var(--brand)'}"><div class="l">${esc(l)}</div><div class="v">${val}</div>${s?`<div class="s">${s}</div>`:''}</div>`;
+const empty = (t,s='') => `<div class="empty"><b>${esc(t)}</b>${esc(s)}</div>`;
+const isRev = o => o.status==='approved'||o.status==='completed';
+const stockBadge = p => { const n=Number(p.stock)||0; return n<=0?badge('Out of stock','bad'):n<5?badge(n+' left','warn'):badge(n+' in stock','ok'); };
+function barChart(data, fmt=money){
+  const W=460,H=210,pl=6,pr=6,pt=20,pb=26, max=Math.max(1,...data.map(d=>d.v)), bw=(W-pl-pr)/Math.max(1,data.length), ch=H-pt-pb, step=Math.ceil(data.length/6);
+  return `<svg class="chart" viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Chart">`+
+    [0,.5,1].map(f=>`<line x1="${pl}" x2="${W-pr}" y1="${pt+ch*(1-f)}" y2="${pt+ch*(1-f)}" stroke="var(--line)" stroke-width="1"/>`).join('')+
+    data.map((d,i)=>{ const h=Math.max(d.v>0?3:0,(d.v/max)*ch); return `<rect x="${pl+i*bw+bw*.17}" y="${pt+ch-h}" width="${bw*.66}" height="${h}" rx="3" fill="var(--brand)" opacity="${d.v>0?1:.25}"><title>${esc(d.l)}: ${esc(fmt(d.v))}</title></rect>`+
+      (i%step===0?`<text x="${pl+i*bw+bw/2}" y="${H-6}" text-anchor="middle">${esc(d.l)}</text>`:''); }).join('')+
+    `<text x="${pl}" y="13">${esc(fmt(max))}</text></svg>`;
+}
+function printDoc(o){
+  const w=window.open('','_blank'); if(!w){ toast('Allow pop-ups to print','bad'); return; }
+  const c=D.content||{}, rows=(o.items||[]).map(i=>`<tr><td>${esc(i.name||i.desc)}</td><td style="text-align:center">${esc(i.qty)}</td><td style="text-align:right">${money(i.price)}</td><td style="text-align:right">${money((i.price||0)*(i.qty||0))}</td></tr>`).join('');
+  const bal=(o.total||0)-(o.paid||0);
+  w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${esc(o.title||'Invoice')} ${esc(o.number)}</title><style>body{font-family:Arial,sans-serif;padding:40px;color:#1E293B;max-width:820px;margin:auto}h1{color:#2563EB;margin:0;font-size:30px}table{width:100%;border-collapse:collapse;margin-top:22px}td,th{padding:10px;border-bottom:1px solid #E2E8F0;text-align:left}th{background:#F8FAFC;font-size:12px;text-transform:uppercase;color:#64748B}.t{text-align:right;margin-top:16px;font-size:15px;line-height:1.8}.t b{font-size:20px}.m{color:#64748B;font-size:13px}.s{margin-top:34px;color:#64748B;font-size:13px;border-top:1px solid #E2E8F0;padding-top:14px}</style></head><body>
+  <div style="display:flex;justify-content:space-between;gap:20px"><div><h1>${esc((o.title||'INVOICE').toUpperCase())}</h1><p class="m">No. <b>${esc(o.number)}</b><br>Date: ${esc(fmtD(o.date))}${o.due?'<br>Due: '+esc(fmtD(o.due)):''}</p></div>
+  <div style="text-align:right"><b>Loyalty ICT Solutions</b><br><span class="m">${esc(c.contact_location||'Nairobi, Kenya')}<br>${esc(c.contact_phone||'')} ${esc(c.contact_email?'· '+c.contact_email:'')}</span></div></div>
+  <p style="margin-top:24px"><span class="m">Billed to</span><br><b>${esc(o.customer)}</b><br><span class="m">${esc(o.phone||'')}</span></p>
+  <table><tr><th>Item</th><th style="text-align:center">Qty</th><th style="text-align:right">Price</th><th style="text-align:right">Amount</th></tr>${rows}</table>
+  <div class="t">${o.paid?`Paid: ${money(o.paid)}<br>Balance due: `:'Total: '}<b>${money(o.paid?bal:o.total)}</b>${o.paid?`<br><span class="m">Invoice total ${money(o.total)}</span>`:''}</div>
+  ${o.notes?`<p class="m" style="margin-top:20px">${esc(o.notes)}</p>`:''}
+  <div class="s">Thank you for choosing Loyalty ICT Solutions.</div><script>window.onload=function(){window.print()}<\/script></body></html>`);
+  w.document.close();
+}
+
+/* =================================================================== DASHBOARD */
+mod('dashboard','Dashboard','dash','',()=>isWorker(),viewDashboard);
+function viewDashboard(){
+  const hr=new Date().getHours(), greet=hr<12?'Good morning':hr<17?'Good afternoon':'Good evening';
+  let h=`<div style="margin-bottom:16px"><h2 style="font-size:22px">${greet}, ${esc((S.me.name||'').split(' ')[0]||'there')} 👋</h2><p class="mut">${esc(new Date().toLocaleDateString('en-KE',{weekday:'long',day:'numeric',month:'long',year:'numeric'}))} · signed in as <b>${esc(ROLE_NAME[role()]||role())}</b></p></div>`;
+  h+=deniedBanner('orders','bookings','stockBatches','finInvoices','employees');
+  const k=[];
+  if(canOrders()){
+    const rev=sum(D.orders.filter(isRev),o=>o.total), mo=today().slice(0,7), revMo=sum(D.orders.filter(o=>isRev(o)&&(o.date||'').startsWith(mo)),o=>o.total);
+    k.push(kpi('Revenue · this month',money(revMo),'All time '+money(rev),'var(--brand)'));
+    k.push(kpi('Pending orders',D.orders.filter(o=>o.status==='pending').length,D.orders.length+' orders in total','var(--gold)'));
+  }
+  if(canBookings()) k.push(kpi('Open service requests',D.bookings.filter(b=>b.status==='pending'||b.status==='approved').length,D.bookings.length+' in total','var(--teal)'));
+  if(isStaffR()||role()==='stock'||role()==='finance'){
+    const low=D.products.filter(p=>(Number(p.stock)||0)<5).length;
+    k.push(kpi('Low / out of stock',low,'Stock value '+money(sum(D.products,p=>(p.price||0)*(p.stock||0))),low?'var(--bad)':'var(--teal)'));
+  }
+  if(canFinance()){
+    const inv=D.invoices.filter(i=>i.kind==='invoice'&&i.status!=='void'); k.push(kpi('Unpaid invoices',money(sum(inv,i=>(i.total||0)-(i.paid||0))),inv.filter(i=>(i.total||0)>(i.paid||0)).length+' open','var(--bad)'));
+  }
+  if(hrManage()) k.push(kpi('Leave to approve',D.leaves.filter(l=>l.status==='pending').length,D.employees.filter(e=>e.status!=='left').length+' active employees','var(--gold)'));
+  if(isAdmin()) k.push(kpi('Team online',D.users.filter(isOnline).length,D.users.filter(u=>u.role&&u.role!=='customer').length+' staff accounts','var(--teal)'));
+  if(S.emp){ const bal=leaveBalance(S.emp); k.push(kpi('My annual leave left',bal.annual.left+' days','of '+bal.annual.total,'var(--teal)')); }
+  if(k.length) h+=`<div class="kpis">${k.join('')}</div>`;
+  const cards=[];
+  if(canOrders()){
+    const days=[]; for(let i=13;i>=0;i--){ const d=new Date(); d.setDate(d.getDate()-i); const key=ymd(d); days.push({l:d.getDate()+'/'+(d.getMonth()+1),v:sum(D.orders.filter(o=>isRev(o)&&(o.date||'').slice(0,10)===key),o=>o.total)}); }
+    cards.push(`<div class="card"><div class="card-h"><h3>Sales · last 14 days</h3><button class="btn btn-g btn-s" data-act="go" data-id="reports">Reports</button></div><div class="card-b">${barChart(days)}</div></div>`);
+    const rec=D.orders.slice(0,6);
+    cards.push(`<div class="card"><div class="card-h"><h3>Latest orders</h3><button class="btn btn-g btn-s" data-act="go" data-id="orders">View all</button></div><div class="card-b">${rec.length?rec.map(o=>`<div class="list-i"><div style="flex:1;min-width:0"><b>${esc(o.ref)}</b> · ${esc(o.name)}<span class="sub-t">${esc(fmtDT(o.date))}</span></div><div class="num"><b>${money(o.total)}</b><br>${badge(o.status)}</div></div>`).join(''):empty('No orders yet')}</div></div>`);
+  }
+  if(isStaffR()||role()==='stock'||role()==='finance'){
+    const low=[...D.products].filter(p=>(Number(p.stock)||0)<5).sort(by(p=>p.stock||0)).slice(0,7);
+    cards.push(`<div class="card"><div class="card-h"><h3>Needs restocking</h3>${canStock()?`<button class="btn btn-g btn-s" data-act="go" data-id="stock">Receive stock</button>`:''}</div><div class="card-b">${low.length?low.map(p=>`<div class="list-i"><span style="flex:1">${esc(p.name)}<span class="sub-t">${esc(p.cat||'')}</span></span>${stockBadge(p)}</div>`).join(''):empty('All stocked up','Nothing is below 5 units.')}</div></div>`);
+  }
+  if(hrManage()){
+    const P=D.leaves.filter(l=>l.status==='pending').slice(0,5);
+    cards.push(`<div class="card"><div class="card-h"><h3>Leave awaiting approval</h3><button class="btn btn-g btn-s" data-act="go" data-id="leave">Open</button></div><div class="card-b">${P.length?P.map(l=>`<div class="list-i"><span style="flex:1"><b>${esc(l.employeeName)}</b> · ${esc(l.type)}<span class="sub-t">${esc(l.from)} → ${esc(l.to)} (${esc(l.days)} d)</span></span><button class="btn btn-ok btn-s" data-act="leaveSet" data-id="${esc(l.id)}" data-s="approved">Approve</button></div>`).join(''):empty('Nothing pending')}</div></div>`);
+  }
+  if(isAdmin()){
+    const on=D.users.filter(isOnline);
+    cards.push(`<div class="card"><div class="card-h"><h3>Who is online</h3></div><div class="card-b">${on.length?on.map(u=>`<div class="list-i">${avatar(u.name,32)}<span style="flex:1"><b>${esc(u.name||u.email)}</b><span class="sub-t">${esc(ROLE_NAME[u.role]||u.role)}</span></span><span class="on-dot on"></span></div>`).join(''):empty('Nobody else is online')}</div></div>`);
+  }
+  const N=[...D.notices].sort(by(n=>n.created||'',-1)).slice(0,3);
+  cards.push(`<div class="card"><div class="card-h"><h3>Notice board</h3><button class="btn btn-g btn-s" data-act="go" data-id="notices">All notices</button></div><div class="card-b">${N.length?N.map(noticeHtml).join(''):empty('No notices')}</div></div>`);
+  return h+`<div class="grid g2">${cards.join('')}</div>`;
+}
+
+/* ====================================================================== ORDERS */
+mod('orders','Orders','cart','Sales',()=>canOrders()&&uiPerm('orders'),viewOrders);
+function viewOrders(){
+  const q=(U.oq||'').toLowerCase(), st=U.ost||'all';
+  const list=D.orders.filter(o=>(st==='all'||o.status===st)&&(!q||[o.ref,o.name,o.phone,o.account,o.mpesaCode].join(' ').toLowerCase().includes(q)));
+  return deniedBanner('orders')+searchBar('oq','Search ref, customer, phone…',`<select class="inp" data-change="q" data-k="ost">${options([['all','All statuses'],...STATUSES.map(s=>[s,s[0].toUpperCase()+s.slice(1)])],st)}</select>`)+
+  `<div class="card"><div class="card-h"><h3>Orders (${list.length})</h3><button class="btn btn-g btn-s" data-act="ordersCsv">Export CSV</button></div><div class="tw"><table><thead><tr><th>Order</th><th>Customer</th><th>Items</th><th class="num">Total</th><th>Status</th><th></th></tr></thead><tbody>
+  ${list.map(o=>`<tr><td><b>${esc(o.ref)}</b><span class="sub-t">${esc(fmtDT(o.date))}</span></td><td>${esc(o.name)}<span class="sub-t">${esc(o.phone||'')}</span></td><td>${sum(o.items||[],i=>i.qty)} item${sum(o.items||[],i=>i.qty)===1?'':'s'}${o.stockDeducted?`<span class="sub-t">stock deducted</span>`:''}</td><td class="num"><b>${money(o.total)}</b></td>
+  <td><select class="sel" data-change="orderStatus" data-id="${esc(o.id)}">${options(STATUSES,o.status)}</select></td>
+  <td><div class="acts"><button class="btn btn-g btn-s" data-act="orderView" data-id="${esc(o.id)}">View</button><button class="btn btn-g btn-s" data-act="orderPrint" data-id="${esc(o.id)}">Invoice</button></div></td></tr>`).join('')||`<tr><td colspan="6">${empty('No orders match')}</td></tr>`}
+  </tbody></table></div></div>`;
+}
+const orderOf = id => D.orders.find(o=>o.id===id);
+CHG.orderStatus = async (d,el)=>{
+  const o=orderOf(d.id); if(!o) return; const status=el.value;
+  const ok=await run(()=>updateDoc(doc(db,'orders',o.id),{status,statusBy:S.me.name||'',statusAt:nowISO()}),'Order '+status);
+  if(!ok) return; logAct('Order '+status,o.ref+' · '+o.name);
+  if((status==='approved'||status==='completed')&&!o.stockDeducted&&(o.items||[]).length) ACT.orderStock({id:o.id},null,null,true);
+};
+ACT.orderStock = async (d,el,e,prompt)=>{
+  const o=orderOf(d.id); if(!o||o.stockDeducted) return;
+  const lines=(o.items||[]).map(i=>({i,p:D.products.find(p=>p.id===i.id)}));
+  const missing=lines.filter(l=>!l.p).map(l=>l.i.name), short=lines.filter(l=>l.p&&(Number(l.p.stock)||0)<(Number(l.i.qty)||0)).map(l=>l.p.name);
+  let msg=`Remove ${sum(o.items,i=>i.qty)} item(s) from stock for order <b>${esc(o.ref)}</b>?`;
+  if(missing.length) msg+=`<br><br>Not found in products (skipped): ${esc(missing.join(', '))}.`;
+  if(short.length) msg+=`<br><br>⚠ Not enough stock for: ${esc(short.join(', '))}. Stock will go negative.`;
+  if(!(await ask(prompt?'Update stock?':'Deduct stock',msg,'Deduct stock'))) return;
+  await run(async()=>{ const b=writeBatch(db);
+    lines.filter(l=>l.p).forEach(l=>b.update(doc(db,'products',l.p.id),{stock:increment(-(Number(l.i.qty)||0))}));
+    b.update(doc(db,'orders',o.id),{stockDeducted:true,stockDeductedBy:S.me.name||'',stockDeductedAt:nowISO()}); await b.commit(); logAct('Deducted stock',o.ref); },'Stock updated');
+};
+ACT.orderView = d=>{
+  const o=orderOf(d.id); if(!o) return;
+  openModal('Order '+o.ref,`<div class="row2"><div><div class="mut sm">Customer</div><b>${esc(o.name)}</b><br>${esc(o.phone||'')}${o.area?`<br><span class="mut">${esc(o.area)}</span>`:''}</div><div><div class="mut sm">Placed</div><b>${esc(fmtDT(o.date))}</b><br>${badge(o.status)}${o.account&&o.account!=='guest'?`<br><span class="mut sm">${esc(o.account)}</span>`:''}</div></div>
+  <div style="margin:14px 0;border:1px solid var(--line);border-radius:10px;padding:4px 14px">${(o.items||[]).map(i=>`<div class="stat-line"><span>${esc(i.name)} × ${esc(i.qty)}</span><b>${money((i.price||0)*(i.qty||0))}</b></div>`).join('')}<div class="stat-line"><b>Total</b><b>${money(o.total)}</b></div></div>
+  ${o.notes?`<p class="sm"><b>Customer note:</b> ${esc(o.notes)}</p>`:''}${o.mpesaCode?`<p class="sm mut">Reference: ${esc(o.mpesaCode)}</p>`:''}
+  <div class="m-actions" style="justify-content:flex-start">
+   <button class="btn btn-g" data-act="orderPrint" data-id="${esc(o.id)}">${ic('print',16)} Print</button>
+   ${o.phone?`<a class="btn btn-g" target="_blank" rel="noopener" href="https://wa.me/${esc(String(o.phone).replace(/\D/g,'').replace(/^0/,'254'))}">WhatsApp</a>`:''}
+   ${!o.stockDeducted?`<button class="btn btn-g" data-act="orderStock" data-id="${esc(o.id)}">Deduct stock</button>`:`<span class="badge b-ok" style="align-self:center">Stock deducted</span>`}
+   ${canFinance()?`<button class="btn btn-p" data-act="invFromOrder" data-id="${esc(o.id)}">Create finance invoice</button>`:''}
+   ${isAdmin()?`<button class="btn btn-d" data-act="orderDel" data-id="${esc(o.id)}">Delete</button>`:''}
+  </div>`);
+};
+ACT.orderPrint = d=>{ const o=orderOf(d.id); if(!o) return; printDoc({number:o.ref,date:o.date,customer:o.name,phone:o.phone,items:o.items,total:o.total,notes:''}); logAct('Printed invoice',o.ref); };
+ACT.orderDel = async d=>{ const o=orderOf(d.id); if(!o) return; if(!(await ask('Delete order?',`Permanently delete <b>${esc(o.ref)}</b>? This cannot be undone.`,'Delete',true))) return;
+  if(await run(()=>deleteDoc(doc(db,'orders',o.id)),'Order deleted')){ logAct('Deleted order',o.ref); closeModal(); } };
+ACT.ordersCsv = ()=>{ const q=(U.oq||'').toLowerCase(), st=U.ost||'all';
+  const list=D.orders.filter(o=>(st==='all'||o.status===st)&&(!q||[o.ref,o.name,o.phone].join(' ').toLowerCase().includes(q)));
+  downloadCSV('orders-'+today()+'.csv',[['Ref','Date','Customer','Phone','Items','Total','Status'],...list.map(o=>[o.ref,o.date,o.name,o.phone,(o.items||[]).map(i=>i.name+' x'+i.qty).join('; '),o.total,o.status])]); };
+
+/* =================================================================== BOOKINGS */
+mod('bookings','Service requests','book','Sales',()=>canBookings(),viewBookings);
+function viewBookings(){
+  const q=(U.bq||'').toLowerCase(), st=U.bst||'all';
+  const list=D.bookings.filter(b=>(st==='all'||b.status===st)&&(!q||[b.ref,b.name,b.phone,b.service,b.company].join(' ').toLowerCase().includes(q)));
+  return deniedBanner('bookings')+searchBar('bq','Search name, service, phone…',`<select class="inp" data-change="q" data-k="bst">${options([['all','All statuses'],...STATUSES.map(s=>[s,s[0].toUpperCase()+s.slice(1)])],st)}</select>`)+
+  `<div class="card"><div class="card-h"><h3>Service requests (${list.length})</h3></div><div class="tw"><table><thead><tr><th>Request</th><th>Customer</th><th>Service</th><th>Preferred date</th><th>Status</th><th></th></tr></thead><tbody>
+  ${list.map(b=>`<tr><td><b>${esc(b.ref)}</b><span class="sub-t">${esc(fmtDT(b.created))}</span></td><td>${esc(b.name)}${b.company?`<span class="sub-t">${esc(b.company)}</span>`:''}<span class="sub-t">${esc(b.phone||'')}</span></td><td>${esc(b.service||'')}${b.msg?`<span class="sub-t" style="max-width:260px;white-space:normal">${esc(b.msg)}</span>`:''}${b.note?`<span class="sub-t" style="color:var(--brand)">Note: ${esc(b.note)}</span>`:''}</td><td>${esc(b.date?fmtD(b.date):'—')}</td>
+  <td><select class="sel" data-change="bookStatus" data-id="${esc(b.id)}">${options(STATUSES,b.status)}</select></td>
+  <td><div class="acts">${b.phone?`<a class="btn btn-g btn-s" href="tel:${esc(b.phone)}">Call</a><a class="btn btn-g btn-s" target="_blank" rel="noopener" href="https://wa.me/${esc(String(b.phone).replace(/\D/g,'').replace(/^0/,'254'))}">WhatsApp</a>`:''}<button class="btn btn-g btn-s" data-act="bookNote" data-id="${esc(b.id)}">Note</button>${isAdmin()?`<button class="btn btn-g btn-s" style="color:var(--bad)" data-act="bookDel" data-id="${esc(b.id)}">Delete</button>`:''}</div></td></tr>`).join('')||`<tr><td colspan="6">${empty('No requests match')}</td></tr>`}
+  </tbody></table></div></div>`;
+}
+CHG.bookStatus = async (d,el)=>{ const b=D.bookings.find(x=>x.id===d.id); if(!b) return; if(await run(()=>updateDoc(doc(db,'bookings',b.id),{status:el.value,statusBy:S.me.name||'',statusAt:nowISO()}),'Request '+el.value)) logAct('Request '+el.value,b.ref+' · '+b.name); };
+ACT.bookNote = d=>{ const b=D.bookings.find(x=>x.id===d.id); if(!b) return; openModal('Note · '+b.ref,`<div class="field"><label>Internal note (customers never see this)</label><textarea id="bn-t">${esc(b.note||'')}</textarea></div><div class="m-actions"><button class="btn btn-p" data-act="bookNoteSave" data-id="${esc(b.id)}">Save</button></div>`); };
+ACT.bookNoteSave = async d=>{ if(await run(()=>updateDoc(doc(db,'bookings',d.id),{note:v('bn-t')}),'Saved')) closeModal(); };
+ACT.bookDel = async d=>{ const b=D.bookings.find(x=>x.id===d.id); if(!b) return; if(!(await ask('Delete request?',`Delete <b>${esc(b.ref)}</b> from ${esc(b.name)}?`,'Delete',true))) return; if(await run(()=>deleteDoc(doc(db,'bookings',b.id)),'Deleted')) logAct('Deleted request',b.ref); };
+
+/* =================================================================== PRODUCTS */
+mod('products','Products','box','Inventory',()=>(isStaffR()&&uiPerm('products'))||role()==='stock'||role()==='finance',viewProducts);
+const canEditProducts = () => isStaffR()||role()==='stock'||role()==='finance';
+function viewProducts(){
+  const q=(U.pq||'').toLowerCase(), cat=U.pcat||'all', cats=[...new Set([...CATS,...D.products.map(p=>p.cat).filter(Boolean)])];
+  const list=D.products.filter(p=>(cat==='all'||p.cat===cat)&&(!q||[p.name,p.cat,p.desc].join(' ').toLowerCase().includes(q))).sort(by(p=>(p.name||'').toLowerCase()));
+  const val=sum(D.products,p=>(p.price||0)*(p.stock||0)), cost=sum(D.products,p=>(p.lastCost||0)*(p.stock||0));
+  return deniedBanner('products')+`<div class="kpis">${kpi('Products',D.products.length,cats.length+' categories')}${kpi('Units in stock',sum(D.products,p=>p.stock),'',`var(--teal)`)}${kpi('Stock value (retail)',money(val),cost?'At cost '+money(cost):'','var(--gold)')}${kpi('Low / out',D.products.filter(p=>(p.stock||0)<5).length,'under 5 units','var(--bad)')}</div>`+
+  searchBar('pq','Search products…',`<select class="inp" data-change="q" data-k="pcat">${options([['all','All categories'],...cats],cat)}</select>${canEditProducts()?`<button class="btn btn-p" data-act="prodEdit" data-id="">${ic('plus',16)} Add product</button>`:''}`)+
+  `<div class="card"><div class="tw"><table><thead><tr><th>Product</th><th>Category</th><th class="num">Price</th><th>Stock</th><th></th></tr></thead><tbody>
+  ${list.map(p=>`<tr><td><div class="flex"><div class="thumb">${p.img?`<img src="${esc(p.img)}" alt="" style="width:100%;height:100%;object-fit:cover">`:ic('box',18)}</div><div><b>${esc(p.name)}</b><span class="sub-t" style="max-width:340px;white-space:normal">${esc(p.desc||'')}</span></div></div></td><td>${esc(p.cat||'')}</td><td class="num"><b>${money(p.price)}</b>${p.lastCost?`<span class="sub-t">cost ${money(p.lastCost)}</span>`:''}</td><td>${stockBadge(p)}</td>
+  <td><div class="acts">${canEditProducts()?`<button class="btn btn-g btn-s" data-act="prodEdit" data-id="${esc(p.id)}">Edit</button>`:''}${canStock()?`<button class="btn btn-g btn-s" data-act="stockFor" data-id="${esc(p.id)}">+ Stock</button>`:''}${isAdmin()?`<button class="btn btn-g btn-s" style="color:var(--bad)" data-act="prodDel" data-id="${esc(p.id)}">Delete</button>`:''}</div></td></tr>`).join('')||`<tr><td colspan="5">${empty('No products match')}</td></tr>`}
+  </tbody></table></div></div>`;
+}
+ACT.prodEdit = d=>{
+  const p=d.id?D.products.find(x=>x.id===d.id):{name:'',cat:CATS[0],price:'',stock:0,desc:'',img:'',specs:[]}; if(!p) return;
+  const cats=[...new Set([...CATS,...D.products.map(x=>x.cat).filter(Boolean)])];
+  openModal(d.id?'Edit product':'Add product',`
+  <div class="field"><label>Image</label><div class="flex"><div class="thumb" style="width:70px;height:70px" id="pr-prev">${p.img?`<img src="${esc(p.img)}" style="width:100%;height:100%;object-fit:cover" alt="">`:ic('image',22)}</div><input type="file" id="pr-file" accept="image/*" data-change="prodImg"></div><input type="hidden" id="pr-img" value="${esc(p.img||'')}"><div class="hint">Photos are shrunk automatically so the store stays fast.</div></div>
+  <div class="field"><label>Name</label><input id="pr-name" value="${esc(p.name)}"></div>
+  <div class="row3"><div class="field"><label>Category</label><select id="pr-cat">${options(cats,p.cat)}</select></div><div class="field"><label>Price (KSh)</label><input id="pr-price" type="number" min="0" value="${esc(p.price)}"></div><div class="field"><label>Stock</label><input id="pr-stock" type="number" value="${esc(p.stock)}"></div></div>
+  <div class="field"><label>Short description</label><textarea id="pr-desc" style="min-height:60px">${esc(p.desc||'')}</textarea></div>
+  <div class="field"><label>Specifications — one per line as Label: Value</label><textarea id="pr-specs" style="min-height:96px">${esc((p.specs||[]).map(s=>s.k+': '+s.v).join('\n'))}</textarea></div>
+  <div class="m-actions"><button class="btn btn-g" data-act="closeModal">Cancel</button><button class="btn btn-p" data-act="prodSave" data-id="${esc(d.id||'')}">${d.id?'Save changes':'Add product'}</button></div>`);
+};
+CHG.prodImg = async (d,el)=>{ const f=el.files[0]; if(!f) return; try{ const url=await readImage(f,900,.8); $('#pr-img').value=url; $('#pr-prev').innerHTML=`<img src="${url}" style="width:100%;height:100%;object-fit:cover" alt="">`; }catch(e){ toast('Could not use that image','bad'); } };
+ACT.prodSave = async d=>{
+  const name=v('pr-name'); if(!name){ toast('Enter a product name','bad'); return; }
+  const specs=v('pr-specs').split('\n').map(l=>{ const i=l.indexOf(':'); if(i<0) return null; const k=l.slice(0,i).trim(), val=l.slice(i+1).trim(); return k&&val?{k,v:val}:null; }).filter(Boolean);
+  const data={name,cat:v('pr-cat'),price:num('pr-price'),stock:num('pr-stock'),desc:v('pr-desc'),specs,img:$('#pr-img').value};
+  const ok=await run(()=>d.id?updateDoc(doc(db,'products',d.id),data):addDoc(collection(db,'products'),data), d.id?'Product updated':'Product added');
+  if(ok){ logAct(d.id?'Edited product':'Added product',name); closeModal(); }
+};
+ACT.prodDel = async d=>{ const p=D.products.find(x=>x.id===d.id); if(!p) return; if(!(await ask('Delete product?',`Remove <b>${esc(p.name)}</b> from the store? This cannot be undone.`,'Delete',true))) return; if(await run(()=>deleteDoc(doc(db,'products',p.id)),'Product deleted')) logAct('Deleted product',p.name); };
+
+/* ================================================================ STOCK-IN */
+mod('stock','Stock-in','inbox','Inventory',()=>canStock(),viewStock);
+function viewStock(){
+  const tab=U.stTab||'receive', pend=D.reversals.filter(r=>r.status==='pending'), canApprove=isAdmin()||isMgr();
+  const tabs=tabsBar('stTab',[['receive','Receive stock'],['batches','Batches',0],['reversals','Reversals',canApprove?pend.filter(r=>(r.requestedBy||{}).uid!==S.me.uid).length:0]],'receive');
+  let b='';
+  if(tab==='receive'){
+    const pre=U.stProd||'';
+    b=`<div class="card" style="max-width:720px"><div class="card-h"><h3>Receive new stock</h3></div><div class="card-b">
+    <div class="field"><label>Product</label><select id="si-prod"><option value="">— choose a product —</option>${D.products.slice().sort(by(p=>(p.name||'').toLowerCase())).map(p=>`<option value="${esc(p.id)}" ${p.id===pre?'selected':''}>${esc(p.name)} (now ${esc(p.stock||0)})</option>`).join('')}</select></div>
+    <div class="row3"><div class="field"><label>Quantity received</label><input id="si-qty" type="number" min="1" step="1"></div><div class="field"><label>Unit cost (KSh)</label><input id="si-cost" type="number" min="0"></div><div class="field"><label>Date</label><input id="si-date" type="date" value="${today()}"></div></div>
+    <div class="row2"><div class="field"><label>Supplier</label><input id="si-sup"></div><div class="field"><label>Supplier invoice / ref</label><input id="si-ref"></div></div>
+    <div class="field"><label>Note</label><input id="si-note"></div>
+    <button class="btn btn-p" data-act="stockReceive">${ic('inbox',16)} Receive into stock</button>
+    <p class="hint" style="margin-top:10px">Adds the quantity to the product and keeps a permanent batch record. Mistakes are fixed with a <b>reversal</b>, which a manager or admin must approve.</p></div></div>`;
+  } else if(tab==='batches'){
+    const q=(U.sbq||'').toLowerCase(), L=D.batches.filter(x=>!q||[x.productName,x.supplier,x.ref].join(' ').toLowerCase().includes(q));
+    b=searchBar('sbq','Search product, supplier, ref…')+`<div class="card"><div class="tw"><table><thead><tr><th>Date</th><th>Product</th><th class="num">Qty</th><th class="num">Unit cost</th><th>Supplier</th><th>By</th><th>Status</th><th></th></tr></thead><tbody>
+    ${L.map(x=>{ const open=D.reversals.some(r=>r.batchId===x.id&&r.status==='pending'); return `<tr><td>${esc(fmtD(x.date))}</td><td><b>${esc(x.productName)}</b>${x.note?`<span class="sub-t">${esc(x.note)}</span>`:''}</td><td class="num">${esc(x.qty)}</td><td class="num">${money(x.unitCost)}</td><td>${esc(x.supplier||'—')}${x.ref?`<span class="sub-t">${esc(x.ref)}</span>`:''}</td><td>${esc((x.by||{}).name||'')}</td><td>${badge(open?'reversal pending':(x.status||'received'),open?'warn':x.status||'received')}</td>
+    <td>${x.status==='received'&&!open?`<button class="btn btn-g btn-s" data-act="revAsk" data-id="${esc(x.id)}">Request reversal</button>`:''}</td></tr>`; }).join('')||`<tr><td colspan="8">${empty('No stock batches yet')}</td></tr>`}</tbody></table></div></div>`;
+  } else {
+    b=`<div class="card"><div class="card-h"><h3>Reversal requests</h3></div><div class="tw"><table><thead><tr><th>Requested</th><th>Product</th><th class="num">Qty</th><th>Reason</th><th>By</th><th>Status</th><th></th></tr></thead><tbody>
+    ${D.reversals.map(r=>{ const mine=(r.requestedBy||{}).uid===S.me.uid; return `<tr><td>${esc(fmtDT(r.created))}</td><td><b>${esc(r.productName)}</b></td><td class="num">${esc(r.qty)}</td><td style="max-width:240px;white-space:normal">${esc(r.reason||'')}</td><td>${esc((r.requestedBy||{}).name||'')}</td><td>${badge(r.status)}${r.approvedBy?`<span class="sub-t">by ${esc(r.approvedBy.name)}</span>`:''}</td>
+    <td>${r.status==='pending'?(canApprove&&!mine?`<div class="acts"><button class="btn btn-ok btn-s" data-act="revDecide" data-id="${esc(r.id)}" data-s="approved">Approve</button><button class="btn btn-g btn-s" data-act="revDecide" data-id="${esc(r.id)}" data-s="rejected">Reject</button></div>`:`<span class="mut sm">${mine?'Needs someone else to approve':'Awaiting manager/admin'}</span>`):''}</td></tr>`; }).join('')||`<tr><td colspan="7">${empty('No reversal requests')}</td></tr>`}</tbody></table></div></div>`;
+  }
+  return deniedBanner('stockBatches','reversals')+tabs+b;
+}
+ACT.stockFor = d=>{ U.stProd=d.id; U.stTab='receive'; go('stock'); };
+ACT.stockReceive = async ()=>{
+  const p=D.products.find(x=>x.id===v('si-prod')), qty=Math.floor(num('si-qty')), cost=num('si-cost');
+  if(!p){ toast('Choose a product','bad'); return; } if(qty<1){ toast('Enter a quantity of 1 or more','bad'); return; }
+  const ok=await run(async()=>{ const b=writeBatch(db), ref=doc(collection(db,'stockBatches'));
+    b.set(ref,{productId:p.id,productName:p.name,qty,unitCost:cost,total:qty*cost,supplier:v('si-sup'),ref:v('si-ref'),note:v('si-note'),date:v('si-date')||today(),status:'received',by:{uid:S.me.uid,name:S.me.name||S.me.email},created:nowISO()});
+    const pu={stock:increment(qty)}; if(cost>0) pu.lastCost=cost; b.update(doc(db,'products',p.id),pu); await b.commit(); },`Received ${qty} × ${p.name}`);
+  if(ok){ logAct('Received stock',p.name+' × '+qty); U.stProd=''; U.stTab='batches'; render(); }
+};
+ACT.revAsk = d=>{ const x=D.batches.find(b=>b.id===d.id); if(!x) return;
+  openModal('Request reversal',`<p style="margin-bottom:12px">Reverse <b>${esc(x.productName)} × ${esc(x.qty)}</b> received ${esc(fmtD(x.date))}. A manager or admin (not you) must approve before stock is removed.</p><div class="field"><label>Reason</label><textarea id="rv-why" placeholder="e.g. wrong quantity captured"></textarea></div><div class="m-actions"><button class="btn btn-g" data-act="closeModal">Cancel</button><button class="btn btn-p" data-act="revSend" data-id="${esc(x.id)}">Send request</button></div>`); };
+ACT.revSend = async d=>{ const x=D.batches.find(b=>b.id===d.id); if(!x) return; if(!v('rv-why')){ toast('Give a reason','bad'); return; }
+  if(await run(()=>addDoc(collection(db,'reversals'),{batchId:x.id,productId:x.productId,productName:x.productName,qty:x.qty,reason:v('rv-why'),status:'pending',requestedBy:{uid:S.me.uid,name:S.me.name||S.me.email},created:nowISO()}),'Reversal requested')){ logAct('Requested stock reversal',x.productName+' × '+x.qty); closeModal(); } };
+ACT.revDecide = async d=>{ const r=D.reversals.find(x=>x.id===d.id); if(!r) return; const approve=d.s==='approved';
+  if(approve){ const p=D.products.find(x=>x.id===r.productId); if(p&&(Number(p.stock)||0)<r.qty&&!(await ask('Stock would go negative',`${esc(p.name)} only has ${esc(p.stock||0)} in stock. Approve anyway?`,'Approve anyway'))) return; }
+  const ok=await run(async()=>{ const b=writeBatch(db); const me={uid:S.me.uid,name:S.me.name||S.me.email};
+    b.update(doc(db,'reversals',r.id),{status:d.s,approvedBy:me,decidedAt:nowISO()});
+    if(approve){ b.update(doc(db,'stockBatches',r.batchId),{status:'reversed',reversedAt:nowISO()}); b.update(doc(db,'products',r.productId),{stock:increment(-(Number(r.qty)||0))}); }
+    await b.commit(); },approve?'Reversal approved — stock removed':'Reversal rejected');
+  if(ok) logAct('Reversal '+d.s,r.productName+' × '+r.qty); };
+
+/* =============================================================== FINANCE */
+mod('invoices','Invoices & expenses','receipt','Finance',()=>canFinance(),viewInvoices);
+const EXP_CATS=['Stock purchase','Rent','Salaries','Transport','Utilities','Internet','Marketing','Repairs','Licences','Other'];
+const invOutstanding = i => Math.max(0,(i.total||0)-(i.paid||0));
+function viewInvoices(){
+  const tab=U.fnTab||'invoices', inv=D.invoices.filter(i=>i.kind==='invoice'), exp=D.invoices.filter(i=>i.kind==='expense'), live=inv.filter(i=>i.status!=='void'), t=today();
+  const collected=sum(live,i=>i.paid), invoiced=sum(live,i=>i.total), outstanding=sum(live,invOutstanding), overdue=sum(live.filter(i=>i.due&&i.due<t),invOutstanding), spent=sum(exp.filter(e=>e.status!=='void'),e=>e.total);
+  const k=`<div class="kpis">${kpi('Invoiced',money(invoiced),live.length+' invoices')}${kpi('Collected',money(collected),'','var(--teal)')}${kpi('Outstanding',money(outstanding),overdue?money(overdue)+' overdue':'none overdue','var(--gold)')}${kpi('Expenses',money(spent),exp.length+' records','var(--bad)')}${kpi('Net (collected − expenses)',money(collected-spent),'','var(--brand)')}</div>`;
+  const tabs=tabsBar('fnTab',[['invoices','Invoices'],['expenses','Expenses']],'invoices'); let b='';
+  const q=(U.fq||'').toLowerCase();
+  if(tab==='invoices'){
+    const st=U.fst||'all', L=inv.filter(i=>(st==='all'||i.status===st)&&(!q||[i.number,i.customer,i.phone,i.orderRef].join(' ').toLowerCase().includes(q)));
+    b=searchBar('fq','Search number, customer…',`<select class="inp" data-change="q" data-k="fst">${options([['all','All'],'unpaid','partial','paid','void'],st)}</select><button class="btn btn-p" data-act="invNew">${ic('plus',16)} New invoice</button>`)+
+    `<div class="card"><div class="tw"><table><thead><tr><th>Invoice</th><th>Customer</th><th>Date / due</th><th class="num">Total</th><th class="num">Balance</th><th>Status</th><th></th></tr></thead><tbody>
+    ${L.map(i=>`<tr><td><b>${esc(i.number)}</b>${i.orderRef?`<span class="sub-t">order ${esc(i.orderRef)}</span>`:''}</td><td>${esc(i.customer)}<span class="sub-t">${esc(i.phone||'')}</span></td><td>${esc(fmtD(i.date))}${i.due?`<span class="sub-t" style="${i.due<t&&i.status!=='paid'&&i.status!=='void'?'color:var(--bad)':''}">due ${esc(fmtD(i.due))}</span>`:''}</td><td class="num"><b>${money(i.total)}</b></td><td class="num">${money(invOutstanding(i))}</td><td>${badge(i.status)}</td>
+    <td><div class="acts"><button class="btn btn-g btn-s" data-act="invPrint" data-id="${esc(i.id)}">Print</button>${i.status!=='paid'&&i.status!=='void'?`<button class="btn btn-ok btn-s" data-act="invPay" data-id="${esc(i.id)}">Payment</button>`:''}${i.status!=='void'?`<button class="btn btn-g btn-s" style="color:var(--bad)" data-act="invVoid" data-id="${esc(i.id)}">Void</button>`:''}</div></td></tr>`).join('')||`<tr><td colspan="7">${empty('No invoices yet')}</td></tr>`}</tbody></table></div></div>`;
+  } else {
+    const L=exp.filter(e=>!q||[e.payee,e.category,e.note].join(' ').toLowerCase().includes(q));
+    b=searchBar('fq','Search payee, category…',`<button class="btn btn-p" data-act="expNew">${ic('plus',16)} Record expense</button>`)+
+    `<div class="card"><div class="tw"><table><thead><tr><th>Date</th><th>Category</th><th>Payee</th><th>Note</th><th class="num">Amount</th><th></th></tr></thead><tbody>
+    ${L.map(e=>`<tr style="${e.status==='void'?'opacity:.5;text-decoration:line-through':''}"><td>${esc(fmtD(e.date))}</td><td>${esc(e.category||'')}</td><td>${esc(e.payee||'—')}</td><td style="max-width:260px;white-space:normal">${esc(e.note||'')}</td><td class="num"><b>${money(e.total)}</b></td><td>${e.status!=='void'?`<button class="btn btn-g btn-s" style="color:var(--bad)" data-act="invVoid" data-id="${esc(e.id)}">Void</button>`:badge('void')}</td></tr>`).join('')||`<tr><td colspan="6">${empty('No expenses recorded')}</td></tr>`}</tbody></table></div></div>`;
+  }
+  return deniedBanner('finInvoices')+k+tabs+b;
+}
+const lineRow = (l={}) => `<div class="row3 ln" style="grid-template-columns:1fr 80px 120px 30px;gap:8px;margin-bottom:8px"><input class="inp ln-d" placeholder="Description" value="${esc(l.desc||l.name||'')}"><input class="inp ln-q" type="number" min="1" value="${esc(l.qty||1)}"><input class="inp ln-p" type="number" min="0" value="${esc(l.price||'')}" placeholder="Price"><button class="btn btn-g btn-s" data-act="lnDel" title="Remove">×</button></div>`;
+ACT.lnDel = (d,el)=>{ el.closest('.ln').remove(); };
+ACT.lnAdd = ()=>{ $('#ln-box').insertAdjacentHTML('beforeend',lineRow()); };
+ACT.invNew = (d)=>{
+  const o=d&&d.order?orderOf(d.order):null, items=o?(o.items||[]).map(i=>({desc:i.name,qty:i.qty,price:i.price})):[{}];
+  const due=new Date(); due.setDate(due.getDate()+14);
+  openModal(o?'Invoice for order '+o.ref:'New invoice',`<div class="row2"><div class="field"><label>Customer</label><input id="iv-c" value="${esc(o?o.name:'')}"></div><div class="field"><label>Phone</label><input id="iv-p" value="${esc(o?o.phone||'':'')}"></div></div>
+  <div class="row2"><div class="field"><label>Invoice date</label><input id="iv-d" type="date" value="${today()}"></div><div class="field"><label>Due date</label><input id="iv-due" type="date" value="${ymd(due)}"></div></div>
+  <div class="field"><label>Items</label><div id="ln-box">${items.map(lineRow).join('')}</div><button class="btn btn-g btn-s" data-act="lnAdd">+ Add line</button></div>
+  <div class="field"><label>Notes (printed on the invoice)</label><input id="iv-n" placeholder="e.g. Payment via M-Pesa till …"></div>
+  <input type="hidden" id="iv-o" value="${esc(o?o.id:'')}"><div class="m-actions"><button class="btn btn-g" data-act="closeModal">Cancel</button><button class="btn btn-p" data-act="invSave">Create invoice</button></div>`,true);
+};
+ACT.invFromOrder = d=>{ closeModal(); setTimeout(()=>ACT.invNew({order:d.id}),30); };
+ACT.invSave = async ()=>{
+  const items=[...document.querySelectorAll('#ln-box .ln')].map(r=>({desc:r.querySelector('.ln-d').value.trim(),qty:Number(r.querySelector('.ln-q').value)||0,price:Number(r.querySelector('.ln-p').value)||0})).filter(i=>i.desc&&i.qty>0);
+  if(!v('iv-c')){ toast('Enter the customer name','bad'); return; } if(!items.length){ toast('Add at least one item','bad'); return; }
+  const total=sum(items,i=>i.qty*i.price), o=orderOf(v('iv-o'));
+  const ok=await run(async()=>{
+    const cref=doc(db,'finMeta','counters');
+    const n=await runTransaction(db,async tx=>{ const s=await tx.get(cref); const nx=((s.exists()?s.data().invoice:0)||0)+1; tx.set(cref,{invoice:nx},{merge:true}); return nx; });
+    await addDoc(collection(db,'finInvoices'),{kind:'invoice',number:'INV-'+String(n).padStart(4,'0'),customer:v('iv-c'),phone:v('iv-p'),items,total,paid:0,payments:[],status:'unpaid',date:v('iv-d')||today(),due:v('iv-due'),notes:v('iv-n'),orderId:o?o.id:'',orderRef:o?o.ref:'',by:{uid:S.me.uid,name:S.me.name||S.me.email},created:nowISO()});
+  },'Invoice created');
+  if(ok){ logAct('Created invoice',v('iv-c')+' · '+money(total)); closeModal(); U.fnTab='invoices'; go('invoices'); }
+};
+ACT.invPrint = d=>{ const i=D.invoices.find(x=>x.id===d.id); if(i){ printDoc({number:i.number,date:i.date,due:i.due,customer:i.customer,phone:i.phone,items:i.items,total:i.total,paid:i.paid,notes:i.notes}); logAct('Printed invoice',i.number); } };
+ACT.invPay = d=>{ const i=D.invoices.find(x=>x.id===d.id); if(!i) return;
+  openModal('Record payment · '+i.number,`<p class="mut" style="margin-bottom:12px">Balance due: <b>${money(invOutstanding(i))}</b></p><div class="row2"><div class="field"><label>Amount (KSh)</label><input id="py-a" type="number" min="1" value="${invOutstanding(i)}"></div><div class="field"><label>Method</label><select id="py-m">${options(['M-Pesa','Cash','Bank transfer','Cheque','Card'])}</select></div></div><div class="field"><label>Reference (optional)</label><input id="py-r"></div><div class="m-actions"><button class="btn btn-g" data-act="closeModal">Cancel</button><button class="btn btn-ok" data-act="invPaySave" data-id="${esc(i.id)}">Save payment</button></div>`); };
+ACT.invPaySave = async d=>{ const i=D.invoices.find(x=>x.id===d.id); if(!i) return; const a=num('py-a'); if(a<=0){ toast('Enter an amount','bad'); return; }
+  if(a>invOutstanding(i)+0.5){ toast('That is more than the balance due','bad'); return; }
+  const paid=(i.paid||0)+a, payments=[...(i.payments||[]),{amount:a,method:v('py-m'),ref:v('py-r'),date:today(),by:S.me.name||S.me.email}];
+  if(await run(()=>updateDoc(doc(db,'finInvoices',i.id),{paid,payments,status:paid>=(i.total||0)?'paid':'partial'}),'Payment recorded')){ logAct('Recorded payment',i.number+' · '+money(a)); closeModal(); } };
+ACT.invVoid = async d=>{ const i=D.invoices.find(x=>x.id===d.id); if(!i) return; const label=i.kind==='expense'?'this expense':'invoice '+esc(i.number);
+  if(!(await ask('Void?',`Void ${label}? It stays on record but no longer counts.`,'Void',true))) return;
+  if(await run(()=>updateDoc(doc(db,'finInvoices',i.id),{status:'void',voidedBy:S.me.name||S.me.email,voidedAt:nowISO()}),'Voided')) logAct('Voided '+i.kind,i.number||i.payee||i.id); };
+ACT.expNew = ()=>openModal('Record expense',`<div class="row2"><div class="field"><label>Category</label><select id="ex-c">${options(EXP_CATS)}</select></div><div class="field"><label>Amount (KSh)</label><input id="ex-a" type="number" min="1"></div></div><div class="row2"><div class="field"><label>Paid to</label><input id="ex-p"></div><div class="field"><label>Date</label><input id="ex-d" type="date" value="${today()}"></div></div><div class="field"><label>Note</label><input id="ex-n"></div><div class="m-actions"><button class="btn btn-g" data-act="closeModal">Cancel</button><button class="btn btn-p" data-act="expSave">Save expense</button></div>`);
+ACT.expSave = async ()=>{ const a=num('ex-a'); if(a<=0){ toast('Enter an amount','bad'); return; }
+  if(await run(()=>addDoc(collection(db,'finInvoices'),{kind:'expense',category:v('ex-c'),payee:v('ex-p'),total:a,note:v('ex-n'),date:v('ex-d')||today(),status:'paid',by:{uid:S.me.uid,name:S.me.name||S.me.email},created:nowISO()}),'Expense saved')){ logAct('Recorded expense',v('ex-c')+' · '+money(a)); closeModal(); U.fnTab='expenses'; render(); } };
+
+/* ================================================================== REPORTS */
+mod('reports','Reports','chart','Finance',()=>canOrders()&&(role()!=='staff'||uiPerm('reports')),viewReports);
+function viewReports(){
+  const per=U.rp||'30'; const from=per==='all'?'':(()=>{ const d=new Date(); if(per==='year') return d.getFullYear()+'-01-01'; d.setDate(d.getDate()-Number(per)+1); return ymd(d); })();
+  const inR=o=>!from||(o.date||'').slice(0,10)>=from, O=D.orders.filter(inR), R=O.filter(isRev), rev=sum(R,o=>o.total);
+  const byDay={}; R.forEach(o=>{ const k=(o.date||'').slice(0,10); byDay[k]=(byDay[k]||0)+(o.total||0); });
+  const n=per==='all'||per==='year'?12:Math.min(Number(per),31), series=[];
+  if(per==='all'||per==='year'){ for(let i=11;i>=0;i--){ const d=new Date(); d.setMonth(d.getMonth()-i,1); const k=d.getFullYear()+'-'+pad(d.getMonth()+1); series.push({l:d.toLocaleDateString('en-KE',{month:'short'}),v:sum(R.filter(o=>(o.date||'').startsWith(k)),o=>o.total)}); } }
+  else for(let i=n-1;i>=0;i--){ const d=new Date(); d.setDate(d.getDate()-i); const k=ymd(d); series.push({l:d.getDate()+'/'+(d.getMonth()+1),v:byDay[k]||0}); }
+  const prod={}, cat={}; R.forEach(o=>(o.items||[]).forEach(i=>{ const p=prod[i.name]=prod[i.name]||{q:0,v:0}; p.q+=i.qty||0; p.v+=(i.price||0)*(i.qty||0); const c=i.cat||(D.products.find(x=>x.id===i.id)||{}).cat||'Other'; cat[c]=(cat[c]||0)+(i.price||0)*(i.qty||0); }));
+  const top=Object.entries(prod).sort((a,b)=>b[1].v-a[1].v).slice(0,8), cats=Object.entries(cat).sort((a,b)=>b[1]-a[1]), maxC=Math.max(1,...cats.map(c=>c[1]));
+  const sv={}; D.bookings.filter(b=>!from||(b.created||'').slice(0,10)>=from).forEach(b=>sv[b.service||'Other']=(sv[b.service||'Other']||0)+1);
+  const exp=canFinance()?sum(D.invoices.filter(e=>e.kind==='expense'&&e.status!=='void'&&(!from||(e.date||'')>=from)),e=>e.total):null;
+  return deniedBanner('orders')+`<div class="bar"><select class="inp" data-change="q" data-k="rp">${options([['7','Last 7 days'],['30','Last 30 days'],['90','Last 90 days'],['year','This year'],['all','All time']],per)}</select><button class="btn btn-g" data-act="repCsv">Export orders (CSV)</button></div>
+  <div class="kpis">${kpi('Revenue',money(rev),R.length+' approved/completed orders')}${kpi('Average order',money(R.length?rev/R.length:0),'','var(--teal)')}${kpi('Orders received',O.length,O.filter(o=>o.status==='pending').length+' pending','var(--gold)')}${kpi('Rejected',O.filter(o=>o.status==='rejected').length,'','var(--bad)')}${exp!==null?kpi('Expenses',money(exp),'Revenue − expenses '+money(rev-exp),'var(--bad)'):''}</div>
+  <div class="card" style="margin-bottom:16px"><div class="card-h"><h3>Revenue</h3></div><div class="card-b">${barChart(series)}</div></div>
+  <div class="grid g2"><div class="card"><div class="card-h"><h3>Top products</h3></div><div class="card-b">${top.map(([n,p])=>`<div class="stat-line"><span>${esc(n)}<span class="sub-t">${p.q} sold</span></span><b>${money(p.v)}</b></div>`).join('')||empty('No sales in this period')}</div></div>
+  <div class="card"><div class="card-h"><h3>Sales by category</h3></div><div class="card-b">${cats.map(([c,x])=>`<div style="margin-bottom:11px"><div class="flex sm"><span>${esc(c)}</span><span class="sp"></span><b>${money(x)}</b></div><div class="hbar"><i style="width:${Math.round(x/maxC*100)}%"></i></div></div>`).join('')||empty('No sales in this period')}</div></div>
+  ${canBookings()?`<div class="card"><div class="card-h"><h3>Service requests by type</h3></div><div class="card-b">${Object.entries(sv).sort((a,b)=>b[1]-a[1]).map(([s,c])=>`<div class="stat-line"><span>${esc(s)}</span><b>${c}</b></div>`).join('')||empty('No requests in this period')}</div></div>`:''}</div>`;
+}
+ACT.repCsv = ()=>downloadCSV('orders-report-'+today()+'.csv',[['Ref','Date','Customer','Phone','Items','Total','Status'],...D.orders.map(o=>[o.ref,o.date,o.name,o.phone,(o.items||[]).map(i=>i.name+' x'+i.qty).join('; '),o.total,o.status])]);
+
+/* =================================================================== HR */
+const LEAVE_TYPES=['Annual','Sick','Maternity','Paternity','Compassionate','Unpaid'];
+const ATT=['present','late','remote','half day','absent','off'];
+const holidaySet = () => new Set(Array.isArray(D.hrPolicy.holidays)?D.hrPolicy.holidays:[]);
+function leaveDays(a,b){ const H=holidaySet(); let n=0; for(let d=new Date(a+'T00:00:00'),e=new Date(b+'T00:00:00');d<=e;d.setDate(d.getDate()+1)){ const w=d.getDay(); if(w!==0&&w!==6&&!H.has(ymd(d))) n++; } return n; }
+function leaveBalance(e){
+  const y=String(new Date().getFullYear()), pol=D.hrPolicy||{};
+  const used=t=>sum(D.leaves.filter(l=>l.employeeId===e.id&&l.type===t&&l.status==='approved'&&(l.from||'').startsWith(y)),l=>l.days);
+  const tA=Number(e.annual)||Number(pol.annual)||21, tS=Number(e.sick)||Number(pol.sick)||14;
+  return {annual:{total:tA,used:used('Annual'),left:tA-used('Annual')},sick:{total:tS,used:used('Sick'),left:tS-used('Sick')}};
+}
+const onLeaveToday = id => D.leaves.some(l=>l.employeeId===id&&l.status==='approved'&&l.from<=today()&&l.to>=today());
+
+mod('employees','Employees','brief','People',()=>isWorker(),viewEmployees);
+function viewEmployees(){
+  const q=(U.eq||'').toLowerCase(), E=D.employees, act=E.filter(e=>e.status!=='left');
+  const L=E.filter(e=>!q||[e.name,e.title,e.dept,e.email,e.phone].join(' ').toLowerCase().includes(q)).sort(by(e=>(e.name||'').toLowerCase()));
+  const kp=hrManage()?`<div class="kpis">${kpi('Active employees',act.length)}${kpi('On leave today',act.filter(e=>onLeaveToday(e.id)).length,'','var(--gold)')}${kpi('Departments',new Set(act.map(e=>e.dept||'Unassigned')).size,'','var(--teal)')}${kpi('Pending leave',D.leaves.filter(l=>l.status==='pending').length,'','var(--bad)')}</div>`:'';
+  return deniedBanner('employees')+kp+searchBar('eq','Search name, department, email…',hrManage()?`<button class="btn btn-p" data-act="empEdit" data-id="">${ic('plus',16)} Add employee</button>`:'')+
+  `<div class="card"><div class="tw"><table><thead><tr><th>Employee</th><th>Department</th><th>Contact</th><th>Status</th>${hrManage()?'<th>Annual left</th><th>Sick left</th><th></th>':''}</tr></thead><tbody>
+  ${L.map(e=>{ const b=leaveBalance(e); return `<tr><td><div class="flex">${avatar(e.name,34)}<div><b>${esc(e.name)}</b><span class="sub-t">${esc(e.title||'')}</span></div></div></td><td>${esc(e.dept||'—')}</td><td>${esc(e.phone||'')}<span class="sub-t">${esc(e.email||'')}</span></td><td>${onLeaveToday(e.id)?badge('On leave','pending'):badge(e.status||'active',e.status==='left'?'rejected':'approved')}${e.uid?'':`<span class="sub-t">no login linked yet</span>`}</td>
+  ${hrManage()?`<td>${b.annual.left} / ${b.annual.total}</td><td>${b.sick.left} / ${b.sick.total}</td><td><div class="acts"><button class="btn btn-g btn-s" data-act="empEdit" data-id="${esc(e.id)}">Edit</button><button class="btn btn-g btn-s" data-act="leaveNew" data-id="${esc(e.id)}">Leave</button><button class="btn btn-g btn-s" style="color:var(--bad)" data-act="empDel" data-id="${esc(e.id)}">Delete</button></div></td>`:''}</tr>`; }).join('')||`<tr><td colspan="7">${empty('No employees found')}</td></tr>`}</tbody></table></div></div>`;
+}
+ACT.empEdit = d=>{
+  const e=d.id?D.employees.find(x=>x.id===d.id):{annual:'',sick:'',status:'active'}; if(!e) return; const f=(i,l,val,t='text',ph='')=>`<div class="field"><label>${l}</label><input id="em-${i}" type="${t}" value="${esc(val??'')}" placeholder="${esc(ph)}"></div>`;
+  openModal(d.id?'Edit employee':'Add employee',`${f('name','Full name',e.name)}<div class="row2">${f('title','Job title',e.title)}${f('dept','Department',e.dept)}</div><div class="row2">${f('phone','Phone',e.phone)}${f('email','Work email (used to link their login)',e.email,'email')}</div>${f('start','Start date',e.start,'date')}<div class="row2">${f('annual','Annual leave days / year',e.annual,'number','default '+(D.hrPolicy.annual||21))}${f('sick','Sick days / year',e.sick,'number','default '+(D.hrPolicy.sick||14))}</div>
+  <div class="field"><label>Status</label><select id="em-status">${options(['active','on probation','left'],e.status||'active')}</select></div>
+  <p class="hint">Every employee record is visible to all staff — do not store salary or ID numbers here.</p>
+  <div class="m-actions"><button class="btn btn-g" data-act="closeModal">Cancel</button><button class="btn btn-p" data-act="empSave" data-id="${esc(d.id||'')}">Save</button></div>`);
+};
+ACT.empSave = async d=>{
+  const name=v('em-name'); if(!name){ toast('Enter a name','bad'); return; }
+  const x={name,title:v('em-title'),dept:v('em-dept'),phone:v('em-phone'),email:v('em-email').toLowerCase(),start:v('em-start'),annual:Number(v('em-annual'))||0,sick:Number(v('em-sick'))||0,status:v('em-status')};
+  if(await run(()=>d.id?updateDoc(doc(db,'employees',d.id),x):addDoc(collection(db,'employees'),x),'Employee saved')){ logAct(d.id?'Edited employee':'Added employee',name); closeModal(); }
+};
+ACT.empDel = async d=>{ const e=D.employees.find(x=>x.id===d.id); if(!e) return; if(!(await ask('Delete employee?',`Delete <b>${esc(e.name)}</b>? Consider setting their status to “left” instead so history is kept.`,'Delete',true))) return; if(await run(()=>deleteDoc(doc(db,'employees',e.id)),'Deleted')) logAct('Deleted employee',e.name); };
+
+mod('leave','Leave management','plane','People',()=>hrManage(),viewLeave);
+function viewLeave(){
+  const tab=U.lvTab||'pending', pend=D.leaves.filter(l=>l.status==='pending');
+  const tabs=tabsBar('lvTab',[['pending','Pending',pend.length],['all','All requests'],['policy','Policy & holidays']],'pending'); let b='';
+  if(tab==='policy'){
+    const p=D.hrPolicy||{};
+    b=`<div class="card" style="max-width:640px"><div class="card-h"><h3>Leave policy</h3></div><div class="card-b"><div class="row2"><div class="field"><label>Annual leave days / year</label><input id="po-a" type="number" value="${esc(p.annual||21)}"></div><div class="field"><label>Sick days / year</label><input id="po-s" type="number" value="${esc(p.sick||14)}"></div></div>
+    <div class="field"><label>Public holidays (one date per line, YYYY-MM-DD)</label><textarea id="po-h" style="min-height:140px" placeholder="2026-12-25&#10;2026-12-26">${esc((p.holidays||[]).join('\n'))}</textarea><div class="hint">Weekends and these dates are not counted as leave days.</div></div><button class="btn btn-p" data-act="policySave">Save policy</button></div></div>`;
+  } else {
+    const L=(tab==='pending'?pend:D.leaves).slice().sort(by(l=>l.created||'',-1));
+    b=`<div class="card"><div class="card-h"><h3>${tab==='pending'?'Awaiting approval':'All leave'} (${L.length})</h3><button class="btn btn-p btn-s" data-act="leaveNew" data-id="">${ic('plus',15)} Record leave</button></div><div class="tw"><table><thead><tr><th>Employee</th><th>Type</th><th>Dates</th><th class="num">Days</th><th>Reason</th><th>Status</th><th></th></tr></thead><tbody>
+    ${L.map(l=>`<tr><td><b>${esc(l.employeeName)}</b>${l.source==='self'?`<span class="sub-t">requested by employee</span>`:''}</td><td>${esc(l.type)}</td><td style="white-space:nowrap">${esc(fmtD(l.from))} → ${esc(fmtD(l.to))}</td><td class="num">${esc(l.days)}</td><td style="max-width:220px;white-space:normal" class="mut">${esc(l.reason||'—')}</td><td>${badge(l.status)}</td>
+    <td><div class="acts">${l.status==='pending'?`<button class="btn btn-ok btn-s" data-act="leaveSet" data-id="${esc(l.id)}" data-s="approved">Approve</button><button class="btn btn-g btn-s" data-act="leaveSet" data-id="${esc(l.id)}" data-s="rejected">Reject</button>`:''}<button class="btn btn-g btn-s" style="color:var(--bad)" data-act="leaveDel" data-id="${esc(l.id)}">Delete</button></div></td></tr>`).join('')||`<tr><td colspan="7">${empty('Nothing here')}</td></tr>`}</tbody></table></div></div>`;
+  }
+  return deniedBanner('leaves','hrMeta')+tabs+b;
+}
+ACT.policySave = async ()=>{ const hol=v('po-h').split(/\s+/).filter(x=>/^\d{4}-\d{2}-\d{2}$/.test(x));
+  if(await run(()=>setDoc(doc(db,'hrMeta','policy'),{annual:num('po-a')||21,sick:num('po-s')||14,holidays:hol},{merge:true}),'Policy saved')) logAct('Updated leave policy',''); };
+ACT.leaveSet = async d=>{ const l=D.leaves.find(x=>x.id===d.id); if(!l) return;
+  if(await run(()=>updateDoc(doc(db,'leaves',l.id),{status:d.s,decidedBy:S.me.name||S.me.email,decidedAt:nowISO()}),'Leave '+d.s)) logAct('Leave '+d.s,l.employeeName+' · '+l.type+' · '+l.days+'d'); };
+ACT.leaveDel = async d=>{ const l=D.leaves.find(x=>x.id===d.id); if(!l) return; if(!(await ask('Delete record?',`Delete ${esc(l.employeeName)}'s ${esc(l.type)} leave?`,'Delete',true))) return; if(await run(()=>deleteDoc(doc(db,'leaves',l.id)),'Deleted')) logAct('Deleted leave',l.employeeName); };
+ACT.leaveNew = d=>{
+  const E=D.employees.filter(e=>e.status!=='left'); if(!E.length){ toast('Add an employee first','bad'); return; }
+  openModal('Record leave / sick off',`<div class="field"><label>Employee</label><select id="lv-e">${E.map(e=>`<option value="${esc(e.id)}" ${e.id===d.id?'selected':''}>${esc(e.name)}</option>`).join('')}</select></div><div class="row2"><div class="field"><label>Type</label><select id="lv-t">${options(LEAVE_TYPES)}</select></div><div class="field"><label>Status</label><select id="lv-s">${options(['approved','pending'])}</select></div></div><div class="row2"><div class="field"><label>From</label><input id="lv-f" type="date" value="${today()}"></div><div class="field"><label>To</label><input id="lv-to" type="date" value="${today()}"></div></div><div class="field"><label>Reason</label><input id="lv-r"></div><div class="m-actions"><button class="btn btn-g" data-act="closeModal">Cancel</button><button class="btn btn-p" data-act="leaveSave">Save</button></div>`);
+};
+ACT.leaveSave = async ()=>{ const e=D.employees.find(x=>x.id===v('lv-e')), f=v('lv-f'), t=v('lv-to'); if(!e||!f||!t||t<f){ toast('Pick an employee and valid dates','bad'); return; }
+  const days=leaveDays(f,t); if(days<1){ toast('Those dates are all weekends or holidays','bad'); return; }
+  const x={employeeId:e.id,employeeName:e.name,type:v('lv-t'),from:f,to:t,days,reason:v('lv-r'),status:v('lv-s'),source:'hr',ownerEmail:(e.email||'').toLowerCase(),ownerUid:e.uid||'',created:nowISO()};
+  if(await run(()=>addDoc(collection(db,'leaves'),x),'Leave recorded')){ logAct('Recorded '+x.type+' leave',e.name+' · '+days+'d'); closeModal(); } };
+
+mod('attendance','Attendance','clock','People',()=>hrManage(),viewAttendance);
+function viewAttendance(){
+  const date=U.attDate||today(), E=D.employees.filter(e=>e.status!=='left').sort(by(e=>(e.name||'').toLowerCase()));
+  const rec=id=>D.attendance.find(a=>a.id===date+'_'+id), cur=e=>{ const r=rec(e.id); return r?r.status:(D.leaves.some(l=>l.employeeId===e.id&&l.status==='approved'&&l.from<=date&&l.to>=date)?'off':''); };
+  const cnt=s=>E.filter(e=>cur(e)===s).length;
+  return deniedBanner('attendance')+`<div class="bar"><input class="inp" type="date" id="att-d" value="${date}" data-change="q" data-k="attDate" style="max-width:190px"><button class="btn btn-g" data-act="attAll">Mark all present</button></div>
+  <div class="kpis">${kpi('Present',cnt('present')+cnt('remote'),'','var(--teal)')}${kpi('Late',cnt('late'),'','var(--gold)')}${kpi('Absent',cnt('absent'),'','var(--bad)')}${kpi('Off / on leave',cnt('off'),'','var(--brand)')}${kpi('Not marked',E.filter(e=>!cur(e)).length,'','var(--muted)')}</div>
+  <div class="card"><div class="tw"><table><thead><tr><th>Employee</th><th>Department</th><th>Status on ${esc(fmtD(date))}</th></tr></thead><tbody>${E.map(e=>`<tr><td><b>${esc(e.name)}</b></td><td>${esc(e.dept||'—')}</td><td><select class="sel" data-change="att" data-id="${esc(e.id)}"><option value="">— not marked —</option>${options(ATT,cur(e))}</select></td></tr>`).join('')||`<tr><td colspan="3">${empty('No employees')}</td></tr>`}</tbody></table></div></div>`;
+}
+const attSet = (e,status,date)=>setDoc(doc(db,'attendance',date+'_'+e.id),{employeeId:e.id,employeeName:e.name,date,status,by:S.me.name||S.me.email});
+CHG.att = async (d,el)=>{ const e=D.employees.find(x=>x.id===d.id); if(!e) return; const date=U.attDate||today();
+  if(!el.value){ await run(()=>deleteDoc(doc(db,'attendance',date+'_'+e.id))); return; } await run(()=>attSet(e,el.value,date),'Marked '+el.value); };
+ACT.attAll = async ()=>{ const date=U.attDate||today(), E=D.employees.filter(e=>e.status!=='left'&&!D.attendance.some(a=>a.id===date+'_'+e.id)&&!D.leaves.some(l=>l.employeeId===e.id&&l.status==='approved'&&l.from<=date&&l.to>=date));
+  if(!E.length){ toast('Everyone is already marked','ok'); return; } if(await run(async()=>{ const b=writeBatch(db); E.forEach(e=>b.set(doc(db,'attendance',date+'_'+e.id),{employeeId:e.id,employeeName:e.name,date,status:'present',by:S.me.name||S.me.email})); await b.commit(); },E.length+' marked present')) logAct('Bulk attendance',date); };
+
+mod('org','Organisation','org','People',()=>isWorker(),viewOrg);
+function viewOrg(){
+  const g={}; D.employees.filter(e=>e.status!=='left').forEach(e=>{ (g[e.dept||'Unassigned']=g[e.dept||'Unassigned']||[]).push(e); });
+  const keys=Object.keys(g).sort();
+  return keys.length?`<div class="grid g3">${keys.map(k=>`<div class="card"><div class="card-h"><h3>${esc(k)}</h3><span class="badge b-info">${g[k].length}</span></div><div class="card-b">${g[k].map(e=>`<div class="list-i">${avatar(e.name,32)}<span style="flex:1"><b>${esc(e.name)}</b><span class="sub-t">${esc(e.title||'')}</span></span>${onLeaveToday(e.id)?badge('On leave','pending'):''}</div>`).join('')}</div></div>`).join('')}</div>`:`<div class="card">${empty('No employees yet','HR can add them under Employees.')}</div>`;
+}
+
+mod('myleave','My leave','cal','People',()=>isWorker(),viewMyLeave);
+function viewMyLeave(){
+  if(!S.emp) return `<div class="card"><div class="card-b">${empty('Your login is not linked to an employee record yet','Ask HR to add an employee record with your work email ('+myEmail()+'). It links automatically the next time you sign in.')}</div></div>`;
+  const b=leaveBalance(S.emp), mine=D.leaves.filter(l=>l.ownerEmail===myEmail()||l.employeeId===S.emp.id).sort(by(l=>l.created||'',-1));
+  return deniedBanner('leaves')+`<div class="kpis">${kpi('Annual leave left',b.annual.left+' days','used '+b.annual.used+' of '+b.annual.total,'var(--teal)')}${kpi('Sick days left',b.sick.left+' days','used '+b.sick.used+' of '+b.sick.total,'var(--gold)')}${kpi('Pending requests',mine.filter(l=>l.status==='pending').length,'','var(--brand)')}</div>
+  <div class="grid g2"><div class="card"><div class="card-h"><h3>Request leave</h3></div><div class="card-b"><div class="row2"><div class="field"><label>Type</label><select id="ml-t">${options(LEAVE_TYPES)}</select></div><div class="field"><label>Days (auto)</label><input id="ml-days" disabled value="1"></div></div><div class="row2"><div class="field"><label>From</label><input id="ml-f" type="date" value="${today()}" data-change="mlCalc"></div><div class="field"><label>To</label><input id="ml-to" type="date" value="${today()}" data-change="mlCalc"></div></div><div class="field"><label>Reason</label><input id="ml-r" placeholder="Optional"></div><button class="btn btn-p" data-act="mlSend">Send request</button><p class="hint" style="margin-top:8px">Weekends are not counted. HR will approve or reject.</p></div></div>
+  <div class="card"><div class="card-h"><h3>My requests</h3></div><div class="card-b">${mine.map(l=>`<div class="list-i"><span style="flex:1"><b>${esc(l.type)}</b> · ${esc(l.days)} d<span class="sub-t">${esc(fmtD(l.from))} → ${esc(fmtD(l.to))}</span></span>${badge(l.status)}${l.status==='pending'&&l.ownerEmail===myEmail()?`<button class="btn btn-g btn-s" data-act="mlCancel" data-id="${esc(l.id)}">Cancel</button>`:''}</div>`).join('')||empty('No requests yet')}</div></div></div>`;
+}
+CHG.mlCalc = ()=>{ const f=v('ml-f'), t=v('ml-to'), el=$('#ml-days'); if(el) el.value = f&&t&&t>=f ? leaveDays(f,t) : 0; };
+ACT.mlSend = async ()=>{ if(!S.emp) return; const f=v('ml-f'), t=v('ml-to'); if(!f||!t||t<f){ toast('Pick valid dates','bad'); return; }
+  const days=leaveDays(f,t), type=v('ml-t'); if(days<1){ toast('Those dates are all weekends','bad'); return; }
+  const b=leaveBalance(S.emp); if(type==='Annual'&&days>b.annual.left&&!(await ask('More than your balance',`You have ${b.annual.left} annual days left but are asking for ${days}. Send anyway?`,'Send anyway'))) return;
+  if(await run(()=>addDoc(collection(db,'leaves'),{employeeId:S.emp.id,employeeName:S.emp.name,type,from:f,to:t,days,reason:v('ml-r'),status:'pending',source:'self',ownerEmail:myEmail(),ownerUid:S.me.uid,created:nowISO()}),'Request sent to HR')) logAct('Requested '+type+' leave',days+' day(s)'); };
+ACT.mlCancel = async d=>{ if(await run(()=>updateDoc(doc(db,'leaves',d.id),{status:'cancelled',cancelledAt:nowISO()}),'Request cancelled')) logAct('Cancelled leave request',''); };
+
+/* ================================================================== NOTICES */
+mod('notices','Notice board','mega','Communication',()=>isWorker(),viewNotices);
+const noticeHtml = n => `<div class="notice ${esc(n.priority==='high'?'high':n.priority==='low'?'low':'')}"><div class="flex"><h4 style="flex:1">${n.priority==='high'?'🔴 ':''}${esc(n.title)}</h4>${hrManage()?`<button class="btn btn-g btn-s" data-act="noticeEdit" data-id="${esc(n.id)}">Edit</button><button class="btn btn-g btn-s" style="color:var(--bad)" data-act="noticeDel" data-id="${esc(n.id)}">Delete</button>`:''}</div><p>${esc(n.body||'')}</p><div class="sm mut" style="margin-top:6px">${esc((n.by||{}).name||'')} · ${esc(fmtDT(n.created))}</div></div>`;
+function viewNotices(){
+  const L=[...D.notices].sort(by(n=>(n.priority==='high'?'1':'0')+(n.created||''),-1));
+  return deniedBanner('notices')+(hrManage()?`<div class="bar"><button class="btn btn-p" data-act="noticeEdit" data-id="">${ic('plus',16)} Post notice</button></div>`:'')+(L.length?L.map(noticeHtml).join(''):`<div class="card">${empty('No notices yet')}</div>`);
+}
+ACT.noticeEdit = d=>{ const n=d.id?D.notices.find(x=>x.id===d.id):{title:'',body:'',priority:'normal'}; if(!n) return;
+  openModal(d.id?'Edit notice':'Post notice',`<div class="field"><label>Title</label><input id="nt-t" value="${esc(n.title)}"></div><div class="field"><label>Message</label><textarea id="nt-b" style="min-height:120px">${esc(n.body||'')}</textarea></div><div class="field"><label>Priority</label><select id="nt-p">${options([['normal','Normal'],['high','High — shown first'],['low','Low']],n.priority||'normal')}</select></div><div class="m-actions"><button class="btn btn-g" data-act="closeModal">Cancel</button><button class="btn btn-p" data-act="noticeSave" data-id="${esc(d.id||'')}">${d.id?'Save':'Post'}</button></div>`); };
+ACT.noticeSave = async d=>{ if(!v('nt-t')){ toast('Enter a title','bad'); return; } const x={title:v('nt-t'),body:v('nt-b'),priority:v('nt-p')};
+  if(await run(()=>d.id?updateDoc(doc(db,'notices',d.id),x):addDoc(collection(db,'notices'),{...x,by:{uid:S.me.uid,name:S.me.name||S.me.email},created:nowISO()}),d.id?'Notice updated':'Notice posted')){ logAct(d.id?'Edited notice':'Posted notice',x.title); closeModal(); } };
+ACT.noticeDel = async d=>{ const n=D.notices.find(x=>x.id===d.id); if(!n) return; if(!(await ask('Delete notice?',`Delete “${esc(n.title)}”?`,'Delete',true))) return; if(await run(()=>deleteDoc(doc(db,'notices',n.id)),'Deleted')) logAct('Deleted notice',n.title); };
+
+/* ===================================================================== CHAT */
+mod('chat','Team chat','chat','Communication',()=>isWorker(),viewChat);
+let readMap={}; try{ readMap=JSON.parse(localStorage.getItem('lyChatRead')||'{}'); }catch(e){}
+const saveRead = () => { try{ localStorage.setItem('lyChatRead',JSON.stringify(readMap)); }catch(e){} };
+const chatMsgs = ch => (ch==='general'?D.chatGen:D.chatDm.filter(m=>(m.members||[]).includes(ch))).slice().sort(by(m=>m.at||''));
+const unreadIn = ch => { const last=readMap[ch]||''; return chatMsgs(ch).filter(m=>(m.by||{}).uid!==S.me.uid&&(m.at||'')>last).length; };
+function chatPeers(){ const set=new Map(); D.employees.forEach(e=>{ if(e.uid&&e.uid!==S.me.uid) set.set(e.uid,e.name); });
+  D.chatDm.forEach(m=>{ const o=(m.members||[]).find(x=>x!==S.me.uid); if(o&&!set.has(o)) set.set(o,((m.by||{}).uid===o?(m.by||{}).name:'Colleague')); }); return [...set.entries()].map(([uid,name])=>({uid,name})).sort(by(p=>(p.name||'').toLowerCase())); }
+function chatUnreadTotal(){ if(!S.me||!isWorker()) return 0; try{ return unreadIn('general')+chatPeers().reduce((t,p)=>t+unreadIn(p.uid),0); }catch(e){ return 0; } }
+function markChatRead(){ const ch=U.chCur||'general', L=chatMsgs(ch); const last=L.length?L[L.length-1].at:''; if(last&&readMap[ch]!==last){ readMap[ch]=last; saveRead(); renderNav(); } }
+function viewChat(){
+  const ch=U.chCur||'general', peers=chatPeers(), L=chatMsgs(ch), peer=peers.find(p=>p.uid===ch);
+  const un=c=>{ const n=c==='general'?unreadIn('general'):unreadIn(c); return n&&c!==ch?`<span class="bd">${n}</span>`:''; };
+  return deniedBanner('chatGen','chatDm')+`<div class="card chat"><div class="chat-l"><div class="nav-g" style="color:var(--muted)">Channels</div><button class="nav-i ${ch==='general'?'on':''}" data-act="chatSel" data-id="general"># General${un('general')}</button><div class="nav-g" style="color:var(--muted)">Direct messages</div>${peers.map(p=>`<button class="nav-i ${ch===p.uid?'on':''}" data-act="chatSel" data-id="${esc(p.uid)}">${avatar(p.name,22)}<span>${esc(p.name)}</span>${un(p.uid)}</button>`).join('')||'<div class="sm mut" style="padding:6px 10px">Colleagues appear here once they have signed in.</div>'}</div>
+  <div class="chat-r"><div class="chat-m">${L.map(m=>{ const me=(m.by||{}).uid===S.me.uid; return `<div class="msg ${me?'me':''}">${me?'':`<div class="who">${esc((m.by||{}).name||'')}</div>`}${esc(m.text)}<div class="at">${esc(fmtDT(m.at))}${hrManage()?` · <a href="#" data-act="chatDel" data-id="${esc(m.id)}" style="color:inherit">delete</a>`:''}</div></div>`; }).join('')||`<div class="empty"><b>${ch==='general'?'No messages yet':'Start the conversation'}</b>${ch==='general'?'Say hello to the team.':'Say hi to '+esc(peer?peer.name:'your colleague')+'.'}</div>`}</div>
+  <div class="chat-f"><input class="inp" id="chat-in" maxlength="1000" placeholder="${ch==='general'?'Message #general':'Message '+esc(peer?peer.name:'')}" data-input="chatDraft" value="${esc(U.chatDraft||'')}" autocomplete="off"><button class="btn btn-p" data-act="chatSend">Send</button></div></div></div>`;
+}
+INP.chatDraft = (d,el)=>{ U.chatDraft=el.value; };
+document.addEventListener('keydown', e=>{ if(e.target&&e.target.id==='chat-in'&&e.key==='Enter'){ e.preventDefault(); ACT.chatSend(); } });
+ACT.chatSel = d=>{ U.chCur=d.id; U.chatStick=true; render(); };
+ACT.chatSend = async ()=>{ const text=(U.chatDraft||'').trim(); if(!text) return; const ch=U.chCur||'general';
+  const m={text:text.slice(0,1000),by:{uid:S.me.uid,name:S.me.name||S.me.email},at:nowISO(),dm:ch!=='general'}; if(ch!=='general') m.members=[S.me.uid,ch];
+  U.chatDraft=''; U.chatStick=true; const el=$('#chat-in'); if(el) el.value='';
+  await run(()=>addDoc(collection(db,'chatMessages'),m)); };
+ACT.chatDel = async d=>{ if(await ask('Delete message?','Remove this message for everyone?','Delete',true)) run(()=>deleteDoc(doc(db,'chatMessages',d.id)),'Deleted'); };
+
+/* ==================================================================== CONTENT */
+mod('content','Site content','globe','Website',()=>isStaffR()&&uiPerm('content'),viewContent);
+const CONTENT_FIELDS=[['contact_phone','Phone number','0713 474115'],['contact_email','Email','info@loyaltyict.co.ke'],['contact_location','Location','Nairobi, Kenya'],['whatsapp_number','WhatsApp number (254…)','254713474115'],['hero_eyebrow','Hero small line','Nairobi, Kenya · Genuine hardware & expert services'],['hero_title','Hero headline  (use [brackets] to highlight words)','Your trusted source for [computers, spares] & cybersecurity.','t'],['hero_sub','Hero paragraph','Buy genuine laptops, printers, RAM, SSDs and networking gear…','t'],['cta_primary','Primary button','Shop the store'],['cta_secondary','Secondary button','Book a consultation'],['store_heading','Store heading','Shop hardware & accessories'],['services_heading','Services heading','IT, Cybersecurity & AI services'],['services_sub','Services intro','Certified expertise for individuals, businesses and institutions…','t'],['why_heading','“Why us” heading','Built on trust, backed by expertise'],['footer_about','Footer text','Computers, printers, spares and networking hardware…','t']];
+const DEFAULT_GALLERY=[['Computer Repair','wrench','#F59E0B'],['Networking','wifi','#2563EB'],['CCTV Installation','camera','#0EA5E9'],['Cybersecurity','shield','#10B981'],['AI Solutions','ai','#6366F1'],['Web & Software','globe','#14B8A6'],['Data Backup','database','#8B5CF6'],['IT Support','server','#EF4444']];
+function viewContent(){
+  const c=D.content||{}, G=[...D.gallery].sort(by(g=>g.order||0));
+  return deniedBanner('settings','gallery')+`<div class="grid g2"><div class="card"><div class="card-h"><h3>Website wording & contact details</h3></div><div class="card-b">${CONTENT_FIELDS.map(([k,l,ph,t])=>`<div class="field"><label>${esc(l)}</label>${t?`<textarea id="ct-${k}" style="min-height:70px" placeholder="${esc(ph)}">${esc(c[k]||'')}</textarea>`:`<input id="ct-${k}" value="${esc(c[k]||'')}" placeholder="${esc(ph)}">`}</div>`).join('')}<button class="btn btn-p" data-act="contentSave">Save changes</button><p class="hint" style="margin-top:8px">Leave a box empty to use the store's default wording. Changes appear on the live site within seconds.</p></div></div>
+  <div class="card"><div class="card-h"><h3>Rotating service gallery</h3>${G.length?'':`<button class="btn btn-g btn-s" data-act="galDefaults">Load defaults</button>`}<button class="btn btn-p btn-s" data-act="galAdd">${ic('plus',15)} Add</button></div><div class="card-b">${G.map(g=>`<div class="list-i"><div class="thumb" style="border-radius:50%;width:46px;height:46px;${g.img?'':`background:linear-gradient(140deg,${esc(g.color||'#2563EB')},#0F172A);border:0`}">${g.img?`<img src="${esc(g.img)}" alt="" style="width:100%;height:100%;object-fit:cover">`:''}</div><input class="inp" value="${esc(g.label||'')}" data-change="galName" data-id="${esc(g.id)}" style="flex:1"><label class="btn btn-g btn-s" style="cursor:pointer">Photo<input type="file" accept="image/*" style="display:none" data-change="galPhoto" data-id="${esc(g.id)}"></label>${isAdmin()?`<button class="btn btn-g btn-s" style="color:var(--bad)" data-act="galDel" data-id="${esc(g.id)}">Remove</button>`:''}</div>`).join('')||empty('No gallery items','The store shows its built-in set until you add your own.')}<p class="hint" style="margin-top:10px">Tip: once you add your own items, only your items are shown on the site — use “Load defaults” first to start from the standard set.</p></div></div></div>`;
+}
+ACT.contentSave = async ()=>{ const data={}; CONTENT_FIELDS.forEach(([k])=>{ const x=v('ct-'+k); data[k]=x?x:deleteField(); });
+  if(await run(()=>setDoc(doc(db,'settings','content'),data,{merge:true}),'Website updated')) logAct('Edited site content',''); };
+ACT.galAdd = ()=>run(()=>addDoc(collection(db,'gallery'),{label:'New service',icon:'server',color:'#2563EB',img:'',order:D.gallery.length}));
+ACT.galDefaults = ()=>run(async()=>{ const b=writeBatch(db); DEFAULT_GALLERY.forEach(([label,icon,color],i)=>b.set(doc(collection(db,'gallery')),{label,icon,color,img:'',order:i})); await b.commit(); },'Default services added');
+CHG.galName = (d,el)=>run(()=>updateDoc(doc(db,'gallery',d.id),{label:el.value.trim()}),'Saved');
+CHG.galPhoto = async (d,el)=>{ const f=el.files[0]; if(!f) return; try{ const url=await readImage(f,360,.8); await run(()=>updateDoc(doc(db,'gallery',d.id),{img:url}),'Photo added'); }catch(e){ toast('Could not use that image','bad'); } };
+ACT.galDel = async d=>{ const g=D.gallery.find(x=>x.id===d.id); if(!g) return; if(await ask('Remove item?',`Remove “${esc(g.label)}” from the gallery?`,'Remove',true)) if(await run(()=>deleteDoc(doc(db,'gallery',g.id)),'Removed')) logAct('Removed gallery item',g.label); };
+
+/* ===================================================================== TEAM */
+const isOnline = u => u.online===true && u.lastSeen && (Date.now()-new Date(u.lastSeen).getTime()<120000);
+mod('team','Team & access','shield','Administration',()=>isAdmin(),viewTeam);
+function viewTeam(){
+  const q=(U.tq||'').toLowerCase(), rf=U.trf||'team';
+  const L=D.users.filter(u=>(rf==='all'||(rf==='team'?(u.role&&u.role!=='customer'):u.role===rf))&&(!q||[u.name,u.email,u.phone].join(' ').toLowerCase().includes(q))).sort(by(u=>(u.name||u.email||'').toLowerCase()));
+  return deniedBanner('users')+searchBar('tq','Search name, email, phone…',`<select class="inp" data-change="q" data-k="trf">${options([['team','Staff & team'],['all','Everyone'],...ROLES],rf)}</select><button class="btn btn-p" data-act="userAdd">${ic('plus',16)} Add staff</button>`)+
+  `<div class="card"><div class="card-h"><h3>${L.length} account${L.length===1?'':'s'}</h3><span class="sm mut"><span class="on-dot on"></span>${D.users.filter(isOnline).length} online</span></div><div class="tw"><table><thead><tr><th>User</th><th>Role</th><th>Status</th><th></th></tr></thead><tbody>
+  ${L.map(u=>{ const self=u.uid===S.me.uid; return `<tr><td><div class="flex">${avatar(u.name||u.email,36)}<div><b>${esc(u.name||'(no name)')}</b>${self?' <span class="badge b-info">you</span>':''}<span class="sub-t">${esc(u.email||'')}${u.phone?' · '+esc(u.phone):''}</span></div></div></td>
+  <td><select class="sel" data-change="userRole" data-id="${esc(u.uid)}" ${self?'disabled title="You cannot change your own role"':''}>${options(ROLES,u.role||'customer')}</select></td>
+  <td>${u.blocked?badge('Blocked','rejected'):`<span class="on-dot ${isOnline(u)?'on':''}"></span>${isOnline(u)?'Online':(u.lastSeen?'Seen '+esc(ago(u.lastSeen)):'Never signed in')}`}</td>
+  <td><div class="acts"><button class="btn btn-g btn-s" data-act="userEdit" data-id="${esc(u.uid)}">Edit</button>${u.role==='staff'?`<button class="btn btn-g btn-s" data-act="userPerms" data-id="${esc(u.uid)}">Access</button>`:''}${self?'':`<button class="btn btn-g btn-s" data-act="userKick" data-id="${esc(u.uid)}">Sign out</button><button class="btn btn-g btn-s" style="color:var(--bad)" data-act="userBlock" data-id="${esc(u.uid)}" data-b="${u.blocked?'':'1'}">${u.blocked?'Unblock':'Block'}</button>`}</div></td></tr>`; }).join('')||`<tr><td colspan="4">${empty('No accounts match')}</td></tr>`}</tbody></table></div></div>
+  <div class="card" style="margin-top:16px"><div class="card-b sm mut"><b>What each role can do.</b> <b>Admin</b> everything · <b>Manager</b> orders, requests, products, stock, finance, approvals · <b>HR</b> employees, leave, attendance, notices · <b>Finance</b> orders, invoices, expenses, stock · <b>Stock &amp; Store</b> products and stock-in · <b>Staff</b> only the areas you tick under “Access” · <b>Employee</b> notices, chat, own leave. Blocking takes effect immediately; “Sign out” ends their current session.</div></div>`;
+}
+CHG.userRole = async (d,el)=>{ const u=D.users.find(x=>x.uid===d.id); if(!u) return; const r=el.value; const patch={role:r}; if(r==='staff'&&!u.perms) patch.perms={...DEFAULT_PERMS};
+  if(await run(()=>updateDoc(doc(db,'users',u.uid),patch),(u.name||u.email)+' is now '+(ROLE_NAME[r]||r))) logAct('Changed role',(u.email||u.uid)+' → '+r); else render(); };
+ACT.userBlock = async d=>{ const u=D.users.find(x=>x.uid===d.id); if(!u) return; const b=!!d.b;
+  if(b&&!(await ask('Block this account?',`<b>${esc(u.name||u.email)}</b> will be signed out and unable to sign in again until unblocked.`,'Block',true))) return;
+  if(await run(()=>updateDoc(doc(db,'users',u.uid),b?{blocked:true,online:false,forceLogout:nowISO()}:{blocked:false}),b?'Blocked':'Unblocked')) logAct(b?'Blocked user':'Unblocked user',u.email||u.uid); };
+ACT.userKick = async d=>{ const u=D.users.find(x=>x.uid===d.id); if(!u) return; if(!(await ask('Sign out now?',`End <b>${esc(u.name||u.email)}</b>'s current session? They can sign in again.`,'Sign out'))) return;
+  if(await run(()=>updateDoc(doc(db,'users',u.uid),{forceLogout:nowISO(),online:false}),'Session ended')) logAct('Forced sign-out',u.email||u.uid); };
+ACT.userEdit = d=>{ const u=D.users.find(x=>x.uid===d.id); if(!u) return;
+  openModal('Edit account',`<div class="field"><label>Name</label><input id="ue-n" value="${esc(u.name||'')}"></div><div class="field"><label>Email</label><input value="${esc(u.email||'')}" disabled></div><div class="field"><label>Phone</label><input id="ue-p" value="${esc(u.phone||'')}"><div class="hint">Staff cannot change their own phone number — only you can.</div></div><div class="m-actions"><button class="btn btn-g" data-act="closeModal">Cancel</button><button class="btn btn-p" data-act="userSave" data-id="${esc(u.uid)}">Save</button></div>`); };
+ACT.userSave = async d=>{ if(await run(()=>updateDoc(doc(db,'users',d.id),{name:v('ue-n'),phone:v('ue-p')}),'Saved')){ logAct('Edited account',d.id); closeModal(); } };
+ACT.userPerms = d=>{ const u=D.users.find(x=>x.uid===d.id); if(!u) return; const p=u.perms||DEFAULT_PERMS;
+  openModal('Access · '+(u.name||u.email),`<p class="mut sm" style="margin-bottom:8px">Choose which areas this staff member can use.</p>${Object.entries(PERM_LABELS).map(([k,l])=>`<label class="perm-row"><input type="checkbox" class="pm" data-k="${k}" ${(k in p?p[k]:DEFAULT_PERMS[k])?'checked':''}><span>${esc(l)}</span></label>`).join('')}<div class="m-actions"><button class="btn btn-g" data-act="closeModal">Cancel</button><button class="btn btn-p" data-act="userPermSave" data-id="${esc(u.uid)}">Save access</button></div>`); };
+ACT.userPermSave = async d=>{ const perms={}; document.querySelectorAll('#mBody .pm').forEach(c=>perms[c.dataset.k]=c.checked); if(await run(()=>updateDoc(doc(db,'users',d.id),{perms}),'Access updated')){ logAct('Changed access',d.id+' '+JSON.stringify(perms)); closeModal(); } };
+ACT.userAdd = ()=>openModal('Add staff account',`<div class="row2"><div class="field"><label>Full name</label><input id="ua-n"></div><div class="field"><label>Role</label><select id="ua-r">${options(ROLES.filter(r=>r[0]!=='customer'),'staff')}</select></div></div><div class="field"><label>Work email</label><input id="ua-e" type="email"></div><div class="field"><label>Temporary password (min 6)</label><input id="ua-p" type="text" autocomplete="off" value="${Math.random().toString(36).slice(2,6).toUpperCase()}${Math.random().toString(36).slice(2,8)}#7"><div class="hint">Share it privately. They can change it under My profile, or use “Forgot password”.</div></div><div class="m-actions"><button class="btn btn-g" data-act="closeModal">Cancel</button><button class="btn btn-p" data-act="userCreate">Create account</button></div>`);
+ACT.userCreate = async ()=>{
+  const name=v('ua-n'), email=v('ua-e').toLowerCase(), pass=v('ua-p'), r=v('ua-r'); if(!name||!email){ toast('Enter name and email','bad'); return; } if(pass.length<6){ toast('Password needs 6+ characters','bad'); return; }
+  const btn=$('[data-act=userCreate]'); btn.disabled=true; btn.textContent='Creating…'; let sec;
+  try{
+    sec=initializeApp(firebaseConfig,'sec'+Date.now()); const sa=getAuth(sec), sdb=getFirestore(sec);
+    const cred=await createUserWithEmailAndPassword(sa,email,pass);
+    await setDoc(doc(sdb,'users',cred.user.uid),{name,email,role:'customer',created:nowISO()});
+    await signOut(sa);
+    await updateDoc(doc(db,'users',cred.user.uid),{role:r,...(r==='staff'?{perms:{...DEFAULT_PERMS}}:{})});
+    logAct('Created staff account',email+' as '+r); closeModal(); toast('Account created for '+name,'ok');
+    openModal('Account ready',`<p><b>${esc(name)}</b> can now sign in at this page with:</p><div class="card" style="margin:12px 0"><div class="card-b"><div class="stat-line"><span>Email</span><b>${esc(email)}</b></div><div class="stat-line"><span>Password</span><b>${esc(pass)}</b></div><div class="stat-line"><span>Role</span><b>${esc(ROLE_NAME[r])}</b></div></div></div><p class="hint">If this person is an employee, ask HR to add an employee record with the same email so leave and attendance link up.</p><div class="m-actions"><button class="btn btn-p" data-act="closeModal">Done</button></div>`);
+  }catch(e){ console.error(e); btn.disabled=false; btn.textContent='Create account';
+    toast(e.code==='auth/email-already-in-use'?'That email already has an account — find them in the list and change their role.':e.code==='auth/weak-password'?'Password too weak':e.code==='auth/invalid-email'?'Invalid email address':errMsg(e),'bad'); }
+  finally{ if(sec) try{ await deleteApp(sec); }catch(e){} }
+};
+
+/* ====================================================================== LOGS */
+mod('logs','Activity log','log','Administration',()=>isAdmin(),viewLogs);
+function viewLogs(){
+  const q=(U.lq||'').toLowerCase(), rf=U.lrf||'all', L=D.logs.filter(l=>(rf==='all'||l.byRole===rf)&&(!q||[l.action,l.detail,l.byName,l.byEmail].join(' ').toLowerCase().includes(q)));
+  return deniedBanner('logs')+searchBar('lq','Search action, person, detail…',`<select class="inp" data-change="q" data-k="lrf">${options([['all','All roles'],...ROLES.filter(r=>r[0]!=='customer')],rf)}</select><button class="btn btn-g" data-act="logsCsv">Export CSV</button>`)+
+  `<div class="card"><div class="card-h"><h3>Activity (${L.length}${D.logs.length>=500?'+':''})</h3><span class="sm" style="color:var(--teal);font-weight:600"><span class="on-dot on"></span>Live</span></div><div class="tw"><table><thead><tr><th>When</th><th>Who</th><th>Role</th><th>Action</th><th>Details</th></tr></thead><tbody>
+  ${L.slice(0,300).map(l=>`<tr><td style="white-space:nowrap" class="mut sm">${esc(fmtDT(l.at))}</td><td><b>${esc(l.byName||'')}</b><span class="sub-t">${esc(l.byEmail||'')}</span></td><td>${badge(ROLE_NAME[l.byRole]||l.byRole||'—','muted')}</td><td><b>${esc(l.action)}</b></td><td class="mut" style="max-width:340px;white-space:normal">${esc(l.detail||'')}</td></tr>`).join('')||`<tr><td colspan="5">${empty('No activity recorded')}</td></tr>`}</tbody></table></div><div class="card-b sm mut" style="border-top:1px solid var(--line)">Logs cannot be edited or deleted from the portal. Showing the latest 300.</div></div>`;
+}
+ACT.logsCsv = ()=>downloadCSV('activity-log-'+today()+'.csv',[['When','Name','Email','Role','Action','Details'],...D.logs.map(l=>[l.at,l.byName,l.byEmail,l.byRole,l.action,l.detail])]);
+
+/* =================================================================== PROFILE */
+mod('profile','My profile','user','Account',()=>isWorker(),viewProfile);
+function viewProfile(){
+  const u=S.me;
+  return `<div class="grid g2"><div class="card"><div class="card-h"><h3>Profile</h3></div><div class="card-b"><div class="flex" style="margin-bottom:16px">${avatar(u.name||u.email,56)}<div><b style="font-size:17px">${esc(u.name||'')}</b><span class="sub-t">${esc(u.email||'')}</span>${badge(ROLE_NAME[u.role]||u.role,'info')}</div></div>
+  <div class="field"><label>Display name</label><input id="pf-n" value="${esc(u.name||'')}"></div><div class="field"><label>Phone</label><input value="${esc(u.phone||'—')}" disabled><div class="hint">Phone numbers are managed by an administrator.</div></div>
+  ${S.emp?`<div class="field"><label>Employee record</label><input value="${esc(S.emp.title||'')} · ${esc(S.emp.dept||'')}" disabled></div>`:''}
+  <div class="flex"><button class="btn btn-p" data-act="profSave">Save</button><button class="btn btn-g" data-act="pwOpen">Change password</button></div></div></div>
+  <div class="card"><div class="card-h"><h3>Session</h3></div><div class="card-b"><div class="stat-line"><span>Signed in as</span><b>${esc(u.email||'')}</b></div><div class="stat-line"><span>Role</span><b>${esc(ROLE_NAME[u.role]||u.role)}</b></div><div class="stat-line"><span>Auto sign-out</span><b>after 30 min idle</b></div><div style="margin-top:14px" class="flex"><button class="btn btn-g" data-act="theme">Switch light / dark</button><button class="btn btn-g" style="color:var(--bad)" data-act="signOut">Sign out</button></div></div></div></div>`;
+}
+ACT.profSave = async ()=>{ const n=v('pf-n'); if(!n){ toast('Enter a name','bad'); return; } await run(()=>updateDoc(doc(db,'users',S.me.uid),{name:n}),'Profile saved'); };
+ACT.pwOpen = ()=>openModal('Change password',`<div class="field"><label>Current password</label><input id="pw-c" type="password" autocomplete="current-password"></div><div class="field"><label>New password (min 8)</label><input id="pw-n" type="password" autocomplete="new-password"></div><div class="field"><label>Repeat new password</label><input id="pw-r" type="password" autocomplete="new-password"></div><div class="err" id="pw-e"></div><div class="m-actions"><button class="btn btn-g" data-act="closeModal">Cancel</button><button class="btn btn-p" data-act="pwSave">Update password</button></div>`);
+ACT.pwSave = async ()=>{ const c=$('#pw-c').value, n=$('#pw-n').value, r=$('#pw-r').value, er=$('#pw-e');
+  if(n.length<8){ er.textContent='Use at least 8 characters.'; return; } if(n!==r){ er.textContent='The two new passwords do not match.'; return; }
+  try{ await reauthenticateWithCredential(S.fbUser,EmailAuthProvider.credential(S.fbUser.email,c)); await updatePassword(S.fbUser,n); closeModal(); toast('Password changed','ok'); logAct('Changed own password',''); }
+  catch(e){ er.textContent=['auth/invalid-credential','auth/wrong-password'].includes(e.code)?'Current password is wrong.':e.code==='auth/weak-password'?'That password is too weak.':'Could not change password ('+(e.code||'error')+').'; } };
+
+/* ============================================================ GLOBAL SEARCH */
+ACT.openSearch = ()=>{ openModal('Search',`<input class="inp" id="cmd-in" placeholder="Orders, requests, products, people…" data-input="cmd" autocomplete="off"><div id="cmd-out" style="margin-top:10px;max-height:52vh;overflow-y:auto"></div>`,true); setTimeout(()=>{ const i=$('#cmd-in'); if(i) i.focus(); },30); INP.cmd({},{value:''}); };
+INP.cmd = (d,el)=>{ const q=String(el.value||'').trim().toLowerCase(), out=$('#cmd-out'); if(!out) return; const R=[]; const hit=(...a)=>a.join(' ').toLowerCase().includes(q);
+  if(q.length>=2){
+    D.orders.filter(o=>hit(o.ref,o.name,o.phone)).slice(0,5).forEach(o=>R.push(['Order',o.ref+' · '+o.name,money(o.total)+' · '+o.status,'orders','oq',o.ref]));
+    D.bookings.filter(b=>hit(b.ref,b.name,b.phone,b.service)).slice(0,5).forEach(b=>R.push(['Request',b.name,(b.service||'')+' · '+b.status,'bookings','bq',b.name]));
+    D.products.filter(p=>hit(p.name,p.cat)).slice(0,5).forEach(p=>R.push(['Product',p.name,money(p.price)+' · '+(p.stock||0)+' in stock','products','pq',p.name]));
+    D.employees.filter(e=>hit(e.name,e.email,e.dept)).slice(0,5).forEach(e=>R.push(['Employee',e.name,(e.title||'')+' · '+(e.dept||''),'employees','eq',e.name]));
+    if(isAdmin()) D.users.filter(u=>hit(u.name,u.email)).slice(0,5).forEach(u=>R.push(['Account',u.name||u.email,ROLE_NAME[u.role]||u.role,'team','tq',u.email||u.name]));
+    D.invoices.filter(i=>i.kind==='invoice'&&hit(i.number,i.customer)).slice(0,4).forEach(i=>R.push(['Invoice',i.number+' · '+i.customer,money(i.total)+' · '+i.status,'invoices','fq',i.number]));
+  }
+  const allowed=R.filter(r=>visibleMods().some(m=>m.id===r[3]));
+  out.innerHTML = q.length<2 ? '<div class="empty sm">Type at least 2 letters.</div>' : allowed.map(r=>`<div class="cmd-r" data-act="cmdGo" data-m="${esc(r[3])}" data-k="${esc(r[4])}" data-q="${esc(r[5])}"><span class="cmd-t">${esc(r[0])}</span><span style="flex:1"><b>${esc(r[1])}</b><span class="sub-t">${esc(r[2])}</span></span></div>`).join('') || '<div class="empty sm">Nothing found.</div>';
+};
+ACT.cmdGo = d=>{ U[d.k]=d.q; closeModal(); go(d.m); };
+
+/* ================================================================= START */
+window.addEventListener('error', e=>console.error('portal error:', e.message));
+window.__LY = { S, D, U };
+<@@/script>
+</body>
+</html>
+</script>
 <!-- ================= ADMIN ================= -->
 <div id="admin-view" class="hidden"></div>
 
@@ -1440,10 +2639,29 @@ function closeNav(){document.getElementById('navlinks').classList.remove('open')
 
 /* ---------- view switch ---------- */
 function go(view){
-  if(view==='admin'){document.getElementById('store-view').classList.add('hidden');document.getElementById('admin-view').classList.remove('hidden');renderAdmin();}
-  else{document.getElementById('admin-view').classList.add('hidden');document.getElementById('store-view').classList.remove('hidden');}
-  window.scrollTo(0,0);
+  if(view==='admin'){ openPortal(); return; }
+  closePortal(); window.scrollTo(0,0);
 }
+/* ---- Staff portal (embedded admin.html, opens full-screen over the store) ---- */
+let portalLoaded=false;
+function openPortal(){
+  const L=document.getElementById('portal-layer'), F=document.getElementById('portal-frame');
+  if(!portalLoaded){
+    portalLoaded=true;
+    const raw=document.getElementById('portal-src').textContent;
+    F.srcdoc=raw.split('<@@/script').join('<'+'/script').split('<@@!--').join('<'+'!--');
+  }
+  L.classList.add('open'); document.documentElement.classList.add('portal-on');
+  try{ F.focus(); }catch(e){}
+}
+function closePortal(toShop){
+  const L=document.getElementById('portal-layer'); if(!L||!L.classList.contains('open')) return;
+  L.classList.remove('open'); document.documentElement.classList.remove('portal-on');
+  document.getElementById('store-view').classList.remove('hidden');
+  if(toShop){ setTimeout(()=>{ try{ openShop(); }catch(e){ const sh=document.getElementById('shop'); if(sh) sh.scrollIntoView({behavior:'smooth'}); } },60); }
+  else window.scrollTo(0,0);
+}
+window.addEventListener('message',e=>{ if(e.data&&e.data.lyPortal==='close'){ const m=e.data.msg; closePortal(!m); if(m){ try{ toast(m,'bad'); }catch(x){} } } });
 
 /* ================= ACCOUNTS & ROLES (Firebase) ================= */
 let adminTab='dashboard';
@@ -2878,10 +4096,7 @@ window.addEventListener('firebase-ready', ()=>{
         try{ await window.FB.signOut(window.FB.auth); }catch(e){}
         currentUser=null; updateAccountUI(); go('home'); return;
       }
-      if(['admin','staff','manager','finance'].includes(currentUser.role)) startStaffStreams(); else stopStaffStreams();
-      if(currentUser.role==='admin'){ startUserWatch(); startLogsWatch(); startHRWatch(); } else { stopAdminWatches(); if(currentUser.role==='hr') startHRWatch(); }
-      if(['admin','manager','finance','stock','staff'].includes(currentUser.role)) startFinWatch(); else stopFinWatch();
-      if(isStaffRole(currentUser.role)) startOrgWatch(); else stopOrgWatch();
+      stopStaffStreams(); stopAdminWatches(); stopFinWatch(); stopOrgWatch();   // the staff portal keeps its own live data
       startHeartbeat(); signInLog();
       if(pendingAdminNav && isStaffRole(currentUser.role)){ pendingAdminNav=false; go('admin'); }
     }else{ if(currentUser) beat(false); currentUser=null; stopHeartbeat(); stopStaffStreams(); stopAdminWatches(); stopFinWatch(); stopOrgWatch(); }
