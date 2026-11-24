@@ -1,0 +1,181 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function me()        { return get(/databases/$(database)/documents/users/$(request.auth.uid)).data; }
+    function live()      { return request.auth != null && !me().get('blocked', false); }
+    function role()      { return me().get('role', 'customer'); }
+    function isAdmin()   { return live() && role() == 'admin'; }
+    function isManager() { return live() && role() == 'manager'; }
+    function isHR()      { return live() && role() == 'hr'; }
+    function isFinance() { return live() && role() == 'finance'; }
+    function isStock()   { return live() && role() == 'stock'; }
+    function isStaff()   { return live() && role() in ['admin', 'staff', 'manager']; }
+    function isWorker()  { return live() && role() in ['admin', 'staff', 'manager', 'hr', 'finance', 'stock', 'employee']; }
+    function perm(p)     { return live() && role() == 'staff' && me().get('perms', {}).get(p, false) == true; }
+    function canFinance(){ return isAdmin() || isManager() || isFinance() || perm('finance'); }
+    function canStock()  { return canFinance() || isStock() || perm('stockin'); }
+    function myEmail()   { return request.auth.token.email.lower(); }
+
+    match /users/{uid} {
+      allow read: if request.auth != null && (request.auth.uid == uid || isAdmin());
+      allow create: if request.auth != null && request.auth.uid == uid
+                    && request.resource.data.role == 'customer'
+                    && !('perms' in request.resource.data)
+                    && !request.resource.data.get('blocked', false);
+      allow update: if isAdmin()
+                    || (request.auth != null && request.auth.uid == uid
+                        && request.resource.data.role == resource.data.role
+                        && request.resource.data.get('blocked', false) == resource.data.get('blocked', false)
+                        && request.resource.data.get('perms', null) == resource.data.get('perms', null)
+                        && request.resource.data.get('forceLogout', null) == resource.data.get('forceLogout', null)
+                        && (!isWorker() || request.resource.data.get('phone', null) == resource.data.get('phone', null)));
+      allow delete: if isAdmin();
+    }
+
+    match /otpCodes/{id} {
+      allow read, write: if false;
+    }
+    match /otp/{id} {
+      allow read, write: if false;
+    }
+
+    match /products/{id} {
+      allow read: if true;
+      allow create, update: if isStaff() || isStock() || isFinance();
+      allow delete: if isAdmin();
+    }
+    match /settings/{id} {
+      allow read: if true;
+      allow write: if isStaff();
+    }
+    match /gallery/{id} {
+      allow read: if true;
+      allow create, update: if isStaff();
+      allow delete: if isAdmin();
+    }
+    match /orders/{id} {
+      // Public checkout: only a well-formed, pending order with sane sizes.
+      // payStatus/payMethod added for M-Pesa. A customer can only create 'awaiting'; only the server (admin SDK) or staff can mark it paid.
+      allow create: if request.resource.data.keys().hasOnly(['ref','name','phone','area','notes','items','total','status','date','account','mpesaCode','payStatus','payMethod'])
+                    && request.resource.data.status == 'pending'
+                    && request.resource.data.get('payStatus', 'awaiting') == 'awaiting'
+                    && request.resource.data.get('payMethod', 'mpesa') == 'mpesa'
+                    && request.resource.data.get('mpesaCode', '') is string && request.resource.data.get('mpesaCode', '').size() <= 40
+                    && request.resource.data.name is string && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 100
+                    && request.resource.data.phone is string && request.resource.data.phone.size() > 0 && request.resource.data.phone.size() <= 30
+                    && request.resource.data.get('area', '') is string && request.resource.data.get('area', '').size() <= 200
+                    && request.resource.data.get('notes', '') is string && request.resource.data.get('notes', '').size() <= 1000
+                    && request.resource.data.items is list && request.resource.data.items.size() > 0 && request.resource.data.items.size() <= 50
+                    && request.resource.data.total is number && request.resource.data.total >= 0;
+      allow read, update: if isStaff() || isFinance();
+      allow delete: if isAdmin();
+    }
+
+    // M-Pesa payment results. Written only by Cloud Functions. A customer can read ONE doc by its unguessable id.
+    match /payments/{id} {
+      allow get: if true;
+      allow list, write: if false;
+    }
+
+    // Customer live chat. Chat id is a random 32-char token held by the customer's browser.
+    match /chats/{cid} {
+      allow list, get: if isStaff();
+      allow create: if request.resource.data.keys().hasOnly(['name','last','updated','unread'])
+                    && request.resource.data.name is string && request.resource.data.name.size() <= 60
+                    && request.resource.data.last is string && request.resource.data.last.size() <= 600
+                    && request.resource.data.unread == true;
+      allow update: if isStaff()
+                    || (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name','last','updated','unread'])
+                        && request.resource.data.last is string && request.resource.data.last.size() <= 600
+                        && request.resource.data.unread == true);
+      allow delete: if isAdmin();
+
+      match /messages/{mid} {
+        allow get, list: if true;
+        allow create: if (request.resource.data.keys().hasOnly(['from','text','t'])
+                          && request.resource.data.from == 'cust'
+                          && request.resource.data.text is string
+                          && request.resource.data.text.size() > 0 && request.resource.data.text.size() <= 600)
+                      || (isStaff()
+                          && request.resource.data.keys().hasOnly(['from','text','t','by'])
+                          && request.resource.data.from == 'staff'
+                          && request.resource.data.text is string && request.resource.data.text.size() <= 1000);
+        allow update, delete: if false;
+      }
+    }
+
+    match /bookings/{id} {
+      allow create: if request.resource.data.keys().hasOnly(['ref','name','phone','company','service','date','msg','status','created','account'])
+                    && request.resource.data.status == 'pending'
+                    && request.resource.data.name is string && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 100
+                    && request.resource.data.phone is string && request.resource.data.phone.size() > 0 && request.resource.data.phone.size() <= 30
+                    && request.resource.data.get('company', '') is string && request.resource.data.get('company', '').size() <= 100
+                    && request.resource.data.get('service', '') is string && request.resource.data.get('service', '').size() <= 100
+                    && request.resource.data.get('msg', '') is string && request.resource.data.get('msg', '').size() <= 1500;
+      allow read, update: if isStaff();
+      allow delete: if isAdmin();
+    }
+    match /logs/{id} {
+      allow read: if isAdmin();
+      allow create: if isWorker();
+    }
+
+    match /stockBatches/{id} {
+      allow read, create, update: if canStock();
+    }
+    match /finInvoices/{id} {
+      allow read, create, update: if canFinance();
+    }
+    match /reversals/{id} {
+      allow read: if canStock();
+      allow create: if canStock() && request.resource.data.requestedBy.uid == request.auth.uid;
+      allow update: if (isAdmin() || isManager()) && resource.data.requestedBy.uid != request.auth.uid;
+    }
+    match /finMeta/{id} {
+      allow read, write: if canStock();
+    }
+
+    match /employees/{id} {
+      allow read: if isWorker();
+      allow create, delete: if isAdmin() || isHR();
+      allow update: if isAdmin() || isHR()
+                    || (live() && resource.data.get('email', '').lower() == myEmail()
+                        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['uid', 'lastLogin'])
+                        && (!('uid' in request.resource.data) || request.resource.data.uid == request.auth.uid));
+    }
+    match /leaves/{id} {
+      allow read: if isAdmin() || isHR() || (live() && resource.data.get('ownerEmail', '') == myEmail());
+      allow create: if isAdmin() || isHR()
+                    || (live() && request.resource.data.source == 'self'
+                        && request.resource.data.status == 'pending'
+                        && request.resource.data.ownerEmail == myEmail()
+                        && request.resource.data.ownerUid == request.auth.uid);
+      allow update: if isAdmin() || isHR()
+                    || (live() && resource.data.get('ownerEmail', '') == myEmail()
+                        && resource.data.status == 'pending'
+                        && request.resource.data.status == 'cancelled'
+                        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'cancelledAt']));
+      allow delete: if isAdmin() || isHR();
+    }
+    match /attendance/{id} {
+      allow read, write: if isAdmin() || isHR();
+    }
+    match /hrMeta/{id} {
+      allow read, write: if isAdmin() || isHR();
+    }
+
+    match /notices/{id} {
+      allow read: if isWorker();
+      allow create, update, delete: if isAdmin() || isHR();
+    }
+    match /chatMessages/{id} {
+      allow read: if isWorker() && (resource.data.dm == false || request.auth.uid in resource.data.members);
+      allow create: if isWorker()
+                    && request.resource.data.by.uid == request.auth.uid
+                    && request.resource.data.text.size() <= 1000
+                    && (request.resource.data.dm == false || request.auth.uid in request.resource.data.members);
+      allow delete: if isAdmin() || isHR();
+    }
+  }
+}

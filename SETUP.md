@@ -23,23 +23,8 @@ firebase deploy --only functions --project loyaltyitsolutions-a82f0
 ```
 Add your custom domain to `ORIGINS` in `functions/index.js` if you use one.
 
-## 4. Firestore rules (add inside your existing `match /databases/{db}/documents`)
-Replace `isStaff()` with your existing staff/admin check.
-```
-match /payments/{id}  { allow get: if true; allow list, write: if false; }
-match /chats/{cid} {
-  allow create: if true;
-  allow get: if true;
-  allow update: if isStaff() || request.resource.data.diff(resource.data).affectedKeys().hasOnly(['last','updated','unread','name']);
-  allow list: if isStaff();
-  match /messages/{m} {
-    allow read: if true;
-    allow create: if (request.resource.data.from == 'cust' && request.resource.data.text.size() < 600) || isStaff();
-  }
-}
-```
-Chat ids are random and unguessable. Only someone holding the id can read that thread.
-Orders: your existing rule must let the public **create** orders. Clients must not be able to set `payStatus:'paid'` on update. Keep order updates staff-only.
+## 4. Firestore rules
+Paste the full `firestore.rules` file into Firebase console > Firestore > Rules > Publish. It keeps all your existing rules and adds `payStatus`/`payMethod` to orders, plus `payments` and `chats`.
 
 ## 5. Test (do this before launch)
 1. Set `MPESA_ENV=sandbox` in `.env`, use sandbox keys, redeploy, run one order.
