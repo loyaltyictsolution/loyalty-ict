@@ -2296,6 +2296,41 @@ INP.cmd = (d,el)=>{ const q=String(el.value||'').trim().toLowerCase(), out=$('#c
 };
 ACT.cmdGo = d=>{ U[d.k]=d.q; closeModal(); go(d.m); };
 
+/* ============================================================ SIGN-UP SECURITY (OTP on/off) */
+let OTPS={enabled:true,channel:'whatsapp',by:'',at:'',loaded:false,err:''}, otpUn=null;
+function otpWatch(){
+  if(otpUn) return;
+  try{ otpUn=onSnapshot(doc(db,'settings','otp'),s=>{ const d=s.exists()?s.data():{}; OTPS={enabled:d.enabled!==false,channel:d.channel||'whatsapp',by:d.by||'',at:d.at||'',loaded:true,err:''}; scheduleRender(); },
+    e=>{ OTPS={...OTPS,loaded:true,err:e.code||'error'}; otpUn=null; scheduleRender(); }); }catch(e){}
+}
+const OTP_CH=[['whatsapp','WhatsApp'],['sms','SMS'],['email','Email'],['choice','Customer chooses (WhatsApp, SMS or email)']];
+mod('security','Sign-up security','shield','Administration',()=>isAdmin(),viewSecurity);
+function viewSecurity(){
+  otpWatch(); const o=OTPS;
+  return `${o.err?`<div class="denied">Could not read the OTP setting (${esc(o.err)}). In Firestore rules, allow everyone to read <b>settings/otp</b> and only admins to write it.</div>`:''}
+  <style>.sw{position:relative;width:58px;height:32px;border-radius:99px;border:0;background:#94A3B8;cursor:pointer;transition:background .2s;flex:none}.sw i{position:absolute;top:4px;left:4px;width:24px;height:24px;border-radius:50%;background:#fff;transition:left .2s}.sw.on{background:#10B981}.sw.on i{left:30px}</style>
+  <div class="card" style="max-width:720px"><div class="card-h"><h3>OTP verification for new accounts</h3>${o.enabled?badge('ON','approved'):badge('OFF','rejected')}</div>
+  <div class="card-b">
+   <div class="flex" style="justify-content:space-between;gap:16px;align-items:center">
+     <div><b style="font-size:16px">${o.enabled?'OTP is active':'OTP is switched off'}</b><div class="sm mut" style="margin-top:4px">${o.enabled?'New customers must enter a one-time code before their account is created.':'New customers register with email and password only. No code is sent.'}</div></div>
+     <button class="sw ${o.enabled?'on':''}" data-act="otpToggle" aria-label="Turn OTP ${o.enabled?'off':'on'}" aria-pressed="${o.enabled}"><i></i></button>
+   </div>
+   <div class="field" style="margin-top:18px"><label>Send the code by</label><select class="sel" data-change="otpChannel">${options(OTP_CH,o.channel)}</select><div class="hint">The registration form tells customers which channel to expect.</div></div>
+   <div class="sm mut" style="margin-top:6px">${o.by?'Last changed by <b>'+esc(o.by)+'</b> · '+esc(fmtDT(o.at)):'Never changed. Default is ON.'}</div>
+  </div></div>`;
+}
+ACT.otpToggle=async()=>{
+  const o=OTPS, next=!o.enabled;
+  if(!next && !(await ask('Turn OTP off?','Anyone will be able to create a customer account without a verification code. Turn this off only if codes are not reaching customers.','Turn off',true))) return;
+  const ok=await run(()=>setDoc(doc(db,'settings','otp'),{enabled:next,channel:o.channel,by:S.me.name||S.me.email,at:nowISO()},{merge:true}),'OTP '+(next?'switched on':'switched off'));
+  if(ok){ OTPS={...o,enabled:next,by:S.me.name||S.me.email,at:nowISO()}; logAct('OTP '+(next?'enabled':'disabled'),'Sign-up verification'); render(); }
+};
+CHG.otpChannel=async(d,el)=>{
+  const ch=el.value, o=OTPS;
+  const ok=await run(()=>setDoc(doc(db,'settings','otp'),{enabled:o.enabled,channel:ch,by:S.me.name||S.me.email,at:nowISO()},{merge:true}),'OTP channel saved');
+  if(ok){ OTPS={...o,channel:ch}; logAct('OTP channel changed',ch); render(); }
+};
+
 /* ================================================================= START */
 window.addEventListener('error', e=>console.error('portal error:', e.message));
 window.__LY = { S, D, U };
@@ -4572,6 +4607,7 @@ if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch
   size(); draw();
   let t; window.addEventListener('resize',()=>{ clearTimeout(t); t=setTimeout(size,200); });
 })();
+window.__lyOrigRegister=window.registerUser;
 </script>
 
 <script id="lx-js">
@@ -4705,5 +4741,420 @@ window.dispatchEvent(new Event('firebase-ready'));
 </script>
 <script type="module" src="accounts.js"></script>
 <script src="loyalty-extras.js" defer></script>
+<script id="ly-addon">
+/* ===================== LOYALTY ADD-ONS: phone, profile, OTP flag, live chat, AI ===================== */
+(function(){
+'use strict';
+const W=window, D=document;
+const E=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const $=(s,r=D)=>r.querySelector(s), $$=(s,r=D)=>[...r.querySelectorAll(s)];
+const LY=W.LY=W.LY||{};
+LY.otp={enabled:true,channel:'whatsapp',loaded:false};
+LY.otpOn=()=>!!LY.otp.enabled;
+const fb=()=>W.FB;
+const me=()=>{ try{ return currentUser; }catch(e){ return null; } };
+const money=n=>'KSh '+Number(n||0).toLocaleString('en-KE',{maximumFractionDigits:0});
+const cc=()=>{ try{ return contentCache||{}; }catch(e){ return {}; } };
+const products=()=>{ try{ return DB.get('products',[])||[]; }catch(e){ return []; } };
+const toastX=(m,k)=>{ try{ toast(m,k); }catch(e){} };
+
+/* ---------------------------------------------------------------- CSS */
+const css=`
+#modalWrap .modal-h .icon-btn{background:#B30000;color:#fff;border-radius:8px;width:auto;height:34px;padding:0 12px 0 10px;display:inline-flex;align-items:center;gap:6px;font-weight:700;font-size:13px}
+#modalWrap .modal-h .icon-btn::after{content:"Close"}
+#modalWrap .modal-h .icon-btn:hover{background:#D10A0A}
+.ly-phone{display:flex;gap:8px}.ly-phone>span{display:flex;align-items:center;padding:0 12px;border-radius:8px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);font-weight:600;font-size:14px;white-space:nowrap;color:#C9D4E5}
+.ly-phone input{flex:1;min-width:0}
+.ly-hint{font-size:12px;color:#9AA9C0;margin-top:6px}
+#ly-store-x,#ly-portal-x{position:fixed;display:none;align-items:center;gap:6px;background:#B30000;color:#fff;border:0;border-radius:980px;padding:9px 15px;font:700 13px 'Plus Jakarta Sans',sans-serif;cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,.35)}
+#ly-store-x{left:14px;bottom:14px;z-index:95}body[data-page="store"] #ly-store-x{display:inline-flex}
+#ly-portal-x{right:14px;bottom:14px;z-index:9100}#portal-layer.open #ly-portal-x{display:inline-flex}
+html.portal-on #ly-w{display:none}
+/* profile */
+.ly-pf{color:#E6ECF7}.ly-pf *{box-sizing:border-box}
+.ly-pf-top{display:flex;gap:16px;align-items:center;margin-bottom:12px}
+.ly-av{width:92px;height:92px;border-radius:50%;padding:3px;background:linear-gradient(135deg,#D10A0A,#F59E0B,#2DD4BF);flex:none}
+.ly-av>div{width:100%;height:100%;border-radius:50%;background:#0F1626 center/cover no-repeat;display:flex;align-items:center;justify-content:center;font:800 34px 'Plus Jakarta Sans',sans-serif;color:#fff}
+.ly-pf h3{margin:0 0 4px;font-size:20px;color:#fff}.ly-mut{font-size:13px;color:#9AA9C0;word-break:break-all}
+.ly-pct{font-size:13px;margin-left:8px;color:#C9D4E5}
+.ly-bar{height:6px;border-radius:9px;background:rgba(255,255,255,.1);overflow:hidden;margin:6px 0 14px}.ly-bar i{display:block;height:100%;background:linear-gradient(90deg,#2DD4BF,#60A5FA);border-radius:9px;transition:width .3s}
+.ly-btn{border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.05);color:#fff;border-radius:9px;padding:9px 14px;font-weight:600;font-size:14px;cursor:pointer}.ly-btn:hover{background:rgba(255,255,255,.12)}
+.ly-btn.p{background:#B30000;border-color:#B30000}.ly-btn.p:hover{background:#D10A0A}
+.ly-row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:14px}
+.ly-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:560px){.ly-grid{grid-template-columns:1fr}.ly-pf-top{align-items:flex-start}}
+.ly-f label{display:block;font-size:12.5px;color:#9AA9C0;margin-bottom:5px}
+.ly-f input,.ly-f select,.ly-f textarea{width:100%;padding:11px 12px;border-radius:9px;border:1px solid rgba(255,255,255,.12);background:#0F1626;color:#fff;font:inherit;font-size:14.5px}
+.ly-f input:focus,.ly-f select:focus,.ly-f textarea:focus{outline:2px solid #B30000;border-color:#B30000}
+.ly-chips{display:flex;flex-wrap:wrap;gap:8px}.ly-chip{border:1px solid rgba(255,255,255,.16);background:transparent;color:#C9D4E5;border-radius:980px;padding:7px 13px;font-weight:600;font-size:13px;cursor:pointer}.ly-chip.on{background:#2DD4BF;border-color:#2DD4BF;color:#06231F}
+/* chat widget */
+#ly-w{position:fixed;right:16px;bottom:16px;z-index:90;font-family:'Inter',system-ui,sans-serif}
+#ly-fab{display:flex;align-items:center;gap:8px;background:#B30000;color:#fff;border:0;border-radius:980px;padding:13px 18px;font:700 14px 'Plus Jakarta Sans',sans-serif;cursor:pointer;box-shadow:0 10px 30px rgba(179,0,0,.45);position:relative}
+#ly-fab:hover{background:#D10A0A}#ly-fab b{position:absolute;top:-6px;right:-4px;min-width:20px;height:20px;border-radius:10px;background:#F59E0B;color:#111;font-size:12px;display:none;align-items:center;justify-content:center;padding:0 5px}
+#ly-p{display:none;position:absolute;right:0;bottom:62px;width:380px;max-width:calc(100vw - 24px);height:560px;max-height:calc(100vh - 100px);background:#141C30;border:1px solid rgba(255,255,255,.1);border-radius:18px;box-shadow:0 24px 70px rgba(0,0,0,.55);overflow:hidden;flex-direction:column;color:#E6ECF7}
+#ly-w.open #ly-p{display:flex}#ly-w.open #ly-fab{display:none}
+@media(max-width:520px){#ly-w.open{right:0;bottom:0}#ly-p{position:fixed;inset:0;width:100%;max-width:none;height:100%;max-height:none;border-radius:0;bottom:0}}
+.ly-h{background:#B30000;padding:13px 14px;display:flex;align-items:center;gap:10px;color:#fff}.ly-h b{display:block;font:800 15px 'Plus Jakarta Sans',sans-serif}.ly-h small{opacity:.85;font-size:12px}
+.ly-h .grow{flex:1}.ly-h button{background:rgba(255,255,255,.16);border:0;color:#fff;border-radius:8px;padding:7px 11px;font-weight:700;font-size:13px;cursor:pointer}.ly-h button:hover{background:rgba(255,255,255,.28)}
+.ly-tabs{display:flex;background:#0F1626;padding:5px;gap:5px}.ly-tabs button{flex:1;border:0;background:transparent;color:#9AA9C0;padding:9px;border-radius:8px;font-weight:700;font-size:13.5px;cursor:pointer}.ly-tabs button.on{background:#18223A;color:#fff;box-shadow:inset 0 -2px 0 #B30000}
+.ly-body{flex:1;min-height:0;display:flex;flex-direction:column}
+.ly-msgs{flex:1;overflow:auto;padding:14px;display:flex;flex-direction:column;gap:9px;scroll-behavior:smooth}
+.ly-m{max-width:88%;padding:10px 12px;border-radius:14px;font-size:14px;line-height:1.5;word-wrap:break-word}
+.ly-m.me{align-self:flex-end;background:#B30000;color:#fff;border-bottom-right-radius:4px;white-space:pre-wrap}
+.ly-m.bot{align-self:flex-start;background:#1E2A47;border-bottom-left-radius:4px}
+.ly-m.sys{align-self:center;background:transparent;color:#9AA9C0;font-size:12.5px;text-align:center}
+.ly-m b{color:#fff}.ly-m ul{margin:6px 0 0 18px;padding:0}.ly-m li{margin:2px 0}
+.ly-who{font-size:11px;color:#9AA9C0;margin:0 4px -4px}
+.ly-pc{margin-top:8px;background:#0F1626;border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:10px}
+.ly-pc h5{margin:0 0 2px;font-size:14px;color:#fff}.ly-pc .pr{color:#2DD4BF;font-weight:800}.ly-pc .st{font-size:12px;color:#9AA9C0}.ly-pc p{margin:6px 0;font-size:12.5px;color:#C9D4E5}
+.ly-pc .bt{display:flex;gap:6px;margin-top:8px}.ly-pc .bt button{flex:1;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,.16);background:transparent;color:#fff;font-weight:700;font-size:12.5px;cursor:pointer}.ly-pc .bt button.p{background:#B30000;border-color:#B30000}
+.ly-qr{display:flex;flex-wrap:wrap;gap:6px;padding:0 14px 10px}.ly-qr button{border:1px solid rgba(255,255,255,.18);background:transparent;color:#C9D4E5;border-radius:980px;padding:6px 11px;font-size:12.5px;font-weight:600;cursor:pointer}.ly-qr button:hover{background:#B30000;border-color:#B30000;color:#fff}
+.ly-in{display:flex;gap:8px;padding:10px;border-top:1px solid rgba(255,255,255,.08);background:#0F1626}.ly-in input{flex:1;min-width:0;padding:11px 12px;border-radius:10px;border:1px solid rgba(255,255,255,.12);background:#141C30;color:#fff;font:inherit;font-size:14px}.ly-in button{background:#B30000;color:#fff;border:0;border-radius:10px;padding:0 16px;font-weight:700;cursor:pointer}
+.ly-pre{padding:18px;display:flex;flex-direction:column;gap:12px;overflow:auto}.ly-pre p{margin:0;color:#C9D4E5;font-size:14px;line-height:1.55}
+.ly-pre .ly-f input{background:#0F1626}
+.wa-fab{display:none!important}
+.ly-h a{background:#128C7E;color:#fff;border-radius:8px;padding:7px 11px;font-weight:700;font-size:13px;text-decoration:none}
+.ly-wa{display:block;text-align:center;text-decoration:none;color:#fff;background:#128C7E;border-radius:10px;padding:10px;font-weight:700;font-size:14px}
+`;
+const st=D.createElement('style'); st.id='ly-addon-css'; st.textContent=css; D.head.appendChild(st);
+
+/* ---------------------------------------------------------------- phone helpers */
+function normPhone(raw){
+  let s=String(raw||'').trim(); if(!s) return {ok:false,empty:true};
+  const plus=s.startsWith('+'); let d=s.replace(/[^\d]/g,'');
+  if(plus && !d.startsWith('254')){ return (d.length>=8&&d.length<=15)?{ok:true,v:'+'+d}:{ok:false}; }
+  if(d.startsWith('254')) d=d.slice(3); else if(d.startsWith('0')) d=d.slice(1);
+  return /^[17]\d{8}$/.test(d)?{ok:true,v:'+254'+d}:{ok:false};
+}
+LY.normPhone=normPhone;
+const phoneField=()=>`<div class="field" id="ly-phone-f"><label for="au-phone">Phone / WhatsApp number</label><div class="ly-phone"><span>KE +254</span><input id="au-phone" type="tel" inputmode="tel" autocomplete="tel-national" placeholder="7XX XXX XXX" maxlength="18"></div><div class="ly-hint">Used for order updates${LY.otpOn()?' and to send your verification code':''}. Kenyan numbers: 07… or 01…</div></div>`;
+
+/* ---------------------------------------------------------------- OTP flag (set by admin in the portal) */
+function watchOtp(){
+  const F=fb(); if(!F||LY._otpW) return; LY._otpW=true;
+  try{
+    F.onSnapshot(F.doc(F.fdb,'settings','otp'),s=>{
+      if(s.exists()){ const d=s.data(); LY.otp={enabled:d.enabled!==false,channel:d.channel||'whatsapp',loaded:true}; }
+      else LY.otp.loaded=true;
+      tidy();
+    },()=>{ LY.otp.loaded=true; });
+  }catch(e){}
+}
+const CH={whatsapp:'WhatsApp',sms:'SMS',email:'email',choice:'WhatsApp, SMS or email'};
+function fixOtpNote(){
+  const root=$('#mBody'); if(!root) return;
+  const w=D.createTreeWalker(root,NodeFilter.SHOW_TEXT);
+  let n; while((n=w.nextNode())){
+    const t=n.nodeValue; if(!/We send a code by/i.test(t)&&!(n.parentNode&&n.parentNode.dataset&&n.parentNode.dataset.lyOtp)) continue;
+    const p=n.parentNode; if(!p.dataset.lyOtp) p.dataset.lyOtp=t;
+    const orig=p.dataset.lyOtp;
+    n.nodeValue = LY.otpOn() ? orig.replace(/We send a code by [^.]+\./i,'We send a code by '+(CH[LY.otp.channel]||'WhatsApp')+' to confirm you.')
+                             : orig.replace(/We send a code by [^.]+\.\s*/i,'');
+  }
+}
+
+/* ---------------------------------------------------------------- register: add phone, validate, save */
+function wrapRegister(){
+  const cur=W.registerUser; if(typeof cur!=='function'||cur.__ly) return;
+  const w=async function(){
+    const input=$('#au-phone');
+    const msg=t=>{ try{ setAuthMsg(t); }catch(e){} };
+    if(input){
+      const p=normPhone(input.value);
+      if(!p.ok){ msg(p.empty?'Please enter your phone number.':'That phone number doesn’t look right. Use 07XX XXX XXX.'); input.focus(); return; }
+      try{ sessionStorage.setItem('ly_pend_phone',p.v); }catch(e){}
+    }
+    const useOrig=!LY.otpOn() && typeof W.__lyOrigRegister==='function';
+    return (useOrig?W.__lyOrigRegister:cur).apply(this,arguments);
+  };
+  w.__ly=true; W.registerUser=w;
+}
+function savePendingPhone(uid){
+  let ph=null; try{ ph=sessionStorage.getItem('ly_pend_phone'); }catch(e){} if(!ph||!uid) return;
+  const F=fb(); const run=()=>F.setDoc(F.doc(F.fdb,'users',uid),{phone:ph},{merge:true}).then(()=>{ try{ const u=me(); if(u) u.phone=ph; }catch(e){} }).catch(()=>{});
+  setTimeout(run,2500); setTimeout(()=>{ run().then(()=>{ try{ sessionStorage.removeItem('ly_pend_phone'); }catch(e){} }); },8000);
+}
+
+/* ---------------------------------------------------------------- profile */
+const COUNTRIES=[['KE','Kenya'],['UG','Uganda'],['TZ','Tanzania'],['RW','Rwanda'],['ET','Ethiopia'],['SO','Somalia'],['SS','South Sudan'],['NG','Nigeria'],['GH','Ghana'],['ZA','South Africa'],['US','United States'],['GB','United Kingdom'],['IN','India'],['AE','United Arab Emirates'],['OT','Other']];
+const flag=c=>(c&&c.length===2&&c!=='OT')?String.fromCodePoint(...[...c].map(x=>127397+x.charCodeAt(0))):'';
+const INTERESTS=['Laptops & Desktops','Printers','Networking','Storage & RAM','Cybersecurity','IT Support','CCTV & Systems','AI Solutions'];
+let P=null;
+function greet(){ const h=new Date().getHours(); return h<12?'Morning':h<17?'Afternoon':'Evening'; }
+function pctDone(){ const f=[P.name,P.phone,P.country,P.city,P.photo,(P.about||'').length>=10?1:'',P.interests.length?1:'']; return Math.round(f.filter(Boolean).length/f.length*100); }
+function avatarInner(){ return P.photo?`<div style="background-image:url('${P.photo}')"></div>`:`<div>${E(String(P.name||P.email||'?').charAt(0).toUpperCase())}</div>`; }
+function profileHtml(){
+  return `<div class="ly-pf">
+  <div class="ly-pf-top"><div class="ly-av" id="lyAv">${avatarInner()}</div>
+   <div style="min-width:0"><h3>${greet()} ${E((P.name||'there').split(' ')[0])},</h3>
+   <div class="ly-mut">ID: ${E(P.uid)}</div><div class="ly-mut" id="lyCtry">${flag(P.country)} ${E((COUNTRIES.find(c=>c[0]===P.country)||[0,''])[1])} · ${E(P.email)}</div>
+   <div style="margin-top:6px">${(typeof roleBadge==='function')?roleBadge(P.role):''}<span class="ly-pct" id="lyPct">${pctDone()}% complete</span></div></div></div>
+  <div class="ly-bar"><i id="lyBar" style="width:${pctDone()}%"></i></div>
+  <div class="ly-row"><button class="ly-btn" data-ly="photo">Upload photo</button><button class="ly-btn" data-ly="rmphoto">Remove photo</button><span class="ly-mut" style="word-break:normal">Any photo works. It is cropped to a square and resized.</span><input type="file" id="lyFile" accept="image/*" hidden></div>
+  <div class="ly-grid">
+   <div class="ly-f"><label>Full name</label><input id="lyName" value="${E(P.name)}" maxlength="60" data-ly-in></div>
+   <div class="ly-f"><label>Country</label><select id="lyCountry" data-ly-in>${COUNTRIES.map(c=>`<option value="${c[0]}" ${c[0]===P.country?'selected':''}>${flag(c[0])} ${c[1]}</option>`).join('')}</select></div>
+   <div class="ly-f"><label>City or town (optional)</label><input id="lyCity" value="${E(P.city)}" maxlength="40" data-ly-in></div>
+   <div class="ly-f"><label>WhatsApp or phone</label><input id="lyPhone" type="tel" value="${E(P.phone)}" placeholder="+2547XXXXXXXX" maxlength="18" data-ly-in></div>
+  </div>
+  <div class="ly-f" style="margin-top:12px"><label>I’m interested in</label><div class="ly-chips">${INTERESTS.map(i=>`<button type="button" class="ly-chip ${P.interests.includes(i)?'on':''}" data-ly="chip" data-v="${E(i)}">${E(i)}</button>`).join('')}</div></div>
+  <div class="ly-f" style="margin-top:12px"><label>About me</label><textarea id="lyAbout" rows="3" maxlength="200" data-ly-in>${E(P.about)}</textarea><div class="ly-mut" id="lyCnt">${(P.about||'').length}/200</div></div>
+  <div class="ly-row" style="margin-top:14px"><button class="ly-btn p" data-ly="save">Save profile</button><button class="ly-btn" data-ly="pw">Change password</button><button class="ly-btn" data-ly="close">Close</button>${P.staff?'<button class="ly-btn" data-ly="admin">Open staff portal</button>':''}<button class="ly-btn" data-ly="out" style="margin-left:auto">Log out</button></div>
+  <div class="ly-mut" id="lyMsg" role="status"></div></div>`;
+}
+function readForm(){ P.name=($('#lyName')||{}).value||P.name; P.country=($('#lyCountry')||{}).value||P.country; P.city=($('#lyCity')||{}).value||''; P.phone=($('#lyPhone')||{}).value||''; P.about=($('#lyAbout')||{}).value||''; }
+function refreshPct(){ readForm(); const p=pctDone(); const b=$('#lyBar'),t=$('#lyPct'),c=$('#lyCnt'),y=$('#lyCtry'); if(b) b.style.width=p+'%'; if(t) t.textContent=p+'% complete'; if(c) c.textContent=P.about.length+'/200'; if(y) y.innerHTML=flag(P.country)+' '+E((COUNTRIES.find(c=>c[0]===P.country)||[0,''])[1])+' · '+E(P.email); const a=$('#lyAv'); if(a) a.innerHTML=avatarInner(); }
+LY.openProfile=async function(){
+  const u=me(); if(!u){ try{ openModal('Sign in',authFormHtml('login')); }catch(e){} return; }
+  let d={}; try{ const F=fb(); const s=await F.getDoc(F.doc(F.fdb,'users',u.uid)); if(s.exists()) d=s.data(); }catch(e){}
+  P={uid:u.uid,email:u.email||d.email||'',role:u.role||d.role||'customer',staff:(typeof isStaffRole==='function')&&isStaffRole(u.role),
+     name:d.name||u.name||'',country:d.country||'KE',city:d.city||'',phone:d.phone||u.phone||'',about:d.about||'',interests:Array.isArray(d.interests)?d.interests:[],photo:d.photo||''};
+  openModal('My profile',profileHtml(),true);
+};
+function cropPhoto(file){
+  return new Promise((res,rej)=>{ const fr=new FileReader(); fr.onerror=()=>rej(); fr.onload=()=>{ const im=new Image(); im.onerror=()=>rej(); im.onload=()=>{ const s=Math.min(im.width,im.height),c=D.createElement('canvas'); c.width=c.height=256; c.getContext('2d').drawImage(im,(im.width-s)/2,(im.height-s)/2,s,s,0,0,256,256); res(c.toDataURL('image/jpeg',.82)); }; im.src=fr.result; }; fr.readAsDataURL(file); });
+}
+async function saveProfile(){
+  readForm(); const msg=$('#lyMsg'); const say=(t,bad)=>{ if(msg){ msg.textContent=t; msg.style.color=bad?'#FF8A8A':'#2DD4BF'; } };
+  if(P.name.trim().length<2){ say('Please enter your full name.',1); return; }
+  let ph=''; if(P.phone.trim()){ const n=normPhone(P.phone); if(!n.ok){ say('That phone number doesn’t look right.',1); return; } ph=n.v; }
+  const data={name:P.name.trim(),country:P.country,city:P.city.trim(),phone:ph,about:P.about.trim(),interests:P.interests,photo:P.photo,profileUpdated:new Date().toISOString()};
+  say('Saving…');
+  try{ const F=fb(); await F.setDoc(F.doc(F.fdb,'users',P.uid),data,{merge:true}); P.phone=ph; const u=me(); if(u){ Object.assign(u,{name:data.name,phone:ph}); } try{ updateAccountUI(); }catch(e){} say('Profile saved.'); toastX('Profile saved','ok'); refreshPct(); }
+  catch(e){ say('Could not save ('+(e.code||'error')+'). Please try again.',1); }
+}
+D.addEventListener('click',async e=>{
+  const el=e.target.closest('[data-ly]'); if(!el) return; const a=el.dataset.ly;
+  if(a==='photo'){ $('#lyFile').click(); }
+  else if(a==='rmphoto'){ P.photo=''; refreshPct(); }
+  else if(a==='chip'){ const v=el.dataset.v, i=P.interests.indexOf(v); if(i>-1) P.interests.splice(i,1); else P.interests.push(v); el.classList.toggle('on'); refreshPct(); }
+  else if(a==='save'){ saveProfile(); }
+  else if(a==='close'){ closeModal(); }
+  else if(a==='pw'){ try{ openModal('Change password',changePwHtml()); }catch(x){} }
+  else if(a==='admin'){ closeModal(); try{ go('admin'); }catch(x){} }
+  else if(a==='out'){ try{ logoutUser(); }catch(x){} }
+});
+D.addEventListener('change',async e=>{ if(e.target.id==='lyFile'&&e.target.files[0]){ try{ P.photo=await cropPhoto(e.target.files[0]); refreshPct(); }catch(x){ const m=$('#lyMsg'); if(m){ m.textContent='That file is not a usable image.'; m.style.color='#FF8A8A'; } } } if(e.target.matches&&e.target.matches('[data-ly-in]')) refreshPct(); });
+D.addEventListener('input',e=>{ if(e.target.matches&&e.target.matches('[data-ly-in]')) refreshPct(); });
+function hookAccount(){
+  const o=W.openAccount; if(typeof o!=='function'||o.__ly) return;
+  const n=function(){ if(me()) return LY.openProfile(); return o.apply(this,arguments); }; n.__ly=true; W.openAccount=n;
+}
+
+/* ---------------------------------------------------------------- close buttons */
+function addClosers(){
+  if(!$('#ly-store-x')){ const b=D.createElement('button'); b.id='ly-store-x'; b.type='button'; b.textContent='✕ Close store'; b.onclick=()=>{ try{ showPage('home'); window.scrollTo(0,0); }catch(e){} }; D.body.appendChild(b); }
+  const pl=$('#portal-layer'); if(pl&&!$('#ly-portal-x')){ const b=D.createElement('button'); b.id='ly-portal-x'; b.type='button'; b.textContent='✕ Close portal'; b.onclick=()=>{ try{ closePortal(false); }catch(e){} }; pl.appendChild(b); }
+}
+
+/* ================================================================ CHAT WIDGET */
+const CID_KEY='ly_chat_id', NAME_KEY='ly_chat_name', PH_KEY='ly_chat_phone';
+const ls={g:k=>{ try{ return localStorage.getItem(k)||''; }catch(e){ return ''; } },s:(k,v)=>{ try{ localStorage.setItem(k,v); }catch(e){} }};
+let CID=ls.g(CID_KEY); if(!CID){ CID='c'+Date.now().toString(36)+Math.random().toString(36).slice(2,7); ls.s(CID_KEY,CID); }
+const CS={tab:'ai',open:false,msgs:[],unsub:null,unread:0,started:false,ai:[],err:false};
+function widgetHtml(){
+  return `<button id="ly-fab" type="button" aria-label="Open chat"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Chat with us<b id="ly-badge"></b></button>
+  <div id="ly-p" role="dialog" aria-label="Chat">
+   <div class="ly-h"><div class="grow"><b>Loyalty ICT Solutions</b><small>Ask our assistant or talk to our team</small></div><a id="ly-wah" target="_blank" rel="noopener" href="#">WhatsApp</a><button type="button" id="ly-min" aria-label="Close chat">✕ Close</button></div>
+   <div class="ly-tabs"><button type="button" data-t="ai" class="on">AI assistant</button><button type="button" data-t="live">Live chat</button></div>
+   <div class="ly-body" id="ly-body"></div></div>`;
+}
+function mountWidget(){
+  if($('#ly-w')) return; const w=D.createElement('div'); w.id='ly-w'; w.innerHTML=widgetHtml(); D.body.appendChild(w);
+  { const wa=String(cc().whatsapp_number||'254713474115').replace(/\D/g,''); $('#ly-wah').href='https://wa.me/'+wa+'?text='+encodeURIComponent('Hi Loyalty ICT Solutions, I would like to chat.'); }
+  $('#ly-fab').onclick=()=>setOpen(true); $('#ly-min').onclick=()=>setOpen(false);
+  $$('.ly-tabs button',w).forEach(b=>b.onclick=()=>setTab(b.dataset.t));
+  w.addEventListener('click',onWidgetClick);
+  setTab('ai');
+}
+function setOpen(o){ CS.open=o; $('#ly-w').classList.toggle('open',o); if(o){ CS.unread=0; badge(); scrollEnd(); const i=$('#ly-input'); if(i&&innerWidth>520) i.focus(); if(CS.tab==='live') markRead(); } }
+function badge(){ const b=$('#ly-badge'); if(!b) return; b.textContent=CS.unread; b.style.display=CS.unread?'flex':'none'; }
+function setTab(t){ CS.tab=t; $$('.ly-tabs button').forEach(b=>b.classList.toggle('on',b.dataset.t===t)); t==='ai'?renderAI():renderLive(); }
+function scrollEnd(){ const m=$('#ly-msgs'); if(m) setTimeout(()=>m.scrollTop=m.scrollHeight,30); }
+const inputBar=ph=>`<div class="ly-in"><input id="ly-input" maxlength="500" autocomplete="off" placeholder="${E(ph)}"><button type="button" data-a="send">Send</button></div>`;
+function onWidgetClick(e){
+  const el=e.target.closest('[data-a]'); if(!el) return; const a=el.dataset.a;
+  if(a==='send') return CS.tab==='ai'?aiSend():liveSend();
+  if(a==='q'){ if(CS.tab!=='ai') setTab('ai'); aiAsk(el.dataset.v); }
+  else if(a==='add'){ try{ addToCart(el.dataset.id); }catch(x){} }
+  else if(a==='view'){ try{ setOpen(false); openProduct(el.dataset.id); }catch(x){} }
+  else if(a==='shop'){ try{ setOpen(false); openShop(el.dataset.v||undefined); }catch(x){} }
+  else if(a==='book'){ try{ setOpen(false); openBooking(el.dataset.v); }catch(x){} }
+  else if(a==='human'){ setTab('live'); }
+  else if(a==='cart'){ try{ setOpen(false); openCart(); }catch(x){} }
+  else if(a==='acct'){ try{ setOpen(false); openAccount(); }catch(x){} }
+  else if(a==='start'){ liveStart(); }
+}
+D.addEventListener('keydown',e=>{ if(e.target&&e.target.id==='ly-input'&&e.key==='Enter'){ e.preventDefault(); CS.tab==='ai'?aiSend():liveSend(); } if(e.key==='Escape'&&CS.open&&!$('#modalWrap.show')) setOpen(false); });
+
+/* ---------------- AI assistant (rule-based, answers from your live catalogue + services) ---------------- */
+const SERV=[
+ {k:/cyber|secur|hack|virus|malware|ransom|breach|phish|audit|pentest|penetration|firewall|awareness|incident|compromis|scam|data leak/i,n:'Cybersecurity',b:'Cybersecurity Consulting',
+  t:'<b>Cybersecurity</b> — security consulting and audits, system hardening, <b>incident response & recovery</b> if you have been hit, and <b>security awareness training</b> for your staff.',
+  tips:['Think you are under attack? Disconnect the affected device from the network, do not pay or reply to any demand, and change passwords from a clean device.','Keep a backup that is offline or off-site, so ransomware cannot lock everything.','Turn on two-step verification for email and banking first.']},
+ {k:/cctv|camera|surveillance|cabling|server|access control|biometric|rack|structured/i,n:'Systems & CCTV',b:'Systems & CCTV',
+  t:'<b>Systems & CCTV</b> — structured cabling, servers, access control and CCTV installation for homes, shops and offices.',tips:['For a quote, tell us the number of cameras or points, and whether it is indoors or outdoors.']},
+ {k:/\bai\b|chatbot|\bbots?\b|automat|machine learning|artificial|model/i,n:'AI Solutions',b:'AI Solutions',
+  t:'<b>AI Solutions</b> — custom models, chatbots and workflow automation that save your team time.',tips:['Good first AI projects: a customer-support bot, automatic invoice or report generation, and data clean-up.']},
+ {k:/support|repair|fix|broken|slow|crash|wifi|wi-fi|network|backup|install|set ?up|not working|battery|keyboard|won'?t (start|turn|boot)|blue screen/i,n:'IT Support',b:'IT Support',
+  t:'<b>IT Support</b> — repairs, network setup and troubleshooting, and backup solutions.',tips:['Quick checks first: restart the device, check cables and power, and test on another socket or network.','If a laptop is slow, check free disk space and startup programs. An SSD upgrade often makes the biggest difference.']}
+];
+const CATS=[
+ [/laptop|notebook|desktop|computer|\bpc\b|elitebook|optiplex|thinkpad|macbook/i,'Laptops & Desktops',0],
+ [/printer|printing|toner|laserjet|ecotank|photocopy/i,'Printers',0],
+ [/\bram\b|memory|ddr\d?/i,'RAM',0],
+ [/ssd|hdd|hard ?disk|external (drive|disk|hdd)|storage/i,'Storage',1],
+ [/flash|usb stick|thumb ?drive|pen ?drive/i,'Flash Disks',0],
+ [/router|switch|access point|tp-?link|mikrotik|ubiquiti|wifi|wi-fi|network/i,'Networking',1],
+ [/cable|hdmi|vga|adapter|cat ?[56]|ethernet/i,'Cables',1],
+ [/monitor|display|screen/i,'Monitors',1],
+ [/psu|power supply|motherboard|cpu|processor|gpu|graphics card|casing|cooler|component/i,'Components',0]
+];
+const BUY=/buy|price|cost|how much|have|stock|sell|looking for|need|want|recommend|suggest|best|cheap|show|under|below|budget|available|get me|any /i;
+function parseBudget(t){
+  let m=t.match(/(?:under|below|less than|within|max(?:imum)?|up ?to|budget(?: of)?|around|<)\s*(?:ksh|kes|kshs|ksh\.|sh)?\.?\s*(\d[\d,\.]*)\s*(k|thousand)?/i)||t.match(/\b(\d[\d,\.]*)\s*(k|thousand)\b/i);
+  if(!m) return 0; let n=parseFloat(m[1].replace(/,/g,'')); if(!isFinite(n)) return 0; if(m[2]) n*=1000; return n>=500?n:0;
+}
+const STOP=new Set('the and for with have any you your are what which that this can please show want need looking best cheap under below about some from them they there get got buy sell price much how kes ksh'.split(' '));
+function searchProducts(q){
+  const t=q.toLowerCase(), all=products().filter(p=>p&&p.name);
+  let cat=null, weak=false; for(const [re,c,w] of CATS){ if(re.test(t)){ cat=c; weak=!!w; break; } }
+  const budget=parseBudget(t), words=t.replace(/[^a-z0-9 ]/g,' ').split(/\s+/).filter(w=>w.length>2&&!STOP.has(w));
+  const scored=all.map(p=>{ const hay=(p.name+' '+p.cat+' '+(p.desc||'')+' '+(p.specs||[]).map(s=>s.k+' '+s.v).join(' ')).toLowerCase(); let s=0; words.forEach(w=>{ if(hay.includes(w)) s+=(p.name.toLowerCase().includes(w)?3:1); }); if(cat&&p.cat===cat) s+=4; return {p,s}; });
+  let r=scored.filter(x=>x.s>0&&(!budget||x.p.price<=budget)&&(Number(x.p.stock)||0)>0);
+  const cheap=/cheap|lowest|affordable|budget/.test(t), top=/best|powerful|fastest|high.?end|premium/.test(t);
+  if(cat){ const inCat=r.filter(x=>x.p.cat===cat); if(inCat.length) r=inCat; }
+  r.sort((a,b)=>cheap?a.p.price-b.p.price:top?b.p.price-a.p.price:(b.s-a.s)||(a.p.price-b.p.price));
+  return {cat,weak,budget,list:r.slice(0,3).map(x=>x.p),found:scored.some(x=>x.s>0)};
+}
+const pcard=p=>`<div class="ly-pc"><h5>${E(p.name)}</h5><span class="pr">${money(p.price)}</span> <span class="st">· ${Number(p.stock)>5?'In stock':Number(p.stock)+' left'} · ${E(p.cat)}</span>${p.desc?`<p>${E(p.desc)}</p>`:''}${(p.specs||[]).slice(0,4).length?`<p>${(p.specs||[]).slice(0,4).map(s=>`<b>${E(s.k)}:</b> ${E(s.v)}`).join(' · ')}</p>`:''}<div class="bt"><button data-a="view" data-id="${E(p.id)}">Details</button><button class="p" data-a="add" data-id="${E(p.id)}">Add to cart</button></div></div>`;
+function catalogSummary(){
+  const all=products().filter(p=>p&&p.name); if(!all.length) return 'Our store stocks laptops & desktops, printers, RAM, storage, flash disks, networking gear, cables, monitors and components.';
+  const by={}; all.forEach(p=>{ (by[p.cat]=by[p.cat]||[]).push(p.price); });
+  return 'Right now the store has <b>'+all.length+' products</b>:<ul>'+Object.keys(by).map(c=>{ const a=by[c]; return `<li><b>${E(c)}</b> — ${a.length} item${a.length>1?'s':''}, from ${money(Math.min(...a))}</li>`; }).join('')+'</ul>';
+}
+function contactLine(){ const c=cc(); const wa=String(c.whatsapp_number||'').replace(/\D/g,''); return `<b>Phone:</b> ${E(c.contact_phone||'0713 474115')}<br><b>Email:</b> ${E(c.contact_email||'info@loyaltyict.co.ke')}<br><b>Location:</b> ${E(c.contact_location||'Nairobi, Kenya')}${wa?`<br><a href="https://wa.me/${wa}" target="_blank" rel="noopener" style="color:#2DD4BF">Message us on WhatsApp</a>`:''}`; }
+function compare(q){
+  const t=q.toLowerCase(), all=products(); const hits=all.map(p=>({p,s:p.name.toLowerCase().split(/\s+/).filter(w=>w.length>2&&t.includes(w)).length})).filter(x=>x.s>0).sort((a,b)=>b.s-a.s).slice(0,2).map(x=>x.p);
+  if(hits.length<2) return null; const [a,b]=hits;
+  const keys=[...new Set([...(a.specs||[]),...(b.specs||[])].map(s=>s.k))];
+  const val=(p,k)=>{ const s=(p.specs||[]).find(x=>x.k===k); return s?E(s.v):'—'; };
+  return `Here is a side-by-side:<br><b>${E(a.name)}</b> ${money(a.price)} &nbsp;vs&nbsp; <b>${E(b.name)}</b> ${money(b.price)}<ul>${keys.map(k=>`<li><b>${E(k)}:</b> ${val(a,k)} / ${val(b,k)}</li>`).join('')}</ul>${a.price<b.price?E(a.name)+' is '+money(b.price-a.price)+' cheaper.':b.price<a.price?E(b.name)+' is '+money(a.price-b.price)+' cheaper.':'They cost the same.'}`+pcard(a)+pcard(b);
+}
+const QR_HOME=['What do you sell?','Laptops under 50k','Printers','Cybersecurity help','How do I pay?','Delivery','Talk to a person'];
+function reply(q){
+  const t=q.toLowerCase().trim(); let r;
+  if(/\b(human|agent|person|someone|staff|representative|customer care|live)\b/.test(t)&&!/security|cyber/.test(t)) return {h:'Sure — I will take you to our live team. Leave your name and they will reply here as soon as they are free.',act:'human'};
+  if(/^(hi|hello|hey|good (morning|afternoon|evening)|habari|niaje|mambo|sasa)\b/.test(t)) return {h:'Hello! I can help you <b>find hardware</b>, <b>pick the right service</b>, explain <b>payment and delivery</b>, or connect you to our team. What do you need?',qr:QR_HOME};
+  if(/\b(thanks|thank you|asante|cheers)\b/.test(t)) return {h:'You are welcome! Anything else I can help you with?',qr:['What do you sell?','Cybersecurity help','Talk to a person']};
+  if(/^(bye|goodbye|see you)/.test(t)) return {h:'Goodbye! We are here whenever you need us.'};
+  if(/compare|\bvs\b|versus|difference between/.test(t)){ r=compare(q); if(r) return {h:r}; }
+  if(/contact|call|phone number|email|whatsapp|location|where are you|address|office|hours|open|visit|direction/.test(t)) return {h:'Here is how to reach us:<br>'+contactLine()+'<br><br>I do not have fixed opening hours on file, so for a visit please call or chat first.',qr:['Talk to a person','Delivery']};
+  if(/account|log ?in|sign ?in|register|sign ?up|password|otp|verification|verify|profile/.test(t)) return {h:'<b>Account help</b><ul><li>Tap <b>Account</b> in the top bar to <b>log in</b> or <b>register</b> (name, email, phone number and password).</li><li>'+(LY.otpOn()?'We send a verification code by '+(CH[LY.otp.channel]||'WhatsApp')+' to confirm new accounts.':'No verification code is needed to register right now.')+'</li><li>Forgot your password? Choose <b>Forgot password?</b> on the login form and we email you a reset link.</li><li>Once logged in, open <b>Account</b> to edit your profile, photo and phone number.</li></ul>',btn:[['Open account','acct']]};
+  if(/pay|mpesa|m-pesa|till|checkout|cash|card|invoice|receipt/.test(t)) return {h:'<b>How ordering and payment work</b><ul><li>Add items to your cart, then check out with your name, phone number, delivery area and any notes.</li><li>You get an order receipt straight away.</li><li>Our team then <b>contacts you to confirm the order and arrange payment and delivery</b> directly.</li></ul>For an invoice or a bulk quote, tell our team what you need.',btn:[['Open cart','cart']],qr:['Delivery','Talk to a person']};
+  if(/deliver|shipping|ship|pick ?up|collect|courier|send to/.test(t)) return {h:'<b>Delivery</b><ul><li>We are Nairobi-based and serve Nairobi and beyond.</li><li>At checkout you enter your delivery area and notes (building, floor, landmark).</li><li>The team confirms the delivery details and cost with you when they call to confirm your order.</li></ul>',qr:['How do I pay?','Talk to a person']};
+  if(/warranty|guarantee|return|refund|exchange/.test(t)){ const w=products().filter(p=>(p.specs||[]).some(s=>/warrant/i.test(s.k))).slice(0,4); return {h:'Warranty depends on the product — each product page lists its <b>Warranty</b> line.'+(w.length?'<ul>'+w.map(p=>`<li><b>${E(p.name)}</b>: ${E(p.specs.find(s=>/warrant/i.test(s.k)).v)}</li>`).join('')+'</ul>':'')+'I do not have a written returns or refund policy on file, so please confirm that with our team before you buy.',qr:['Talk to a person']}; }
+  if(/quote|book|appointment|visit me|request (a )?service|consult/.test(t)) return {h:'You can request any service in a minute. Pick one and fill in your details — the team will get back to you:',btn:[['Cybersecurity','book','Cybersecurity Consulting'],['IT Support','book','IT Support'],['Systems & CCTV','book','Systems & CCTV'],['AI Solutions','book','AI Solutions']]};
+  const sp=searchProducts(q), svc=SERV.find(s=>s.k.test(t));
+  const fixIntent=/slow|broken|repair|fix|crash|not working|won'?t|damaged|cracked|freez|hang|overheat|stuck/.test(t);
+  if(sp.list.length&&!fixIntent&&(sp.budget||BUY.test(t)||(sp.cat&&!sp.weak)||!svc)){
+    const intro=sp.budget?`Here are the best matches under <b>${money(sp.budget)}</b>:`:'These look like a good fit from what is in stock:';
+    return {h:intro+sp.list.map(pcard).join(''),btn:[sp.cat?['See all '+sp.cat,'shop',sp.cat]:['Browse the store','shop']],qr:['Compare options','Delivery','Talk to a person']};
+  }
+  if((sp.cat&&!sp.weak||sp.budget)&&!sp.list.length&&BUY.test(t)) return {h:'I could not find an in-stock match'+(sp.budget?' under '+money(sp.budget):'')+'. Try a higher budget, or ask our team — we can often source items that are not listed.',btn:sp.cat?[['See all '+sp.cat,'shop',sp.cat]]:[],qr:['Talk to a person']};
+  if(svc) return {h:svc.t+'<ul>'+svc.tips.map(x=>`<li>${E(x)}</li>`).join('')+'</ul>Want a hand? Request it below or chat with our team.',btn:[['Request '+svc.n,'book',svc.b]],qr:['Talk to a person']};
+  if(/sell|stock|catalog|products|what do you|hardware|store|shop/.test(t)) return {h:catalogSummary()+'Tell me what you need and your budget, and I will suggest options.',btn:[['Browse the store','shop']],qr:['Laptops under 50k','Printers','RAM and SSD']};
+  if(/service|offer|do you do|help with|what can/.test(t)) return {h:'<b>What we do</b><ul><li><b>Cybersecurity</b> — audits, hardening, incident response, training</li><li><b>IT Support</b> — repairs, network, backup</li><li><b>Systems & CCTV</b> — cabling, servers, access control</li><li><b>AI Solutions</b> — models, bots, automation</li><li><b>Hardware store</b> — laptops, printers, RAM, storage, networking and more</li></ul>',qr:['Cybersecurity help','What do you sell?','Talk to a person']};
+  return {h:'I am not sure I understood that. I can help with <b>products and prices</b>, <b>services</b>, <b>payment</b>, <b>delivery</b> and <b>accounts</b> — or you can talk to a person.',qr:QR_HOME};
+}
+function renderAI(){
+  const b=$('#ly-body'); if(!b) return;
+  b.innerHTML=`<div class="ly-msgs" id="ly-msgs"></div><div class="ly-qr" id="ly-qr"></div>${inputBar('Ask about products, services, payment…')}`;
+  if(!CS.ai.length) CS.ai.push({r:'bot',h:'Hi! I am the Loyalty assistant. Ask me about <b>laptops, printers and parts</b> (I check live stock and prices), our <b>IT, cybersecurity and AI services</b>, payment and delivery.',qr:QR_HOME});
+  CS.ai.forEach(drawAI); const last=CS.ai[CS.ai.length-1]; qr(last.qr); scrollEnd();
+}
+function qr(list){ const q=$('#ly-qr'); if(!q) return; q.innerHTML=(list||[]).map(x=>`<button type="button" data-a="q" data-v="${E(x)}">${E(x)}</button>`).join(''); }
+function drawAI(m){
+  const box=$('#ly-msgs'); if(!box) return; const d=D.createElement('div');
+  if(m.r==='me'){ d.className='ly-m me'; d.textContent=m.h; }
+  else{ d.className='ly-m bot'; d.innerHTML=m.h+((m.btn&&m.btn.length)?`<div class="ly-pc" style="background:transparent;border:0;padding:0"><div class="bt" style="flex-wrap:wrap">${m.btn.map(b=>`<button class="p" data-a="${b[1]}" data-v="${E(b[2]||'')}">${E(b[0])}</button>`).join('')}</div></div>`:''); }
+  box.appendChild(d);
+}
+function aiAsk(text){
+  text=String(text||'').trim(); if(!text) return;
+  CS.ai.push({r:'me',h:text}); drawAI(CS.ai[CS.ai.length-1]);
+  let rp; try{ rp=reply(text); }catch(e){ console.error(e); rp={h:'Sorry, something went wrong on my side. You can still talk to our team.',qr:['Talk to a person']}; }
+  const m={r:'bot',h:rp.h,btn:rp.btn,qr:rp.qr}; setTimeout(()=>{ CS.ai.push(m); drawAI(m); qr(m.qr); scrollEnd(); if(rp.act==='human') setTimeout(()=>setTab('live'),900); },350); scrollEnd();
+}
+function aiSend(){ const i=$('#ly-input'); if(!i||!i.value.trim()) return; const v=i.value; i.value=''; aiAsk(v); }
+
+/* ---------------- Live chat (same collections the portal's "Customer chat" reads) ---------------- */
+function liveName(){ const u=me(); return (u&&u.name)||ls.g(NAME_KEY); }
+function renderLive(){
+  const b=$('#ly-body'); if(!b) return;
+  if(!liveName()){
+    const u=me();
+    b.innerHTML=`<div class="ly-pre"><p><b style="color:#fff">Talk to our team.</b> Leave your name and a number, and we will reply right here. Messages are saved, so you can close this window and come back.</p>
+    <div class="ly-f"><label>Your name</label><input id="ly-pn" maxlength="50" value="${E((u&&u.name)||'')}" autocomplete="name"></div>
+    <div class="ly-f"><label>Phone / WhatsApp (optional)</label><input id="ly-pp" type="tel" maxlength="18" value="${E((u&&u.phone)||ls.g(PH_KEY))}" autocomplete="tel"></div>
+    <div class="ly-mut" id="ly-pe" style="color:#FF8A8A"></div><button class="ly-btn p" type="button" data-a="start">Start chat</button>${waLink('Hello Loyalty ICT, I need help.')}</div>`;
+    return;
+  }
+  b.innerHTML=`<div class="ly-msgs" id="ly-msgs"></div>${inputBar('Type your message…')}`;
+  drawLive(); liveSub(); markRead();
+}
+function waLink(t){ const wa=String(cc().whatsapp_number||'254713474115').replace(/\D/g,''); return wa?`<a class="ly-wa" target="_blank" rel="noopener" href="https://wa.me/${wa}?text=${encodeURIComponent(t)}">Prefer WhatsApp? Message us there</a>`:''; }
+function liveStart(){
+  const n=($('#ly-pn')||{}).value||'', p=($('#ly-pp')||{}).value||'', e=$('#ly-pe');
+  if(n.trim().length<2){ e.textContent='Please enter your name.'; return; }
+  let ph=''; if(p.trim()){ const x=normPhone(p); if(!x.ok){ e.textContent='That phone number doesn’t look right.'; return; } ph=x.v; }
+  ls.s(NAME_KEY,n.trim()); ls.s(PH_KEY,ph); renderLive();
+}
+function drawLive(){
+  const box=$('#ly-msgs'); if(!box) return; const nm=liveName();
+  let h=`<div class="ly-m sys">Hi ${E(nm.split(' ')[0])} — you are connected to Loyalty ICT Solutions. Send your message and a team member will reply here.</div>`;
+  if(CS.err) h+=`<div class="ly-m sys" style="color:#FFB4B4">Live chat could not connect right now. Please message us on WhatsApp instead.</div>`+waLink('Hello Loyalty ICT, I need help.');
+  h+=CS.msgs.map(m=>m.from==='staff'?`<div class="ly-who">${E(m.by||'Loyalty team')}</div><div class="ly-m bot">${E(m.text).replace(/\n/g,'<br>')}</div>`:`<div class="ly-m me">${E(m.text)}</div>`).join('');
+  box.innerHTML=h; scrollEnd();
+}
+function liveSub(){
+  if(CS.unsub||!fb()) return; const F=fb();
+  try{
+    CS.unsub=F.onSnapshot(F.query(F.collection(F.fdb,'chats',CID,'messages'),F.orderBy('t')),s=>{
+      const prev=CS.msgs.length; CS.msgs=s.docs.map(d=>d.data()); CS.err=false;
+      const add=CS.msgs.slice(prev).filter(m=>m.from==='staff').length;
+      if(prev&&add&&(!CS.open||CS.tab!=='live')){ CS.unread+=add; badge(); }
+      if(CS.tab==='live') { drawLive(); if(CS.open) markRead(); }
+    },()=>{ CS.err=true; CS.unsub=null; if(CS.tab==='live') drawLive(); });
+  }catch(e){ CS.err=true; }
+}
+function markRead(){}
+async function liveSend(){
+  const i=$('#ly-input'); if(!i||!i.value.trim()) return; const text=i.value.trim(); i.value='';
+  const F=fb(); if(!F){ CS.err=true; drawLive(); return; }
+  const u=me(), name=liveName(), now=Date.now();
+  CS.msgs.push({from:'customer',text,t:now}); drawLive();
+  try{
+    await F.setDoc(F.doc(F.fdb,'chats',CID),{name,phone:ls.g(PH_KEY)||(u&&u.phone)||'',uid:(u&&u.uid)||'',email:(u&&u.email)||'',last:text,updated:now,unread:true},{merge:true});
+    await F.addDoc(F.collection(F.fdb,'chats',CID,'messages'),{from:'customer',text,t:now,by:name});
+  }catch(e){ console.warn('chat send',e); CS.err=true; drawLive(); }
+}
+
+/* ---------------------------------------------------------------- housekeeping */
+let q=false;
+function tidy(){ if(q) return; q=true; requestAnimationFrame(()=>{ q=false;
+  const reg=$('#au-pass2'); if(reg&&!$('#au-phone')){ const em=$('#au-email'); const f=em&&em.closest('.field'); if(f){ f.insertAdjacentHTML('afterend',phoneField()); } }
+  fixOtpNote(); wrapRegister(); hookAccount(); addClosers();
+}); }
+new MutationObserver(tidy).observe(D.body,{childList:true,subtree:true});
+function boot(){
+  mountWidget(); watchOtp(); tidy();
+  try{ fb().onAuthStateChanged(fb().auth,u=>{ if(u){ savePendingPhone(u.uid); } }); }catch(e){}
+  setTimeout(tidy,800); setTimeout(tidy,2000);
+}
+if(D.readyState==='complete') setTimeout(boot,300); else W.addEventListener('load',()=>setTimeout(boot,300));
+})();
+
+</script>
 </body>
 </html>
